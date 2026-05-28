@@ -36,6 +36,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function comments()
+    {
+        return $this->hasMany(TaskComment::class)->latest();
+    }
+
     // ── 状态 ──────────────────────────────────────────
 
     public function getStatusLabelAttribute(): string

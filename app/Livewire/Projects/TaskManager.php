@@ -4,6 +4,7 @@ namespace App\Livewire\Projects;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskComment;
 use App\Models\User;
 use App\Services\NotificationService;
 use Livewire\Component;
@@ -20,6 +21,40 @@ class TaskManager extends Component
     public int|string $taskAssignedTo = '';
     public string $taskPriority = 'normal';
     public string $taskDueDate = '';
+
+    // 评论
+    public string $newComment = '';
+    public ?int $commentTaskId = null; // 当前展开评论的任务 ID
+
+    public function addComment(int $taskId): void
+    {
+        if (empty(trim($this->newComment))) return;
+
+        $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
+        TaskComment::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'content' => trim($this->newComment),
+        ]);
+
+        // 评论可以算作对任务的一次确认（如果还在待确认状态且评论人是被分配人）
+        if ($task->status === 'pending_confirmation' && $task->assigned_to == auth()->id()) {
+            $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
+        }
+
+        $this->newComment = '';
+        $this->commentTaskId = $taskId; // 保持评论展开
+        $this->project->load('tasks.comments.user');
+    }
+
+    public function toggleComments(int $taskId): void
+    {
+        $this->commentTaskId = $this->commentTaskId === $taskId ? null : $taskId;
+        $this->newComment = '';
+        if ($this->commentTaskId) {
+            $this->project->load('tasks.comments.user');
+        }
+    }
 
     protected function rules(): array
     {
@@ -160,7 +195,12 @@ class TaskManager extends Component
 
     public function render()
     {
-        $tasks = $this->project->tasks()->with('assignee')->orderByRaw(
+        $with = ['assignee'];
+        if ($this->commentTaskId) {
+            $with[] = 'comments.user';
+        }
+
+        $tasks = $this->project->tasks()->with($with)->orderByRaw(
             "CASE status WHEN 'pending_confirmation' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END"
         )->orderBy('created_at', 'desc')->get();
 

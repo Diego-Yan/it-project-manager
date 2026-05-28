@@ -166,7 +166,57 @@
                     </svg>
                 </button>
                 @endif
+
+                {{-- 评论按钮 --}}
+                @php $commentCount = $task->comments()->count(); @endphp
+                <button wire:click="toggleComments({{ $task->id }})"
+                    class="p-1.5 rounded text-zinc-400 hover:text-sky-500 transition-colors relative">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                    </svg>
+                    @if($commentCount > 0)
+                    <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-3.5 px-0.5 rounded-full bg-sky-500 text-white text-[10px] font-bold">{{ $commentCount }}</span>
+                    @endif
+                </button>
             </div>
+
+            {{-- 评论区 --}}
+            @if($commentTaskId === $task->id)
+            <div class="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                {{-- 已有评论 --}}
+                @if($task->comments->isNotEmpty())
+                <div class="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                    @foreach($task->comments as $comment)
+                    <div class="flex gap-2">
+                        <div class="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-semibold text-zinc-500 shrink-0">
+                            {{ mb_substr($comment->user->name, 0, 1) }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-medium text-zinc-700 dark:text-zinc-300">{{ $comment->user->name }}</span>
+                                <span class="text-xs text-zinc-400">{{ $comment->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="text-sm text-zinc-800 dark:text-zinc-200 mt-0.5">{{ $comment->content }}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-xs text-zinc-400 mb-3">暂无评论</p>
+                @endif
+
+                {{-- 评论输入 --}}
+                <div class="flex gap-2">
+                    <input type="text" wire:model="newComment" placeholder="添加评论..."
+                        wire:keydown.enter="addComment({{ $task->id }})"
+                        class="flex-1 px-3 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500">
+                    <button wire:click="addComment({{ $task->id }})"
+                        class="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-500 rounded-lg transition-colors shrink-0">
+                        发送
+                    </button>
+                </div>
+            </div>
+            @endif
         </div>
         @endforeach
     </div>
