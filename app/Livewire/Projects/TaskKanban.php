@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Livewire\Projects;
+
+use App\Models\Project;
+use App\Models\Task;
+use Livewire\Component;
+
+class TaskKanban extends Component
+{
+    public Project $project;
+
+    protected $listeners = ['task-updated' => '$refresh'];
+
+    public function mount(Project $project): void
+    {
+        $this->project = $project;
+    }
+
+    public function moveTask(int $taskId, string $newStatus): void
+    {
+        $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
+        $user = auth()->user();
+
+        // 只有被分配人或项目负责人可以移动
+        $isAssignee = (int)$task->assigned_to === $user->id;
+        $canManage = $user->can('view all projects')
+            || (int)$this->project->created_by === $user->id
+            || $this->project->isLead($user->id);
+
+        if (!$isAssignee && !$canManage) {
+            session()->flash('task_error', '只有任务分配人和项目负责人可以移动任务。');
+            return;
+        }
+
+        $task->update(['status' => $newStatus]);
+
+        if ($newStatus === 'completed') {
+            $task->update(['completed_at' => now()]);
+        }
+        if ($newStatus === 'in_progress' && !$task->confirmed_at) {
+            $task->update(['confirmed_at' => now()]);
+        }
+
+        $this->project->load('tasks.assignee');
+    }
+
+    public function render()
+    {
+        $tasks = $this->project->tasks()->with('assignee')->get();
+
+        $columns = [
+            ['key' => 'pending_confirmation', 'label' => '待确认', 'color' => 'amber'],
+            ['key' => 'in_progress',          'label' => '进行中', 'color' => 'sky'],
+            ['key' => 'completed',            'label' => '已完成', 'color' => 'green'],
+        ];
+
+        return view('livewire.projects.task-kanban', compact('tasks', 'columns'));
+    }
+}

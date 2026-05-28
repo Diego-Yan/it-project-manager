@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', ProjectList::class)->name('index');
         Route::get('/create', ProjectForm::class)->name('create')->middleware('can:create projects');
         Route::get('/{project}', ProjectDetail::class)->name('show');
+        Route::get('/{project}/kanban', \App\Livewire\Projects\TaskKanban::class)->name('kanban');
         Route::get('/{project}/edit', ProjectForm::class)->name('edit')->middleware('can:edit projects');
     });
 
