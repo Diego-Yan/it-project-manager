@@ -23,6 +23,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
+    // 个人视图
+    Route::get('/my/projects', \App\Livewire\MyProjects::class)->name('my.projects');
+    Route::get('/my/tasks', \App\Livewire\MyTasks::class)->name('my.tasks');
+
     // 项目管理
     Route::prefix('projects')->name('projects.')->group(function () {
         Route::get('/', ProjectList::class)->name('index');

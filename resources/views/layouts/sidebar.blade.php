@@ -17,8 +17,8 @@
     {{-- 导航菜单 --}}
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
 
-        {{-- 主菜单 --}}
-        <p class="px-3 mb-1 text-xs font-semibold text-zinc-400 dark:text-zinc-600 uppercase tracking-wider">主菜单</p>
+        {{-- 个人工作台 --}}
+        <p class="px-3 mb-1 text-xs font-semibold text-zinc-400 dark:text-zinc-600 uppercase tracking-wider">工作台</p>
 
         <a href="{{ route('dashboard') }}"
             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
@@ -28,6 +28,31 @@
             </svg>
             <span>仪表盘</span>
         </a>
+
+        <a href="{{ route('my.projects') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                {{ request()->routeIs('my.projects') ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400' : 'text-zinc-700 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white' }}">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
+            </svg>
+            <span>我的项目</span>
+        </a>
+
+        <a href="{{ route('my.tasks') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                {{ request()->routeIs('my.tasks') ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400' : 'text-zinc-700 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white' }}">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>我的任务</span>
+            @php $pendingCount = App\Models\Task::where('assigned_to', auth()->id())->where('status', 'pending_confirmation')->count(); @endphp
+            @if($pendingCount > 0)
+            <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">{{ $pendingCount }}</span>
+            @endif
+        </a>
+
+        {{-- 主菜单 --}}
+        <p class="px-3 mt-4 mb-1 text-xs font-semibold text-zinc-400 dark:text-zinc-600 uppercase tracking-wider">主菜单</p>
 
         <a href="{{ route('projects.index') }}"
             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
