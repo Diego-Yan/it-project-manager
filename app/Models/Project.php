@@ -144,6 +144,11 @@ class Project extends Model
         return $link?->target;
     }
 
+    public function webhooks()
+    {
+        return $this->hasMany(WebhookConfig::class);
+    }
+
     public function attachments()
     {
         return $this->hasMany(ProjectAttachment::class);

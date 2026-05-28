@@ -5,6 +5,7 @@ namespace App\Livewire\Projects;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\NotificationService;
 use Livewire\Component;
 
 class TaskManager extends Component
@@ -70,6 +71,10 @@ class TaskManager extends Component
             if ($task->assigned_to == auth()->id()) {
                 $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
             }
+            // 通知被分配人
+            if ($task->assigned_to && $task->assigned_to != auth()->id()) {
+                try { NotificationService::taskAssigned($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) {}
+            }
             session()->flash('task_success', '任务已创建。');
         }
 
@@ -82,6 +87,7 @@ class TaskManager extends Component
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
         if ($task->assigned_to == auth()->id() && $task->status === 'pending_confirmation') {
             $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
+            try { NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
     }
 
@@ -109,6 +115,7 @@ class TaskManager extends Component
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
         if ($task->assigned_to == auth()->id() && $task->status === 'in_progress') {
             $task->update(['status' => 'completed', 'completed_at' => now()]);
+            try { NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
     }
 

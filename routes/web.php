@@ -44,6 +44,9 @@ Route::middleware(['auth'])->group(function () {
     // AD 域配置
     Route::get('/admin/ad-settings', AdSettingsManager::class)->name('admin.ad-settings')->middleware('can:view users');
 
+    // Webhook 通知配置
+    Route::get('/admin/webhooks', \App\Livewire\Admin\WebhookManager::class)->name('admin.webhooks')->middleware('can:manage roles');
+
     // 角色管理
     Route::get('/admin/roles', RoleManager::class)->name('admin.roles')->middleware('can:manage roles');
 });
