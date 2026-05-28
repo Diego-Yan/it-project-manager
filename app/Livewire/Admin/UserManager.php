@@ -198,7 +198,7 @@ class UserManager extends Component
                 $data = [
                     'name'       => $this->formName,
                     'username'   => $this->formUsername,
-                    'email'      => $this->formEmail,
+                    'email'      => $this->formEmail ?: null,
                     'department' => $this->formDepartment,
                     'phone'      => $this->formPhone,
                     'is_active'  => $this->formIsActive,
@@ -253,7 +253,7 @@ class UserManager extends Component
             $user = User::create([
                 'name'             => $this->formName,
                 'username'         => $this->formUsername,
-                'email'            => $this->formEmail,
+                'email'            => $this->formEmail ?: null,
                 'password'         => Hash::make($this->formPassword),
                 'department'       => $this->formDepartment,
                 'phone'            => $this->formPhone,
@@ -275,7 +275,12 @@ class UserManager extends Component
     // ── 切换用户状态 ───────────────────────────────────
     public function toggleActive(int $userId): void
     {
+        if (!auth()->user()->can('edit users')) abort(403);
         $user = User::findOrFail($userId);
+        if ($user->id === auth()->id()) {
+            session()->flash('error', '不能禁用自己。');
+            return;
+        }
         $user->is_active = !$user->is_active;
         $user->save();
         session()->flash('success', $user->is_active ? '用户已启用。' : '用户已禁用。');
@@ -290,6 +295,8 @@ class UserManager extends Component
 
     public function deleteUser(): void
     {
+        if (!auth()->user()->can('delete users')) abort(403);
+
         $user = User::find($this->deletingUserId);
 
         if ($user) {
