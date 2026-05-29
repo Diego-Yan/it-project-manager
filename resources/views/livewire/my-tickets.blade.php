@@ -57,6 +57,7 @@
                     </div>
                     <div class="text-xs text-zinc-500">
                         状态: {{ $ticket->statusLabel }}
+                        @if($ticket->region)<span>· 📍{{ $ticket->region->name }}</span>@endif
                         @if($ticket->assignee)<span>· {{ $ticket->assignee->name }}</span>@endif
                         @if($ticket->asset)<span>· {{ $ticket->asset->name }}</span>@endif
                         <span>· {{ $ticket->sourceLabel }}</span>

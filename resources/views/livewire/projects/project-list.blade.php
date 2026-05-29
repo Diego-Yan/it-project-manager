@@ -109,6 +109,7 @@
                 <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium {{ $project->category->colorClass }}">
                     {{ $project->category->name }}
                 </span>
+                @if($project->region)<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-zinc-500 ml-1">{{ $project->region->name }}</span>@endif
             </div>
             <div class="col-span-1">
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-{{ $uColor }}-100 dark:bg-{{ $uColor }}-950/40 text-{{ $uColor }}-700 dark:text-{{ $uColor }}-400">
@@ -195,6 +196,7 @@
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $project->category->colorClass }}">
                     {{ $project->category->name }}
                 </span>
+                @if($project->region)<span class="text-xs text-zinc-500">📍{{ $project->region->name }}</span>@endif
                 <span class="text-zinc-300">|</span>
                 @if($project->end_date)
                 <span class="{{ $isOverdue ? 'text-red-500 font-medium' : 'text-zinc-500' }}">

@@ -38,6 +38,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1.5">
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $project->category->colorClass }}">{{ $project->category->name }}</span>
+                        @if($project->region)<span class="text-xs text-zinc-500">📍{{ $project->region->name }}</span>@endif
                         <span class="text-xs text-zinc-400">{{ $project->typeLabel }}</span>
                         @if($project->isOverdue())
                         <span class="text-xs text-red-500 font-medium">已逾期</span>

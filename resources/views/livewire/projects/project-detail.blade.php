@@ -20,6 +20,11 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium {{ $project->category->colorClass }}">
                                 {{ $project->category->name }}
                             </span>
+                            @if($project->region)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                                📍 {{ $project->region->name }}
+                            </span>
+                            @endif
                             <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-{{ $project->typeColor }}-100 dark:bg-{{ $project->typeColor }}-950/40 text-{{ $project->typeColor }}-700 dark:text-{{ $project->typeColor }}-400">
                                 {{ $project->typeLabel }}
                             </span>
