@@ -3,6 +3,7 @@
 namespace App\Livewire\Itsm;
 
 use App\Models\Asset;
+use App\Models\ConsumableCatalog;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,16 +18,63 @@ class AssetManager extends Component
     public int $formQuantity = 1;
     public string $formPurchaseDate = '', $formWarrantyExpiry = '';
 
-    protected $rules = ['formName'=>'required|max:100','formAssetTag'=>'required|unique:assets,asset_tag'];
+    // 损耗品目录管理
+    public bool $showCatalog = false;
+    public string $catalogName = '', $catalogBrand = '', $catalogUnit = '个';
+
+    protected $rules = ['formName'=>'required|max:100'];
 
     public function save(): void
     {
-        $rules = $this->editingId ? ['formName'=>'required','formAssetTag'=>'required|unique:assets,asset_tag,'.$this->editingId] : $this->rules;
+        $rules = ['formName'=>'required|max:100'];
+        if ($this->formCategory !== 'consumable') {
+            $tagRule = $this->editingId ? 'required|unique:assets,asset_tag,'.$this->editingId : 'required|unique:assets,asset_tag';
+            $rules['formAssetTag'] = $tagRule;
+        }
         $this->validate($rules);
-        $data = ['asset_tag'=>$this->formAssetTag,'name'=>$this->formName,'type'=>$this->formType, 'category'=>$this->formCategory,'brand'=>$this->formBrand?:null,'model'=>$this->formModel?:null,'serial_number'=>$this->formSerial?:null,'status'=>$this->formStatus,'quantity'=>$this->formCategory==='consumable' ? max(1, (int)$this->formQuantity) : 1,'assigned_to'=>$this->formAssignedTo?:null,'location'=>$this->formLocation?:null,'department'=>$this->formDept?:null,'notes'=>$this->formNotes?:null,'purchase_date'=>$this->formPurchaseDate?:null,'warranty_expiry'=>$this->formWarrantyExpiry?:null];
+
+        $data = [
+            'name' => $this->formName,
+            'type' => $this->formCategory === 'consumable' ? 'other' : $this->formType,
+            'category' => $this->formCategory,
+            'brand' => $this->formBrand ?: null,
+            'model' => $this->formCategory !== 'consumable' ? ($this->formModel ?: null) : null,
+            'serial_number' => $this->formCategory === 'fixed' ? ($this->formSerial ?: null) : null,
+            'status' => $this->formCategory === 'consumable' ? 'in_use' : $this->formStatus,
+            'quantity' => $this->formCategory === 'consumable' ? max(1, (int)$this->formQuantity) : 1,
+            'assigned_to' => $this->formCategory !== 'consumable' ? ($this->formAssignedTo ?: null) : null,
+            'location' => $this->formCategory !== 'consumable' ? ($this->formLocation ?: null) : null,
+            'department' => $this->formDept ?: null,
+            'notes' => $this->formNotes ?: null,
+            'purchase_date' => $this->formCategory !== 'consumable' ? ($this->formPurchaseDate ?: null) : null,
+            'warranty_expiry' => $this->formCategory !== 'consumable' ? ($this->formWarrantyExpiry ?: null) : null,
+        ];
+
+        // 损耗品自动生成资产编号
+        if ($this->formCategory === 'consumable') {
+            $count = Asset::where('category', 'consumable')->count() + 1;
+            $data['asset_tag'] = 'CON-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        } else {
+            $data['asset_tag'] = $this->formAssetTag;
+        }
+
         if ($this->editingId) { Asset::findOrFail($this->editingId)->update($data); }
         else { Asset::create($data); }
         $this->resetForm();
+    }
+
+    // ── 损耗品目录管理 ──────────────────────────────────
+
+    public function addCatalogItem(): void
+    {
+        if (empty(trim($this->catalogName))) return;
+        ConsumableCatalog::create(['name'=>trim($this->catalogName), 'brand'=>$this->catalogBrand?:null, 'unit'=>$this->catalogUnit]);
+        $this->catalogName = ''; $this->catalogBrand = ''; $this->catalogUnit = '个';
+    }
+
+    public function deleteCatalogItem(int $id): void
+    {
+        if (auth()->user()->can('manage assets')) ConsumableCatalog::findOrFail($id)->delete();
     }
 
     public function edit(int $id): void
@@ -38,13 +86,14 @@ class AssetManager extends Component
     }
 
     public function delete(int $id): void { if (!auth()->user()->can("manage assets")) return; Asset::findOrFail($id)->delete(); }
-    public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formAssetTag','formName','formType','formBrand','formModel','formSerial','formStatus','formLocation','formDept','formNotes','formAssignedTo','formPurchaseDate','formWarrantyExpiry']); $this->formType='other'; $this->formCategory='fixed'; $this->formStatus='in_use'; }
+    public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formAssetTag','formName','formType','formBrand','formModel','formSerial','formStatus','formLocation','formDept','formNotes','formAssignedTo','formPurchaseDate','formWarrantyExpiry','formQuantity']); $this->formType='other'; $this->formCategory='fixed'; $this->formStatus='in_use'; $this->formQuantity=1; }
 
     public function render()
     {
         $assets = Asset::with('assignee')->latest()->paginate(20);
         $users = User::where('is_active',true)->orderBy('name')->get(['id','name']);
-        return view('livewire.itsm.assets', compact('assets','users'))
+        $catalog = ConsumableCatalog::where('is_active',true)->orderBy('name')->get();
+        return view('livewire.itsm.assets', compact('assets','users','catalog'))
             ->layout('layouts.app', ['title' => '资产管理']);
     }
 }
