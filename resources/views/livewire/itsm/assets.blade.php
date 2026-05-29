@@ -11,12 +11,16 @@
             <input wire:model="formAssetTag" placeholder="资产编号: IT-2024-0001*" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <input wire:model="formName" placeholder="设备名称*" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <select wire:model="formType" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="laptop">💻 笔记本</option><option value="desktop">🖥️ 台式机</option><option value="printer">🖨️ 打印机</option><option value="switch">🌐 交换机</option><option value="server">🗄️ 服务器</option><option value="monitor">🖥️ 显示器</option><option value="software">💿 软件</option><option value="other">📦 其他</option></select>
-            <select wire:model="formCategory" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="fixed">固定资产</option><option value="non_fixed">非固定资产</option><option value="consumable">损耗品</option></select>
+            <select wire:model.live="formCategory" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="fixed">固定资产</option><option value="non_fixed">非固定资产</option><option value="consumable">损耗品</option></select>
             <input wire:model="formBrand" placeholder="品牌" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            @if($formCategory === 'consumable')
-            <input type="number" wire:model="formQuantity" min="1" placeholder="库存数量" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            @endif
-            <input wire:model="formModel" placeholder="型号" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <div>
+                <label class="text-xs text-zinc-500">{{ $formCategory === 'consumable' ? '库存数量' : '型号' }}</label>
+                @if($formCategory === 'consumable')
+                <input type="number" wire:model="formQuantity" min="1" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                @else
+                <input wire:model="formModel" placeholder="型号" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                @endif
+            </div>
             <input wire:model="formSerial" placeholder="序列号" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <select wire:model="formStatus" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="in_use">使用中</option><option value="available">空闲</option><option value="repair">维修中</option><option value="retired">已报废</option></select>
             <select wire:model="formAssignedTo" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">使用人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
