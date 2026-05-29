@@ -29,6 +29,12 @@
 
         <x-sidebar-link route="my.projects" icon='M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z'>我的项目</x-sidebar-link>
 
+        <x-sidebar-link route="my.assets" icon='M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9'>
+            我的资产
+            @php $wsc = App\Models\Asset::where('assigned_to', auth()->id())->whereNotNull('warranty_expiry')->where('warranty_expiry', '<=', now()->addDays(30))->where('status', '!=', 'retired')->count(); @endphp
+            @if($wsc > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">{{ $wsc }}</span>@endif
+        </x-sidebar-link>
+
         {{-- ═══ 项目管理 ═══ --}}
         <p class="px-3 mt-5 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">项目管理</p>
         <x-sidebar-link route="projects.index" icon='M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z'>全部项目</x-sidebar-link>
