@@ -5,7 +5,7 @@
         <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
         </div>
-        <div class="min-w-0"><p class="text-sm font-semibold text-zinc-900 dark:text-white truncate">IT 运营管理</p><p class="text-xs text-zinc-500 truncate">ITSM Platform</p></div>
+        <div class="min-w-0"><p class="text-sm font-semibold text-zinc-900 dark:text-white truncate">IT 服务管理</p><p class="text-xs text-zinc-500 truncate">IT Service Management</p></div>
     </div>
 
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">

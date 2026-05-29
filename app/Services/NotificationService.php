@@ -118,7 +118,7 @@ class NotificationService
         $lines[] = '';
         $lines[] = '---';
         $lines[] = '📅 ' . ($p['timestamp'] ?? now()->toDateTimeString());
-        $lines[] = '🤖 IT项目管理系统';
+        $lines[] = '🤖 IT服务管理系统';
 
         return implode("\n", $lines);
     }

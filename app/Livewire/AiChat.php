@@ -57,7 +57,7 @@ class AiChat extends Component
         // 构建用户上下文
         $context = $this->buildContext();
 
-        $systemPrompt = "你是 IT 运营管理系统的 AI 助手。你可以用中文回答用户关于他们工单、任务、项目、资产的问题。\n"
+        $systemPrompt = "你是 IT 服务管理系统的 AI 助手。你可以用中文回答用户关于他们工单、任务、项目、资产的问题。\n"
             . "以下是当前用户的信息，请基于这些数据回答问题。如果用户问的问题跟这些数据无关，简要说明你只能回答 IT 相关的问题。\n\n"
             . $context;
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - IT日常项目管理系统</title>
+    <title>登录 - IT服务管理</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -186,8 +186,8 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <h1>IT日常项目管理系统</h1>
-            <p>V1.3 - 企业内网管理平台</p>
+            <h1>IT服务管理</h1>
+            <p>V1.3 - 企业IT服务管理平台</p>
         </div>
 
         <div class="login-body">
@@ -263,7 +263,7 @@
         </div>
     </div>
 
-    <div class="version-badge">IT Ops PM v1.2.1</div>
+    <div class="version-badge">ITSM v1.2.1</div>
 
     <script>
         function switchTab(mode) {
