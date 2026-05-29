@@ -3,6 +3,7 @@
 
     @if(session('success'))<div class="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm">{{ session('success') }}</div>@endif
     @if($testResult)<div class="p-3 bg-sky-50 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-800 rounded-xl text-sky-700 dark:text-sky-400 text-sm">{{ $testResult }}</div>@endif
+    @if($syncResult)<div class="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm">{{ $syncResult }}</div>@endif
 
     {{-- 企微 API 凭证 --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
@@ -15,9 +16,11 @@
             <div><label class="text-xs font-medium text-zinc-500">Corp ID（企业ID）</label><input wire:model="wechatCorpId" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
             <div><label class="text-xs font-medium text-zinc-500">Corp Secret（应用密钥）</label><input wire:model="wechatCorpSecret" type="password" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
         </div>
-        <div class="flex gap-2 mt-3">
+        <div class="flex items-center gap-2 mt-3">
             <button wire:click="saveWechat" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button>
             <button wire:click="testWechat" class="px-4 py-2 text-sm text-sky-600 border border-sky-300 rounded-xl">测试连接</button>
+            <button wire:click="syncWechatUsers" class="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-xl">同步通讯录</button>
+            @if($wechatUserCount > 0)<span class="text-sm text-green-600 ml-2">已同步 {{ $wechatUserCount }} 人</span>@endif
         </div>
     </div>
 
@@ -32,9 +35,11 @@
             <div><label class="text-xs font-medium text-zinc-500">App Key（应用Key）</label><input wire:model="dingtalkAppKey" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
             <div><label class="text-xs font-medium text-zinc-500">App Secret（应用密钥）</label><input wire:model="dingtalkAppSecret" type="password" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
         </div>
-        <div class="flex gap-2 mt-3">
+        <div class="flex items-center gap-2 mt-3">
             <button wire:click="saveDingtalk" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button>
             <button wire:click="testDingtalk" class="px-4 py-2 text-sm text-sky-600 border border-sky-300 rounded-xl">测试连接</button>
+            <button wire:click="syncDingtalkUsers" class="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-xl">同步通讯录</button>
+            @if($dingtalkUserCount > 0)<span class="text-sm text-green-600 ml-2">已同步 {{ $dingtalkUserCount }} 人</span>@endif
         </div>
     </div>
 
