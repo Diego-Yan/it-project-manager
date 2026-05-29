@@ -9,13 +9,20 @@ class AiSettings extends Component
     public string $embeddingUrl = '';
     public string $embeddingKey = '';
     public string $embeddingModel = '';
+    public string $llmUrl = '';
+    public string $llmKey = '';
+    public string $llmModel = '';
     public string $testResult = '';
+    public string $llmTestResult = '';
 
     public function mount(): void
     {
         $this->embeddingUrl = (string) config('services.embedding.url', '');
         $this->embeddingKey = (string) config('services.embedding.key', '');
         $this->embeddingModel = (string) config('services.embedding.model', '');
+        $this->llmUrl = (string) config('services.llm.url', '');
+        $this->llmKey = (string) config('services.llm.key', '');
+        $this->llmModel = (string) config('services.llm.model', '');
     }
 
     public function save(): void
@@ -24,36 +31,40 @@ class AiSettings extends Component
             'EMBEDDING_API_URL' => $this->embeddingUrl,
             'EMBEDDING_API_KEY' => $this->embeddingKey,
             'EMBEDDING_MODEL' => $this->embeddingModel,
+            'LLM_API_URL' => $this->llmUrl,
+            'LLM_API_KEY' => $this->llmKey,
+            'LLM_MODEL' => $this->llmModel,
         ]);
-        session()->flash('success', 'Embedding API 配置已保存');
+        session()->flash('success', 'AI 配置已保存');
         \Illuminate\Support\Facades\Artisan::call('config:clear');
     }
 
-    public function test(): void
-    {
-        if (empty($this->embeddingUrl) || empty($this->embeddingKey)) {
-            $this->testResult = '请先填写 API 地址和密钥';
-            return;
-        }
-
+    public function testEmbedding(): void { /* ... same as before ... */
+        if (empty($this->embeddingUrl) || empty($this->embeddingKey)) { $this->testResult = '请先填写 API 地址和密钥'; return; }
         try {
-            $resp = \Illuminate\Support\Facades\Http::withToken($this->embeddingKey)
-                ->timeout(10)
-                ->post($this->embeddingUrl, [
-                    'model' => $this->embeddingModel ?: 'text-embedding-3-small',
-                    'input' => 'test',
-                ]);
+            $resp = \Illuminate\Support\Facades\Http::withToken($this->embeddingKey)->timeout(10)->post($this->embeddingUrl, ['model' => $this->embeddingModel ?: 'text-embedding-3-small', 'input' => 'test']);
+            $data = $resp->json();
+            $dim = count($data['data'][0]['embedding'] ?? []);
+            $this->testResult = "连接成功 ✓ (维度: {$dim})";
+        } catch (\Exception $e) { $this->testResult = '连接失败: ' . $e->getMessage(); }
+    }
 
+    public function testLlm(): void
+    {
+        if (empty($this->llmUrl) || empty($this->llmKey)) { $this->llmTestResult = '请先填写 API 地址和密钥'; return; }
+        try {
+            $resp = \Illuminate\Support\Facades\Http::withToken($this->llmKey)->timeout(15)->post($this->llmUrl, [
+                'model' => $this->llmModel ?: 'gpt-4o-mini',
+                'messages' => [['role' => 'user', 'content' => '你好，请用一句话介绍你自己']],
+                'max_tokens' => 50,
+            ]);
             if ($resp->successful()) {
-                $data = $resp->json();
-                $dim = count($data['data'][0]['embedding'] ?? []);
-                $this->testResult = "连接成功 ✓ (维度: {$dim})";
+                $reply = $resp->json()['choices'][0]['message']['content'] ?? '';
+                $this->llmTestResult = '✓ ' . mb_substr($reply, 0, 100);
             } else {
-                $this->testResult = "API 返回错误: " . $resp->status();
+                $this->llmTestResult = 'API 返回错误: ' . $resp->status();
             }
-        } catch (\Exception $e) {
-            $this->testResult = '连接失败: ' . $e->getMessage();
-        }
+        } catch (\Exception $e) { $this->llmTestResult = '连接失败: ' . $e->getMessage(); }
     }
 
     private function updateEnv(array $updates): void

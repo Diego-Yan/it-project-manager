@@ -51,4 +51,10 @@ return [
         'model' => env('EMBEDDING_MODEL', ''),
     ],
 
+    'llm' => [
+        'url'   => env('LLM_API_URL', ''),
+        'key'   => env('LLM_API_KEY', ''),
+        'model' => env('LLM_MODEL', ''),
+    ],
+
 ];

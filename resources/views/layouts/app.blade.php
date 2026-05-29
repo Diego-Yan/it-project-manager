@@ -102,5 +102,6 @@
 </div>
 
 @fluxScripts
+@livewire(\App\Livewire\AiChat::class)
 </body>
 </html>
