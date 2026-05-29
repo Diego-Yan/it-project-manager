@@ -45,4 +45,10 @@ return [
         'app_secret' => env('DINGTALK_APP_SECRET', ''),
     ],
 
+    'embedding' => [
+        'url'   => env('EMBEDDING_API_URL', ''),
+        'key'   => env('EMBEDDING_API_KEY', ''),
+        'model' => env('EMBEDDING_MODEL', ''),
+    ],
+
 ];

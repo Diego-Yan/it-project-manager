@@ -71,5 +71,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/webhooks', \App\Livewire\Admin\WebhookManager::class)->name('admin.webhooks')->middleware('can:manage roles');
 
     // 角色管理
+    // AI 配置
+    Route::get('/admin/ai', \App\Livewire\Admin\AiSettings::class)->name('admin.ai')->middleware('can:manage roles');
+
+    // 角色管理
     Route::get('/admin/roles', RoleManager::class)->name('admin.roles')->middleware('can:manage roles');
 });
