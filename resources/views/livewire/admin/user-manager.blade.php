@@ -55,8 +55,8 @@
     </div>
 
     {{-- 用户列表 --}}
-    <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-        <table class="w-full text-sm">
+    <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden overflow-x-auto">
+        <table class="w-full text-sm min-w-[700px]">
             <thead>
                 <tr class="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
                     <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">用户</th>

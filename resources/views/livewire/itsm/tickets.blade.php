@@ -53,24 +53,26 @@
                     <span>· {{ $ticket->created_at->diffForHumans() }}</span>
 
                     {{-- 操作按钮 --}}
+                    <div class="flex items-center gap-1.5 flex-wrap mt-1 sm:mt-0">
                     @if($ticket->status === 'open')
-                    <button wire:click="assign({{ $ticket->id }})" class="text-sky-600 hover:underline ml-2">接单</button>
+                    <button wire:click="assign({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-500 rounded-lg min-w-[44px]">接单</button>
                     @can('manage tickets')
-                    <select wire:model="assignToUserId" class="ml-2 text-xs border rounded px-2 py-0.5 dark:bg-zinc-800 dark:border-zinc-700">
+                    <select wire:model="assignToUserId" class="text-xs border rounded-lg px-2 py-1.5 dark:bg-zinc-800 dark:border-zinc-700 min-w-[80px]">
                         <option value="">分配...</option>
                         @foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach
                     </select>
-                    <button wire:click="assignTo({{ $ticket->id }})" class="text-xs text-sky-600 hover:underline">分配</button>
+                    <button wire:click="assignTo({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-lg">分配</button>
                     @endcan
                     @endif
                     @if($ticket->status === 'in_progress' && $ticket->assigned_to === auth()->id())
-                    <button wire:click="resolve({{ $ticket->id }})" class="text-green-600 hover:underline ml-2">解决</button>
+                    <button wire:click="resolve({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-500 rounded-lg min-w-[44px]">解决</button>
                     @endif
                     @if($ticket->status === 'resolved')
-                    <button wire:click="close({{ $ticket->id }})" class="text-zinc-600 hover:underline ml-2">关闭</button>
+                    <button wire:click="close({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-zinc-700 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg min-w-[44px]">关闭</button>
                     @endif
-                    <button wire:click="toggleView({{ $ticket->id }})" class="text-zinc-400 hover:text-sky-500 ml-1">详情</button>
-                    <button wire:click="edit({{ $ticket->id }})" class="text-zinc-400 hover:text-sky-500 ml-1">编辑</button>
+                    <button wire:click="toggleView({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg min-w-[36px]">详情</button>
+                    <button wire:click="edit({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg min-w-[36px]">编辑</button>
+                    </div>
                 </div>
 
                 {{-- 详情展开 --}}
