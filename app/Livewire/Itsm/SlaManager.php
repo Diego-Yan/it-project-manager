@@ -30,7 +30,7 @@ class SlaManager extends Component
         $this->formIsActive=$s->is_active; $this->showForm=true;
     }
 
-    public function delete(int $id): void { Sla::findOrFail($id)->delete(); }
+    public function delete(int $id): void { if (!auth()->user()->can("view all projects")) return; Sla::findOrFail($id)->delete(); }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formName','formPriority','formResponse','formResolution']); $this->formPriority='medium'; $this->formResponse=30; $this->formResolution=240; $this->formIsActive=true; }
 
     public function render()

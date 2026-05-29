@@ -33,10 +33,3 @@ class Ticket extends Model
 
     public function isSlaBreached(): bool { return $this->sla_deadline && now()->gt($this->sla_deadline) && !in_array($this->status,['resolved','closed']); }
 }
-
-class TicketComment extends Model
-{
-    protected $fillable = ['ticket_id','user_id','content','time_spent','is_internal'];
-    protected function casts(): array { return ['is_internal'=>'boolean']; }
-    public function user() { return $this->belongsTo(User::class); }
-}

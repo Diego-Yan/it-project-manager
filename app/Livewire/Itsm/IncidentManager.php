@@ -37,6 +37,9 @@ class IncidentManager extends Component
 
     public function addTimeline(int $id, string $action): void
     {
+        $allowedActions = ['investigating', 'mitigated', 'resolved', 'commented'];
+        if (!in_array($action, $allowedActions)) return;
+
         IncidentTimeline::create(['incident_id'=>$id, 'user_id'=>auth()->id(), 'action'=>$action, 'description'=>$this->timelineNote, 'created_at'=>now()]);
         $statusMap = ['investigating'=>'investigating', 'mitigated'=>'mitigated', 'resolved'=>'resolved'];
         if (isset($statusMap[$action])) {

@@ -40,18 +40,22 @@ class TicketBoard extends Component
     public function assign(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
+        if ($ticket->status !== 'open') return;
         $ticket->update(['assigned_to'=>auth()->id(),'status'=>'in_progress']);
     }
 
     public function resolve(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
+        if ($ticket->status !== 'in_progress' || $ticket->assigned_to != auth()->id()) return;
         $ticket->update(['status'=>'resolved','resolved_by'=>auth()->id(),'resolved_at'=>now()]);
     }
 
     public function close(int $id): void
     {
-        Ticket::findOrFail($id)->update(['status'=>'closed','closed_at'=>now()]);
+        $ticket = Ticket::findOrFail($id);
+        if ($ticket->status !== 'resolved') return;
+        $ticket->update(['status'=>'closed','closed_at'=>now()]);
     }
 
     public function addComment(int $id): void
@@ -71,7 +75,12 @@ class TicketBoard extends Component
     }
 
     public function toggleView(int $id): void { $this->viewTicketId = $this->viewTicketId === $id ? null : $id; }
-    public function delete(int $id): void { Ticket::findOrFail($id)->delete(); }
+    public function delete(int $id): void
+    {
+        $ticket = Ticket::findOrFail($id);
+        if ($ticket->created_by != auth()->id() && !auth()->user()->can('view all projects')) return;
+        $ticket->delete();
+    }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formAssetId','formAssignedTo']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; }
 
     public function render()

@@ -20,7 +20,6 @@ class User extends Authenticatable
         'ad_authenticated', 'ad_last_sync_at',
         // 企微/钉钉
         'wechat_userid', 'dingtalk_userid',
-        'password',
     ];
 
     protected $hidden = ['password', 'remember_token'];
