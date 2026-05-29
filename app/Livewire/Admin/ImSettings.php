@@ -7,7 +7,7 @@ use App\Services\DingTalkService;
 use App\Services\WechatWorkService;
 use Livewire\Component;
 
-class BotSettings extends Component
+class ImSettings extends Component
 {
     public string $wechatCorpId = '';
     public string $wechatCorpSecret = '';
@@ -194,7 +194,7 @@ class BotSettings extends Component
         $wechatUrl = url('/api/bot/wechat');
         $dingtalkUrl = url('/api/bot/dingtalk');
 
-        return view('livewire.admin.bot-settings', compact('wechatUrl', 'dingtalkUrl'))
-            ->layout('layouts.app', ['title' => 'Bot 配置']);
+        return view('livewire.admin.im-settings', compact('wechatUrl', 'dingtalkUrl'))
+            ->layout('layouts.app', ['title' => 'IM 接入']);
     }
 }

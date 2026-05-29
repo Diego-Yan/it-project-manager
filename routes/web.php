@@ -62,8 +62,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/slas', \App\Livewire\Itsm\SlaManager::class)->name('slas');
     });
 
-    // Bot 接入配置
-    Route::get('/admin/bot', \App\Livewire\Admin\BotSettings::class)->name('admin.bot')->middleware('can:manage roles');
+    // IM 接入配置
+    Route::get('/admin/im', \App\Livewire\Admin\ImSettings::class)->name('admin.im')->middleware('can:manage roles');
 
     // Webhook 通知配置
     Route::get('/admin/webhooks', \App\Livewire\Admin\WebhookManager::class)->name('admin.webhooks')->middleware('can:manage roles');
