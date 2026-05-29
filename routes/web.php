@@ -11,6 +11,12 @@ use App\Livewire\Admin\RoleManager;
 use App\Livewire\Categories\CategoryManager;
 use Illuminate\Support\Facades\Route;
 
+// ── 机器人回调（无需登录，无需 CSRF） ──────────────────
+Route::post('/api/bot/wechat', [\App\Http\Controllers\Api\BotController::class, 'wechat'])
+    ->withoutMiddleware(['web', 'auth']);
+Route::post('/api/bot/dingtalk', [\App\Http\Controllers\Api\BotController::class, 'dingtalk'])
+    ->withoutMiddleware(['web', 'auth']);
+
 // ── 认证路由 ──────────────────────────────────────────
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -55,6 +61,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/incidents', \App\Livewire\Itsm\IncidentManager::class)->name('incidents');
         Route::get('/slas', \App\Livewire\Itsm\SlaManager::class)->name('slas');
     });
+
+    // Bot 接入配置
+    Route::get('/admin/bot', \App\Livewire\Admin\BotSettings::class)->name('admin.bot')->middleware('can:manage roles');
 
     // Webhook 通知配置
     Route::get('/admin/webhooks', \App\Livewire\Admin\WebhookManager::class)->name('admin.webhooks')->middleware('can:manage roles');
