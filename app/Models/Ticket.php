@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Ticket extends Model
 {
     protected $fillable = [
-        'project_id','asset_id','title','description','type','priority',
+        'project_id','region_id','asset_id','title','description','type','priority',
         'status','source','assigned_to','created_by','resolved_by',
         'resolution','sla_deadline','resolved_at','closed_at',
     ];
@@ -18,6 +18,7 @@ class Ticket extends Model
     }
 
     public function project() { return $this->belongsTo(Project::class); }
+    public function region() { return $this->belongsTo(Region::class); }
     public function asset() { return $this->belongsTo(Asset::class); }
     public function assignee() { return $this->belongsTo(User::class,'assigned_to'); }
     public function creator() { return $this->belongsTo(User::class,'created_by'); }

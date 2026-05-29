@@ -10,7 +10,7 @@ class Project extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'category_id', 'created_by', 'owner_id',
+        'category_id', 'region_id', 'created_by', 'owner_id',
         'title', 'description', 'type', 'progress',
         'urgency', 'importance',
         'completion_percent', 'start_date', 'end_date',
@@ -30,6 +30,11 @@ class Project extends Model
     public function category()
     {
         return $this->belongsTo(ProjectCategory::class, 'category_id');
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
     }
 
     public function creator()

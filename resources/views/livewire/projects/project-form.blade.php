@@ -15,8 +15,8 @@
                 @error('title') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
             </div>
 
-            {{-- 分类 + 类型 --}}
-            <div class="grid sm:grid-cols-2 gap-4">
+            {{-- 分类 + 地区 + 类型 --}}
+            <div class="grid sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">项目分类 <span class="text-red-500">*</span></label>
                     <select wire:model="category_id"
@@ -39,6 +39,17 @@
                         @endif
                     </select>
                     @error('category_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">地区</label>
+                    <select wire:model="region_id"
+                        class="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-sky-500 transition-colors">
+                        <option value="">选择地区</option>
+                        @foreach($regions as $r)
+                        <option value="{{ $r->id }}">{{ $r->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div>

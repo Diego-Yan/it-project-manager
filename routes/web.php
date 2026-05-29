@@ -47,6 +47,9 @@ Route::middleware(['auth'])->group(function () {
     // 分类管理
     Route::get('/categories', CategoryManager::class)->name('categories.index')->middleware('can:view categories');
 
+    // 地区管理
+    Route::get('/admin/regions', \App\Livewire\Admin\RegionManager::class)->name('admin.regions')->middleware('can:view categories');
+
     // 用户管理
     Route::get('/admin/users', UserManager::class)->name('admin.users')->middleware('can:view users');
 

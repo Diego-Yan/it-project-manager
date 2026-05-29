@@ -17,6 +17,7 @@ class ProjectForm extends Component
     public string $title = '';
     public string $description = '';
     public int|string $category_id = '';
+    public int|string $region_id = '';
     public int|string $owner_id = '';
     public string $type = 'new';
     public string $progress = 'pending';
@@ -59,6 +60,7 @@ class ProjectForm extends Component
             'title'              => 'required|string|max:200',
             'description'        => 'nullable|string|max:2000',
             'category_id'        => 'required|exists:project_categories,id',
+            'region_id'          => 'nullable|exists:regions,id',
             'owner_id'           => 'nullable|exists:users,id',
             'type'               => 'required|in:new,improved,issue',
             'progress'           => 'required|in:pending,in_progress,paused,completed',
@@ -86,6 +88,7 @@ class ProjectForm extends Component
                 'title'              => $project->title,
                 'description'        => $project->description ?? '',
                 'category_id'        => $project->category_id,
+                'region_id'          => $project->region_id ?? '',
                 'owner_id'           => $project->owner_id ?? '',
                 'type'               => $project->type,
                 'progress'           => $project->progress,
@@ -107,6 +110,7 @@ class ProjectForm extends Component
             'title'              => $this->title,
             'description'        => $this->description ?: null,
             'category_id'        => $this->category_id,
+            'region_id'          => $this->region_id ?: null,
             'owner_id'           => $this->owner_id ?: null,
             'type'               => $this->type,
             'progress'           => $this->progress,
@@ -148,10 +152,11 @@ class ProjectForm extends Component
     public function render()
     {
         $categories = ProjectCategory::where('is_active', true)->orderBy('sort_order')->get();
+        $regions = \App\Models\Region::orderBy('sort_order')->get();
         $users = User::where('is_active', true)->orderBy('name')->get();
         $title = $this->isEdit ? '编辑项目' : '创建项目';
 
-        return view('livewire.projects.project-form', compact('categories', 'users'))
+        return view('livewire.projects.project-form', compact('categories', 'users', 'regions'))
             ->layout('layouts.app', ['title' => $title]);
     }
 }

@@ -39,6 +39,7 @@
         <p class="px-3 mt-5 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">项目管理</p>
         <x-sidebar-link route="projects.index" icon='M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z'>全部项目</x-sidebar-link>
         @can('view categories')<x-sidebar-link route="categories.index" icon='M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3zM6 6h.008v.008H6V6z'>项目分类</x-sidebar-link>@endcan
+        @can('view categories')<x-sidebar-link route="admin.regions" icon='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z'>地区管理</x-sidebar-link>@endcan
 
         {{-- ═══ ITSM 服务管理 （仅 IT 成员可见）═══ --}}
         @can('view all projects')

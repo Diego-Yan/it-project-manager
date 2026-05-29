@@ -4,6 +4,7 @@ namespace App\Livewire\Itsm;
 
 use App\Models\Asset;
 use App\Models\Project;
+use App\Models\Region;
 use App\Models\Sla;
 use App\Models\Ticket;
 use App\Models\TicketComment;
@@ -29,6 +30,7 @@ class TicketBoard extends Component
             'title'=>$this->formTitle,'description'=>$this->formDescription?:null,
             'type'=>$this->formType,'priority'=>$this->formPriority,'source'=>$this->formSource,
             'project_id'=>$this->formProjectId?:null,'asset_id'=>$this->formAssetId?:null,
+            'region_id'=>$this->formRegionId?:null,
             'assigned_to'=>$this->formAssignedTo?:null,'created_by'=>auth()->id(),
             'sla_deadline'=>Sla::getDeadline($this->formPriority),
         ];
@@ -87,11 +89,12 @@ class TicketBoard extends Component
     {
         $tickets = Ticket::with(['project','asset','assignee','creator'])->latest()->paginate(15);
         $projects = Project::orderBy('title')->get(['id','title']);
+        $regions = Region::orderBy('sort_order')->get();
         $assets = Asset::orderBy('name')->get(['id','name','asset_tag']);
         $users = User::where('is_active',true)->orderBy('name')->get(['id','name']);
         $viewTicket = $this->viewTicketId ? Ticket::with('comments.user')->find($this->viewTicketId) : null;
         $openCount = Ticket::whereIn('status',['open','in_progress'])->count();
-        return view('livewire.itsm.tickets', compact('tickets','projects','assets','users','viewTicket','openCount'))
+        return view('livewire.itsm.tickets', compact('tickets','projects','assets','users', 'regions','viewTicket','openCount'))
             ->layout('layouts.app', ['title' => '工单管理']);
     }
 }
