@@ -18,10 +18,10 @@ class TicketBoard extends Component
 
     public bool $showForm = false; public ?int $editingId = null;
     public string $formTitle = '', $formDescription = '', $formType = 'request', $formPriority = 'medium', $formSource = 'portal';
-    public int|string $formProjectId = '', $formAssetId = '', $formAssignedTo = '';
+    public int|string $formProjectId = '', $formRegionId = '', $formAssetId = '', $formAssignedTo = '';
     public string $newComment = ''; public ?int $viewTicketId = null;
 
-    protected $rules = ['formTitle'=>'required|max:200'];
+    protected $rules = ['formTitle'=>'required|max:200', 'formRegionId'=>'required|exists:regions,id'];
 
     public function save(): void
     {
@@ -72,7 +72,7 @@ class TicketBoard extends Component
         $t = Ticket::findOrFail($id);
         $this->editingId=$id; $this->formTitle=$t->title; $this->formDescription=$t->description??'';
         $this->formType=$t->type; $this->formPriority=$t->priority; $this->formSource=$t->source;
-        $this->formProjectId=$t->project_id??''; $this->formAssetId=$t->asset_id??''; $this->formAssignedTo=$t->assigned_to??'';
+        $this->formProjectId=$t->project_id??''; $this->formRegionId=$t->region_id??''; $this->formAssetId=$t->asset_id??''; $this->formAssignedTo=$t->assigned_to??'';
         $this->showForm=true;
     }
 
@@ -83,7 +83,7 @@ class TicketBoard extends Component
         if ($ticket->created_by != auth()->id() && !auth()->user()->can('view all projects')) return;
         $ticket->delete();
     }
-    public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formAssetId','formAssignedTo']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; }
+    public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formAssetId','formAssignedTo']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; }
 
     public function render()
     {

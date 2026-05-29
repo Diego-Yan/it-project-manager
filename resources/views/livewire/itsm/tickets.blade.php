@@ -19,6 +19,7 @@
             <select wire:model="formPriority" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">优先级：低</option><option value="medium">优先级：中</option><option value="high">优先级：高</option><option value="critical">优先级：紧急</option></select>
             <select wire:model="formSource" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="phone">电话</option><option value="email">邮件</option><option value="portal">自助</option><option value="walk_in">现场</option></select>
             <select wire:model="formProjectId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联项目</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
+            <select wire:model="formRegionId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">地区 <span class="text-red-500">*</span></option>@foreach($regions as $r)<option value="{{ $r->id }}">{{ $r->name }}</option>@endforeach</select>
             <select wire:model="formAssetId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联资产</option>@foreach($assets as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->asset_tag }})</option>@endforeach</select>
             <select wire:model="formAssignedTo" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">分配处理人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
         </div>
@@ -43,6 +44,7 @@
                 <div class="flex items-center gap-3 text-xs text-zinc-500 flex-wrap">
                     <span>状态: {{ $ticket->statusLabel }}</span>
                     @if($ticket->assignee)<span>· {{ $ticket->assignee->name }}</span>@else<span>· 未分配</span>@endif
+                    @if($ticket->region)<span>· {{ $ticket->region->name }}</span>@endif
                     @if($ticket->asset)<span>· {{ $ticket->asset->name }}</span>@endif
                     @if($ticket->project)<span>· {{ $ticket->project->title }}</span>@endif
                     <span>· 来源: {{ $ticket->sourceLabel }}</span>

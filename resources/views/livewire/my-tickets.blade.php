@@ -9,14 +9,16 @@
     @if($showForm)
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border p-5">
         <h3 class="text-sm font-semibold mb-3">新建工单</h3>
-        <div class="grid sm:grid-cols-3 gap-3">
-            <input wire:model="formTitle" placeholder="工单标题*" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-3">
+        <div class="grid sm:grid-cols-4 gap-3">
+            <input wire:model="formTitle" placeholder="工单标题*" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-4">
+            <select wire:model="formRegionId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">地区 <span class="text-red-500">*</span></option>@foreach($regions as $r)<option value="{{ $r->id }}">{{ $r->name }}</option>@endforeach</select>
             <select wire:model="formType" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="request">服务请求</option><option value="incident">故障报修</option></select>
             <select wire:model="formPriority" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="critical">紧急</option></select>
             <select wire:model="formSource" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="portal">自助</option><option value="phone">电话</option><option value="email">邮件</option><option value="walk_in">现场</option></select>
         </div>
         <textarea wire:model="formDescription" rows="2" placeholder="详细描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+        @error('formRegionId')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3"><button wire:click="$set('showForm', false)" class="px-4 py-2 text-sm text-zinc-500">取消</button><button wire:click="createTicket" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">提交工单</button></div>
     </div>
     @endif

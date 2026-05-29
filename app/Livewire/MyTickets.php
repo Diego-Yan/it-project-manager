@@ -14,8 +14,9 @@ class MyTickets extends Component
     public string $filterStatus = '';
     public bool $showForm = false;
     public string $formTitle = '', $formDescription = '', $formType = 'request', $formPriority = 'medium', $formSource = 'portal';
+    public int|string $formRegionId = '';
 
-    protected $rules = ['formTitle' => 'required|max:200'];
+    protected $rules = ['formTitle' => 'required|max:200', 'formRegionId' => 'required|exists:regions,id'];
 
     public function createTicket(): void
     {
@@ -26,11 +27,12 @@ class MyTickets extends Component
             'type' => $this->formType,
             'priority' => $this->formPriority,
             'source' => $this->formSource,
+            'region_id' => $this->formRegionId,
             'created_by' => auth()->id(),
             'sla_deadline' => Sla::getDeadline($this->formPriority),
         ]);
         $this->showForm = false;
-        $this->reset(['formTitle', 'formDescription', 'formType', 'formPriority']);
+        $this->reset(['formTitle', 'formDescription', 'formType', 'formPriority', 'formRegionId']);
         $this->formType = 'request'; $this->formPriority = 'medium';
         session()->flash('success', '工单已创建');
     }
@@ -54,7 +56,8 @@ class MyTickets extends Component
             'resolved'     => Ticket::where('assigned_to', $user->id)->where('status', 'resolved')->count(),
         ];
 
-        return view('livewire.my-tickets', compact('tickets', 'counts'))
+        $regions = \App\Models\Region::orderBy('sort_order')->get();
+        return view('livewire.my-tickets', compact('tickets', 'counts', 'regions'))
             ->layout('layouts.app', ['title' => '我的工单']);
     }
 }
