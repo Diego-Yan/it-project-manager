@@ -55,6 +55,13 @@
                     {{-- 操作按钮 --}}
                     @if($ticket->status === 'open')
                     <button wire:click="assign({{ $ticket->id }})" class="text-sky-600 hover:underline ml-2">接单</button>
+                    @can('manage tickets')
+                    <select wire:model="assignToUserId" class="ml-2 text-xs border rounded px-2 py-0.5 dark:bg-zinc-800 dark:border-zinc-700">
+                        <option value="">分配...</option>
+                        @foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach
+                    </select>
+                    <button wire:click="assignTo({{ $ticket->id }})" class="text-xs text-sky-600 hover:underline">分配</button>
+                    @endcan
                     @endif
                     @if($ticket->status === 'in_progress' && $ticket->assigned_to === auth()->id())
                     <button wire:click="resolve({{ $ticket->id }})" class="text-green-600 hover:underline ml-2">解决</button>

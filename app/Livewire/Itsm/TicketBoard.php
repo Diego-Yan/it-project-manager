@@ -20,6 +20,7 @@ class TicketBoard extends Component
     public string $formTitle = '', $formDescription = '', $formType = 'request', $formPriority = 'medium', $formSource = 'portal';
     public int|string $formProjectId = '', $formRegionId = '', $formAssetId = '', $formAssignedTo = '';
     public string $newComment = ''; public ?int $viewTicketId = null;
+    public int|string $assignToUserId = ''; // IT 主管分配工单给指定人员
 
     protected $rules = ['formTitle'=>'required|max:200', 'formRegionId'=>'required|exists:regions,id'];
 
@@ -39,11 +40,23 @@ class TicketBoard extends Component
         $this->resetForm();
     }
 
+    // 自己接单（任何 IT 工程师都可以）
     public function assign(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
         if ($ticket->status !== 'open') return;
         $ticket->update(['assigned_to'=>auth()->id(),'status'=>'in_progress']);
+    }
+
+    // IT 主管分配工单给指定人员
+    public function assignTo(int $id): void
+    {
+        if (!auth()->user()->can('manage tickets')) return;
+        if (empty($this->assignToUserId)) return;
+
+        $ticket = Ticket::findOrFail($id);
+        $ticket->update(['assigned_to' => $this->assignToUserId, 'status' => 'in_progress']);
+        $this->assignToUserId = '';
     }
 
     public function resolve(int $id): void
