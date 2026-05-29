@@ -34,7 +34,8 @@
         <x-sidebar-link route="projects.index" icon='M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z'>全部项目</x-sidebar-link>
         @can('view categories')<x-sidebar-link route="categories.index" icon='M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3zM6 6h.008v.008H6V6z'>项目分类</x-sidebar-link>@endcan
 
-        {{-- ═══ ITSM 服务管理 ═══ --}}
+        {{-- ═══ ITSM 服务管理 （仅 IT 成员可见）═══ --}}
+        @can('view all projects')
         <p class="px-3 mt-5 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">ITSM 服务管理</p>
 
         @php $tc = App\Models\Ticket::whereIn('status',['open','in_progress'])->count(); @endphp
@@ -58,6 +59,7 @@
         </x-sidebar-link>
 
         <x-sidebar-link route="itsm.slas" icon='M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'>SLA 管理</x-sidebar-link>
+        @endcan
 
         {{-- ═══ 系统管理 ═══ --}}
         @canany(['view users', 'manage roles'])

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Sla;
 use App\Models\Ticket;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -11,6 +12,28 @@ class MyTickets extends Component
     use WithPagination;
 
     public string $filterStatus = '';
+    public bool $showForm = false;
+    public string $formTitle = '', $formDescription = '', $formType = 'request', $formPriority = 'medium', $formSource = 'portal';
+
+    protected $rules = ['formTitle' => 'required|max:200'];
+
+    public function createTicket(): void
+    {
+        $this->validate();
+        Ticket::create([
+            'title' => $this->formTitle,
+            'description' => $this->formDescription ?: null,
+            'type' => $this->formType,
+            'priority' => $this->formPriority,
+            'source' => $this->formSource,
+            'created_by' => auth()->id(),
+            'sla_deadline' => Sla::getDeadline($this->formPriority),
+        ]);
+        $this->showForm = false;
+        $this->reset(['formTitle', 'formDescription', 'formType', 'formPriority']);
+        $this->formType = 'request'; $this->formPriority = 'medium';
+        session()->flash('success', '工单已创建');
+    }
 
     public function render()
     {
