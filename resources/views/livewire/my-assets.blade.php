@@ -30,6 +30,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-sm font-medium text-zinc-900 dark:text-white">{{ $a->name }}</span>
                         <span class="text-xs font-mono text-zinc-500">{{ $a->asset_tag }}</span>
+                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-{{ $a->categoryColor }}-100 dark:bg-{{ $a->categoryColor }}-950/40 text-{{ $a->categoryColor }}-700 dark:text-{{ $a->categoryColor }}-400">{{ $a->categoryLabel }}</span>
                         <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-{{ $a->statusColor }}-100 dark:bg-{{ $a->statusColor }}-950/40 text-{{ $a->statusColor }}-700 dark:text-{{ $a->statusColor }}-400">{{ $a->statusLabel }}</span>
                     </div>
                     <div class="text-xs text-zinc-500 mt-0.5">

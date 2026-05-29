@@ -11,6 +11,7 @@
             <input wire:model="formAssetTag" placeholder="资产编号: IT-2024-0001*" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <input wire:model="formName" placeholder="设备名称*" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <select wire:model="formType" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="laptop">💻 笔记本</option><option value="desktop">🖥️ 台式机</option><option value="printer">🖨️ 打印机</option><option value="switch">🌐 交换机</option><option value="server">🗄️ 服务器</option><option value="monitor">🖥️ 显示器</option><option value="software">💿 软件</option><option value="other">📦 其他</option></select>
+            <select wire:model="formCategory" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="fixed">固定资产</option><option value="non_fixed">非固定资产</option><option value="consumable">损耗品</option></select>
             <input wire:model="formBrand" placeholder="品牌" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <input wire:model="formModel" placeholder="型号" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <input wire:model="formSerial" placeholder="序列号" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
@@ -39,6 +40,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-sm font-medium text-zinc-900 dark:text-white">{{ $a->name }}</span>
                         <span class="text-xs font-mono text-zinc-500">{{ $a->asset_tag }}</span>
+                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-{{ $a->categoryColor }}-100 dark:bg-{{ $a->categoryColor }}-950/40 text-{{ $a->categoryColor }}-700 dark:text-{{ $a->categoryColor }}-400">{{ $a->categoryLabel }}</span>
                         <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-{{ $a->statusColor }}-100 dark:bg-{{ $a->statusColor }}-950/40 text-{{ $a->statusColor }}-700 dark:text-{{ $a->statusColor }}-400">{{ $a->statusLabel }}</span>
                     </div>
                     <div class="text-xs text-zinc-500 mt-0.5">
