@@ -49,9 +49,12 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('devops')->name('devops.')->group(function () {
         Route::get('/', \App\Livewire\DevOps\Dashboard::class)->name('dashboard');
         Route::get('/services', \App\Livewire\DevOps\ServiceManager::class)->name('services');
+        Route::get('/pipelines', \App\Livewire\DevOps\PipelineManager::class)->name('pipelines');
+        Route::get('/environments', \App\Livewire\DevOps\EnvManager::class)->name('environments');
         Route::get('/changes', \App\Livewire\DevOps\ChangeManager::class)->name('changes');
         Route::get('/releases', \App\Livewire\DevOps\ReleaseManager::class)->name('releases');
         Route::get('/incidents', \App\Livewire\DevOps\IncidentManager::class)->name('incidents');
+        Route::get('/dora', \App\Livewire\DevOps\DoraMetrics::class)->name('dora');
     });
 
     // Webhook 通知配置
