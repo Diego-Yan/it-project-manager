@@ -8,14 +8,22 @@
 
     {{-- 状态统计 --}}
     <div class="flex gap-2 flex-wrap">
-        @php $filters = [''=>['全部',$counts['pending']+$counts['in_progress']+$counts['completed'],'zinc'],'pending_confirmation'=>['待确认',$counts['pending'],'amber'],'in_progress'=>['进行中',$counts['in_progress'],'sky'],'completed'=>['已完成',$counts['completed'],'green']]; @endphp
+        @php
+        $allCount = $counts['pending'] + $counts['in_progress'] + $counts['completed'];
+        $filters = [
+            ''                     => ['label' => '全部',   'count' => $allCount,              'color' => 'zinc'],
+            'pending_confirmation' => ['label' => '待确认', 'count' => $counts['pending'],     'color' => 'amber'],
+            'in_progress'          => ['label' => '进行中', 'count' => $counts['in_progress'], 'color' => 'sky'],
+            'completed'            => ['label' => '已完成', 'count' => $counts['completed'],   'color' => 'green'],
+        ];
+        @endphp
         @foreach($filters as $key => $f)
         <button wire:click="$set('filterStatus', '{{ $key }}')"
             class="px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors
                 {{ $filterStatus === $key
-                    ? 'bg-{{ $f[2] }}-600 border-{{ $f[2] }}-600 text-white'
-                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-{{ $f[2] }}-400' }}">
-            {{ $f[0] }} {{ $f[1] }}
+                    ? 'bg-'.$f['color'].'-600 border-'.$f['color'].'-600 text-white'
+                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-'.$f['color'].'-400' }}">
+            {{ $f['label'] }} {{ $f['count'] }}
         </button>
         @endforeach
     </div>
