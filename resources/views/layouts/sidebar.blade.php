@@ -42,7 +42,7 @@
         @can('view categories')<x-sidebar-link route="admin.regions" icon='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z'>地区管理</x-sidebar-link>@endcan
 
         {{-- ═══ ITSM 服务管理 （仅 IT 成员可见）═══ --}}
-        @can('view all projects')
+        @canany(['manage tickets','manage assets','edit knowledge','approve changes','manage incidents','manage slas'])
         <p class="px-3 mt-5 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">ITSM 服务管理</p>
 
         @php $tc = App\Models\Ticket::whereIn('status',['open','in_progress'])->count(); @endphp

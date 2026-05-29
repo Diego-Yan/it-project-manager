@@ -35,7 +35,7 @@ class AssetManager extends Component
         $this->showForm=true;
     }
 
-    public function delete(int $id): void { if (!auth()->user()->can("view all projects")) return; Asset::findOrFail($id)->delete(); }
+    public function delete(int $id): void { if (!auth()->user()->can("manage assets")) return; Asset::findOrFail($id)->delete(); }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formAssetTag','formName','formType','formBrand','formModel','formSerial','formStatus','formLocation','formDept','formNotes','formAssignedTo','formPurchaseDate','formWarrantyExpiry']); $this->formType='other'; $this->formStatus='in_use'; }
 
     public function render()

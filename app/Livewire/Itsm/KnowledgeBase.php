@@ -84,7 +84,7 @@ class KnowledgeBase extends Component
         $this->showForm=true;
     }
 
-    public function delete(int $id): void { $a = KnowledgeArticle::findOrFail($id); if ($a->created_by != auth()->id() && !auth()->user()->can("view all projects")) return; $a->delete(); }
+    public function delete(int $id): void { $a = KnowledgeArticle::findOrFail($id); if ($a->created_by != auth()->id() && !auth()->user()->can("edit knowledge")) return; $a->delete(); }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formContent','formCategory','selectedTagIds','uploadFile']); $this->formCategory='general'; $this->selectedTagIds=[]; }
 
     public function render()

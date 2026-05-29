@@ -58,13 +58,13 @@ Route::middleware(['auth'])->group(function () {
 
     // ITSM (requires view projects permission)
     Route::prefix('itsm')->name('itsm.')->group(function () {
-        Route::get('/tickets', \App\Livewire\Itsm\TicketBoard::class)->name('tickets')->middleware('can:view projects');
-        Route::get('/assets', \App\Livewire\Itsm\AssetManager::class)->name('assets')->middleware('can:view projects');
-        Route::get('/knowledge', \App\Livewire\Itsm\KnowledgeBase::class)->name('knowledge')->middleware('can:view projects');
-        Route::get('/services', \App\Livewire\Itsm\ServiceManager::class)->name('services')->middleware('can:view projects');
-        Route::get('/changes', \App\Livewire\Itsm\ChangeManager::class)->name('changes')->middleware('can:view projects');
-        Route::get('/incidents', \App\Livewire\Itsm\IncidentManager::class)->name('incidents')->middleware('can:view projects');
-        Route::get('/slas', \App\Livewire\Itsm\SlaManager::class)->name('slas')->middleware('can:view projects');
+        Route::get('/tickets', \App\Livewire\Itsm\TicketBoard::class)->name('tickets')->middleware('can:view tickets');
+        Route::get('/assets', \App\Livewire\Itsm\AssetManager::class)->name('assets')->middleware('can:view assets');
+        Route::get('/knowledge', \App\Livewire\Itsm\KnowledgeBase::class)->name('knowledge')->middleware('can:view knowledge');
+        Route::get('/services', \App\Livewire\Itsm\ServiceManager::class)->name('services')->middleware('can:manage assets');
+        Route::get('/changes', \App\Livewire\Itsm\ChangeManager::class)->name('changes')->middleware('can:view changes');
+        Route::get('/incidents', \App\Livewire\Itsm\IncidentManager::class)->name('incidents')->middleware('can:view incidents');
+        Route::get('/slas', \App\Livewire\Itsm\SlaManager::class)->name('slas')->middleware('can:manage slas');
     });
 
     // IM 接入配置

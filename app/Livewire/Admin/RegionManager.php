@@ -38,7 +38,7 @@ class RegionManager extends Component
 
     public function delete(int $id): void
     {
-        if (!auth()->user()->can('manage roles')) return;
+        if (!auth()->user()->can('view categories')) return;
         $region = Region::findOrFail($id);
         // Don't allow deleting if region has projects or tickets
         $projCount = \App\Models\Project::where('region_id', $id)->count();

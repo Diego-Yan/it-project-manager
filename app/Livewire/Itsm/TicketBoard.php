@@ -80,7 +80,7 @@ class TicketBoard extends Component
     public function delete(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
-        if ($ticket->created_by != auth()->id() && !auth()->user()->can('view all projects')) return;
+        if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) return;
         $ticket->delete();
     }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formAssetId','formAssignedTo']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; }

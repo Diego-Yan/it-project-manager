@@ -18,10 +18,19 @@ class AllRoutesTest extends TestCase
     {
         // Create all permissions
         $perms = [
-            'view users','create users','edit users','delete users','manage roles',
-            'view categories','create categories','edit categories','delete categories',
+            // ITSM
+            'view tickets','manage tickets',
+            'view assets','manage assets',
+            'view knowledge','edit knowledge',
+            'view changes','approve changes',
+            'view incidents','manage incidents',
+            'view slas','manage slas',
+            // Project
             'view projects','create projects','edit projects','delete projects',
             'assign project members','view all projects',
+            'view categories','create categories','edit categories','delete categories',
+            // System
+            'view users','create users','edit users','delete users','manage roles',
             'upload attachments','delete attachments',
         ];
         foreach ($perms as $p) {
