@@ -38,9 +38,9 @@ class BotSettings extends Component
             return;
         }
 
-        $users = $svc->listUsers();
+        $users = $svc->listAllUsers();
         if (empty($users)) {
-            $this->syncResult = '未获取到企业微信用户，请检查 API 凭证';
+            $this->syncResult = '未获取到企业微信用户，请检查 API 凭证和应用可见范围';
             return;
         }
 
@@ -83,9 +83,9 @@ class BotSettings extends Component
             return;
         }
 
-        $users = $svc->listUsers();
+        $users = $svc->listAllUsers();
         if (empty($users)) {
-            $this->syncResult = '未获取到钉钉用户，请检查 API 凭证';
+            $this->syncResult = '未获取到钉钉用户，请检查 API 凭证和应用权限范围';
             return;
         }
 
