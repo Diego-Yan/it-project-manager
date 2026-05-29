@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'wechat' => [
+        'corp_id'     => env('WECHAT_CORP_ID', ''),
+        'corp_secret' => env('WECHAT_CORP_SECRET', ''),
+    ],
+
+    'dingtalk' => [
+        'app_key'    => env('DINGTALK_APP_KEY', ''),
+        'app_secret' => env('DINGTALK_APP_SECRET', ''),
+    ],
+
 ];

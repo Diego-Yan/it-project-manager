@@ -28,6 +28,100 @@
         @endforeach
     </div>
 
+    {{-- 任务统计卡片 --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        @php
+        $taskCards = [
+            ['label'=>'我的任务','value'=>$taskStats['my_total'],'color'=>'sky','sub'=>'已完成 '.$taskStats['my_completed']],
+            ['label'=>'待确认','value'=>$taskStats['my_pending'],'color'=>'amber','sub'=>'需要我确认的任务'],
+            ['label'=>'待审批','value'=>$taskStats['app_pending'],'color'=>'violet','sub'=>'加入申请'],
+        ];
+        @endphp
+        @foreach($taskCards as $card)
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ $card['label'] }}</p>
+            <p class="text-2xl font-bold text-{{ $card['color'] }}-600 dark:text-{{ $card['color'] }}-400 mt-1">{{ $card['value'] }}</p>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ $card['sub'] }}</p>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- 待确认任务 + 进行中任务 + 待审批 --}}
+    <div class="grid lg:grid-cols-3 gap-6">
+        {{-- 待确认任务 --}}
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">
+                待确认的任务
+                @if($pendingTasks->isNotEmpty())
+                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-xs">{{ $pendingTasks->count() }}</span>
+                @endif
+            </h2>
+            @if($pendingTasks->isEmpty())
+            <p class="text-xs text-zinc-400 text-center py-4">暂无待确认任务 ✓</p>
+            @else
+            <div class="space-y-2">
+                @foreach($pendingTasks as $task)
+                <a href="{{ route('projects.show', $task->project) }}" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-zinc-800 dark:text-zinc-200 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400">{{ $task->title }}</p>
+                        <p class="text-xs text-zinc-500">{{ $task->project->title }}</p>
+                    </div>
+                </a>
+                @endforeach
+            </div>
+            @endif
+        </div>
+
+        {{-- 我的进行中任务 --}}
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">我的任务 (进行中)</h2>
+            @if($myTasks->isEmpty())
+            <p class="text-xs text-zinc-400 text-center py-4">暂无进行中任务</p>
+            @else
+            <div class="space-y-2">
+                @foreach($myTasks as $task)
+                <a href="{{ route('projects.show', $task->project) }}" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group">
+                    <span class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-zinc-800 dark:text-zinc-200 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400">{{ $task->title }}</p>
+                        <p class="text-xs text-zinc-500">{{ $task->project->title }}</p>
+                    </div>
+                </a>
+                @endforeach
+            </div>
+            @endif
+        </div>
+
+        {{-- 待审批申请 --}}
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">
+                待审批的加入申请
+                @if($pendingApplications->isNotEmpty())
+                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-500 text-white text-xs">{{ $pendingApplications->count() }}</span>
+                @endif
+            </h2>
+            @if($pendingApplications->isEmpty())
+            <p class="text-xs text-zinc-400 text-center py-4">暂无待审批申请</p>
+            @else
+            <div class="space-y-2">
+                @foreach($pendingApplications as $app)
+                <div class="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
+                    <div class="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-950/40 flex items-center justify-center text-violet-600 text-xs font-semibold shrink-0">
+                        {{ mb_substr($app->user->name, 0, 1) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-zinc-800 dark:text-zinc-200 truncate">{{ $app->user->name }}</p>
+                        <p class="text-xs text-zinc-500">{{ $app->project->title }}</p>
+                    </div>
+                    <a href="{{ route('projects.show', $app->project) }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline shrink-0">去处理</a>
+                </div>
+                @endforeach
+            </div>
+            @endif
+        </div>
+    </div>
+
     <div class="grid lg:grid-cols-3 gap-6">
 
         {{-- 即将到期 --}}

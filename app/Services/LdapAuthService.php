@@ -127,7 +127,8 @@ class LdapAuthService
      */
     private function findUserDn(string $username): ?string
     {
-        $filter = "(&(objectClass=user)(sAMAccountName={$username}))";
+        $escaped = ldap_escape($username, '', LDAP_ESCAPE_FILTER);
+        $filter = "(&(objectClass=user)(sAMAccountName={$escaped}))";
         $search = @ldap_search($this->connection, $this->config['base_dn'], $filter, ['dn']);
 
         if (!$search) {

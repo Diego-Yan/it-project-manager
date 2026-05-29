@@ -62,7 +62,14 @@ class CategoryManager extends Component
 
     public function delete(int $id): void
     {
-        ProjectCategory::findOrFail($id)->delete();
+        if (!auth()->user()->can('delete categories')) abort(403);
+
+        $cat = ProjectCategory::findOrFail($id);
+        if ($cat->projects()->count() > 0) {
+            session()->flash('error', "分类「{$cat->name}」下有 {$cat->projects()->count()} 个项目，请先移走项目再删除分类。");
+            return;
+        }
+        $cat->delete();
     }
 
     public function render()

@@ -4,6 +4,7 @@ namespace App\Livewire\Projects;
 
 use App\Models\Project;
 use App\Models\ProjectCategory;
+use App\Models\Task;
 use App\Models\User;
 use Livewire\Component;
 
@@ -19,10 +20,38 @@ class ProjectForm extends Component
     public int|string $owner_id = '';
     public string $type = 'new';
     public string $progress = 'pending';
+    public string $urgency = 'normal';
+    public string $importance = 'normal';
     public int $completion_percent = 0;
     public string $start_date = '';
     public string $end_date = '';
     public string $remark = '';
+
+    // 内联任务
+    public array $inlineTasks = [];
+    public string $newTaskTitle = '';
+    public string $newTaskPriority = 'normal';
+
+    // ── 内联任务操作 ──────────────────────────────────────
+
+    public function addInlineTask(): void
+    {
+        $title = trim($this->newTaskTitle);
+        if (empty($title)) return;
+
+        $this->inlineTasks[] = [
+            'title'    => $title,
+            'priority' => $this->newTaskPriority,
+        ];
+        $this->newTaskTitle = '';
+        $this->newTaskPriority = 'normal';
+    }
+
+    public function removeInlineTask(int $index): void
+    {
+        unset($this->inlineTasks[$index]);
+        $this->inlineTasks = array_values($this->inlineTasks);
+    }
 
     protected function rules(): array
     {
@@ -31,8 +60,10 @@ class ProjectForm extends Component
             'description'        => 'nullable|string|max:2000',
             'category_id'        => 'required|exists:project_categories,id',
             'owner_id'           => 'nullable|exists:users,id',
-            'type'               => 'required|in:new,improved',
+            'type'               => 'required|in:new,improved,issue',
             'progress'           => 'required|in:pending,in_progress,paused,completed',
+            'urgency'            => 'required|in:not_urgent,normal,urgent',
+            'importance'         => 'required|in:normal,important,very_important',
             'completion_percent' => 'integer|min:0|max:100',
             'start_date'         => 'nullable|date',
             'end_date'           => 'nullable|date|after_or_equal:start_date',
@@ -58,6 +89,8 @@ class ProjectForm extends Component
                 'owner_id'           => $project->owner_id ?? '',
                 'type'               => $project->type,
                 'progress'           => $project->progress,
+                'urgency'            => $project->urgency ?? 'normal',
+                'importance'         => $project->importance ?? 'normal',
                 'completion_percent' => $project->completion_percent,
                 'start_date'         => $project->start_date?->format('Y-m-d') ?? '',
                 'end_date'           => $project->end_date?->format('Y-m-d') ?? '',
@@ -77,6 +110,8 @@ class ProjectForm extends Component
             'owner_id'           => $this->owner_id ?: null,
             'type'               => $this->type,
             'progress'           => $this->progress,
+            'urgency'            => $this->urgency,
+            'importance'         => $this->importance,
             'completion_percent' => $this->completion_percent,
             'start_date'         => $this->start_date ?: null,
             'end_date'           => $this->end_date ?: null,
@@ -92,8 +127,19 @@ class ProjectForm extends Component
             $data['created_by'] = auth()->id();
             $project = Project::create($data);
             $project->logAction(auth()->id(), 'created');
-            // 创建者自动加入项目
             $project->members()->attach(auth()->id(), ['role' => 'lead']);
+
+            // 创建内联任务
+            foreach ($this->inlineTasks as $taskData) {
+                Task::create([
+                    'project_id' => $project->id,
+                    'title'      => $taskData['title'],
+                    'priority'   => $taskData['priority'],
+                    'created_by' => auth()->id(),
+                    'status'     => 'in_progress',
+                ]);
+            }
+
             session()->flash('success', '项目已创建！');
             $this->redirect(route('projects.show', $project));
         }

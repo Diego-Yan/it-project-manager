@@ -187,7 +187,7 @@
     <div class="login-card">
         <div class="login-header">
             <h1>IT日常项目管理系统</h1>
-            <p>V1.1 - 企业内网管理平台</p>
+            <p>V1.3 - 企业内网管理平台</p>
         </div>
 
         <div class="login-body">
