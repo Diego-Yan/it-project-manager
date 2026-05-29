@@ -55,6 +55,7 @@ class TaskKanban extends Component
             ['key' => 'completed',            'label' => '已完成', 'color' => 'green'],
         ];
 
-        return view('livewire.projects.task-kanban', compact('tasks', 'columns'));
+        return view('livewire.projects.task-kanban', compact('tasks', 'columns'))
+            ->layout('layouts.app', ['title' => $this->project->title . ' - 看板']);
     }
 }
