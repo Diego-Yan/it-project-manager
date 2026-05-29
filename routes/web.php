@@ -45,6 +45,15 @@ Route::middleware(['auth'])->group(function () {
     // AD 域配置
     Route::get('/admin/ad-settings', AdSettingsManager::class)->name('admin.ad-settings')->middleware('can:view users');
 
+    // DevOps
+    Route::prefix('devops')->name('devops.')->group(function () {
+        Route::get('/', \App\Livewire\DevOps\Dashboard::class)->name('dashboard');
+        Route::get('/services', \App\Livewire\DevOps\ServiceManager::class)->name('services');
+        Route::get('/changes', \App\Livewire\DevOps\ChangeManager::class)->name('changes');
+        Route::get('/releases', \App\Livewire\DevOps\ReleaseManager::class)->name('releases');
+        Route::get('/incidents', \App\Livewire\DevOps\IncidentManager::class)->name('incidents');
+    });
+
     // Webhook 通知配置
     Route::get('/admin/webhooks', \App\Livewire\Admin\WebhookManager::class)->name('admin.webhooks')->middleware('can:manage roles');
 
