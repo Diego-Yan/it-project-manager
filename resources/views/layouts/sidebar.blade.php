@@ -65,6 +65,7 @@
             @if($oic > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">{{ $oic }}</span>@endif
         </x-sidebar-link>
 
+        <x-sidebar-link route="itsm.zabbix" icon='M10.5 6h3m-3 0a1.5 1.5 0 110 3h-3a1.5 1.5 0 110-3zm0 0V3m0 9v3m3-3a1.5 1.5 0 110 3h-3a1.5 1.5 0 110-3zm0 0V9m3-3a1.5 1.5 0 110 3m0 0V3'>Zabbix 集成</x-sidebar-link>
         <x-sidebar-link route="itsm.slas" icon='M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'>SLA 管理</x-sidebar-link>
         @endcan
 

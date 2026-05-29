@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/services', \App\Livewire\Itsm\ServiceManager::class)->name('services')->middleware('can:manage assets');
         Route::get('/changes', \App\Livewire\Itsm\ChangeManager::class)->name('changes')->middleware('can:view changes');
         Route::get('/incidents', \App\Livewire\Itsm\IncidentManager::class)->name('incidents')->middleware('can:view incidents');
+        Route::get('/zabbix', \App\Livewire\Itsm\ZabbixManager::class)->name('zabbix')->middleware('can:manage incidents');
         Route::get('/slas', \App\Livewire\Itsm\SlaManager::class)->name('slas')->middleware('can:manage slas');
     });
 
