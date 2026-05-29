@@ -16,10 +16,10 @@ class BotSettings extends Component
 
     public function mount(): void
     {
-        $this->wechatCorpId = config('services.wechat.corp_id', '');
-        $this->wechatCorpSecret = config('services.wechat.corp_secret', '');
-        $this->dingtalkAppKey = config('services.dingtalk.app_key', '');
-        $this->dingtalkAppSecret = config('services.dingtalk.app_secret', '');
+        $this->wechatCorpId = (string) config('services.wechat.corp_id', '');
+        $this->wechatCorpSecret = (string) config('services.wechat.corp_secret', '');
+        $this->dingtalkAppKey = (string) config('services.dingtalk.app_key', '');
+        $this->dingtalkAppSecret = (string) config('services.dingtalk.app_secret', '');
     }
 
     public function saveWechat(): void
