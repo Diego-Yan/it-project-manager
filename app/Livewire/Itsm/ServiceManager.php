@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\DevOps;
+namespace App\Livewire\Itsm;
 
 use App\Models\Project;
 use App\Models\Service;
@@ -79,7 +79,7 @@ class ServiceManager extends Component
         $services = Service::with(['project','owner'])->latest()->paginate(15);
         $projects = Project::orderBy('title')->get(['id','title']);
         $users = User::where('is_active', true)->orderBy('name')->get(['id','name']);
-        return view('livewire.devops.services', compact('services','projects','users'))
+        return view('livewire.itsm.services', compact('services','projects','users'))
             ->layout('layouts.app', ['title' => '服务目录']);
     }
 }

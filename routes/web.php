@@ -45,16 +45,15 @@ Route::middleware(['auth'])->group(function () {
     // AD 域配置
     Route::get('/admin/ad-settings', AdSettingsManager::class)->name('admin.ad-settings')->middleware('can:view users');
 
-    // DevOps
-    Route::prefix('devops')->name('devops.')->group(function () {
-        Route::get('/', \App\Livewire\DevOps\Dashboard::class)->name('dashboard');
-        Route::get('/services', \App\Livewire\DevOps\ServiceManager::class)->name('services');
-        Route::get('/pipelines', \App\Livewire\DevOps\PipelineManager::class)->name('pipelines');
-        Route::get('/environments', \App\Livewire\DevOps\EnvManager::class)->name('environments');
-        Route::get('/changes', \App\Livewire\DevOps\ChangeManager::class)->name('changes');
-        Route::get('/releases', \App\Livewire\DevOps\ReleaseManager::class)->name('releases');
-        Route::get('/incidents', \App\Livewire\DevOps\IncidentManager::class)->name('incidents');
-        Route::get('/dora', \App\Livewire\DevOps\DoraMetrics::class)->name('dora');
+    // ITSM
+    Route::prefix('itsm')->name('itsm.')->group(function () {
+        Route::get('/tickets', \App\Livewire\Itsm\TicketBoard::class)->name('tickets');
+        Route::get('/assets', \App\Livewire\Itsm\AssetManager::class)->name('assets');
+        Route::get('/knowledge', \App\Livewire\Itsm\KnowledgeBase::class)->name('knowledge');
+        Route::get('/services', \App\Livewire\Itsm\ServiceManager::class)->name('services');
+        Route::get('/changes', \App\Livewire\Itsm\ChangeManager::class)->name('changes');
+        Route::get('/incidents', \App\Livewire\Itsm\IncidentManager::class)->name('incidents');
+        Route::get('/slas', \App\Livewire\Itsm\SlaManager::class)->name('slas');
     });
 
     // Webhook 通知配置

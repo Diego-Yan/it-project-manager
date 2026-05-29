@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\DevOps;
+namespace App\Livewire\Itsm;
 
 use App\Models\Project;
 use App\Models\Release;
@@ -54,7 +54,7 @@ class ReleaseManager extends Component
         $releases = Release::with(['project','service','deployer'])->latest()->paginate(15);
         $projects = Project::orderBy('title')->get(['id','title']);
         $services = Service::orderBy('name')->get(['id','name']);
-        return view('livewire.devops.releases', compact('releases','projects','services'))
+        return view('livewire.itsm.releases', compact('releases','projects','services'))
             ->layout('layouts.app', ['title' => '发布管理']);
     }
 }

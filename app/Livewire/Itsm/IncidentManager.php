@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\DevOps;
+namespace App\Livewire\Itsm;
 
 use App\Models\Incident;
 use App\Models\IncidentTimeline;
@@ -77,7 +77,7 @@ class IncidentManager extends Component
         if ($this->viewTimelineId) {
             $timelines[$this->viewTimelineId] = Incident::find($this->viewTimelineId)?->timeline()->with('user')->get() ?? collect();
         }
-        return view('livewire.devops.incidents', compact('incidents','projects','services','users','openCount','timelines'))
+        return view('livewire.itsm.incidents', compact('incidents','projects','services','users','openCount','timelines'))
             ->layout('layouts.app', ['title' => '故障管理']);
     }
 }

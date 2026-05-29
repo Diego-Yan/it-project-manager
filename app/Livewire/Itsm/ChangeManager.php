@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\DevOps;
+namespace App\Livewire\Itsm;
 
 use App\Models\ChangeRequest;
 use App\Models\Project;
@@ -84,7 +84,7 @@ class ChangeManager extends Component
         $changes = ChangeRequest::with(['project','service','requester','approver'])->latest()->paginate(15);
         $projects = Project::orderBy('title')->get(['id','title']);
         $services = Service::orderBy('name')->get(['id','name']);
-        return view('livewire.devops.changes', compact('changes','projects','services'))
+        return view('livewire.itsm.changes', compact('changes','projects','services'))
             ->layout('layouts.app', ['title' => '变更管理']);
     }
 }
