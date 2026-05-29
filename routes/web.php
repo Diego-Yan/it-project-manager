@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     // 个人视图
     Route::get('/my/projects', \App\Livewire\MyProjects::class)->name('my.projects');
     Route::get('/my/tasks', \App\Livewire\MyTasks::class)->name('my.tasks');
+    Route::get('/my/tickets', \App\Livewire\MyTickets::class)->name('my.tickets');
 
     // 项目管理
     Route::prefix('projects')->name('projects.')->group(function () {
