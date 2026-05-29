@@ -61,7 +61,7 @@ class BotController extends Controller
                     $field => $userId,
                     'is_active' => true,
                 ]);
-                $user->assignRole('普通成员');
+                $user->assignRole('普通员工');
             } elseif ($userId) {
                 $user->update([$field => $userId]);
             }

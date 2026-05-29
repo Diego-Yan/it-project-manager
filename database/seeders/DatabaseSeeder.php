@@ -15,62 +15,88 @@ class DatabaseSeeder extends Seeder
     {
         // ── 1. 创建权限 ──────────────────────────────────────
         $permissions = [
-            // 用户管理
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
+            // ITSM — 工单
+            'view tickets', 'manage tickets',
+            // ITSM — 资产
+            'view assets', 'manage assets',
+            // ITSM — 知识库
+            'view knowledge', 'edit knowledge',
+            // ITSM — 变更
+            'view changes', 'approve changes',
+            // ITSM — 故障
+            'view incidents', 'manage incidents',
+            // ITSM — SLA
+            'view slas', 'manage slas',
+            // IT 项目管理
+            'view projects', 'create projects', 'edit projects', 'delete projects',
+            'assign project members', 'view all projects',
+            // 分类 & 附件
+            'view categories', 'create categories', 'edit categories', 'delete categories',
+            'upload attachments', 'delete attachments',
+            // 系统管理
+            'view users', 'create users', 'edit users', 'delete users',
             'manage roles',
-            // 分类管理
-            'view categories',
-            'create categories',
-            'edit categories',
-            'delete categories',
-            // 项目管理
-            'view projects',
-            'create projects',
-            'edit projects',
-            'delete projects',
-            'assign project members',
-            'view all projects',
-            // 附件管理
-            'upload attachments',
-            'delete attachments',
         ];
 
         foreach ($permissions as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
         }
 
-        // ── 2. 创建角色并分配权限 ────────────────────────────
+        // ── 2. 创建角色 —— 两维度：ITSM + IT项目管理 ────────
+
+        // 超级管理员：全部权限
         $superAdmin = Role::firstOrCreate(['name' => '超级管理员', 'guard_name' => 'web']);
         $superAdmin->syncPermissions(Permission::all());
 
-        $admin = Role::firstOrCreate(['name' => '管理员', 'guard_name' => 'web']);
-        $admin->syncPermissions([
-            'view users', 'create users', 'edit users',
-            'view categories', 'create categories', 'edit categories', 'delete categories',
+        // IT 主管：ITSM全部 + 项目管理全部 + 查看用户
+        $itManager = Role::firstOrCreate(['name' => 'IT 主管', 'guard_name' => 'web']);
+        $itManager->syncPermissions([
+            'view tickets', 'manage tickets',
+            'view assets', 'manage assets',
+            'view knowledge', 'edit knowledge',
+            'view changes', 'approve changes',
+            'view incidents', 'manage incidents',
+            'view slas', 'manage slas',
             'view projects', 'create projects', 'edit projects', 'delete projects',
             'assign project members', 'view all projects',
+            'view categories', 'create categories', 'edit categories', 'delete categories',
             'upload attachments', 'delete attachments',
+            'view users',
         ]);
 
-        $projectManager = Role::firstOrCreate(['name' => '项目经理', 'guard_name' => 'web']);
-        $projectManager->syncPermissions([
-            'view projects', 'create projects', 'edit projects',
-            'assign project members', 'view all projects',
+        // IT 工程师：工单处理 + 资产查看 + 知识编辑 + 项目管理(成员视角)
+        $itEngineer = Role::firstOrCreate(['name' => 'IT 工程师', 'guard_name' => 'web']);
+        $itEngineer->syncPermissions([
+            'view tickets', 'manage tickets',
+            'view assets', 'manage assets',
+            'view knowledge', 'edit knowledge',
+            'view changes',
+            'view incidents',
+            'view slas',
+            'view projects', 'create projects',
             'upload attachments',
         ]);
 
+        // 部门主管：查看本部门 + 知识库 + 项目管理(查看全部)
         $deptLead = Role::firstOrCreate(['name' => '部门主管', 'guard_name' => 'web']);
         $deptLead->syncPermissions([
+            'view tickets',
+            'view assets',
+            'view knowledge',
+            'view changes',
+            'view incidents',
+            'view slas',
             'view projects', 'create projects', 'view all projects',
-            'upload attachments',
+            'upload attachments', 'view categories',
         ]);
 
-        $member = Role::firstOrCreate(['name' => '普通成员', 'guard_name' => 'web']);
+        // 普通员工：只看自己的工单/资产 + 知识库
+        $member = Role::firstOrCreate(['name' => '普通员工', 'guard_name' => 'web']);
         $member->syncPermissions([
-            'view projects', 'upload attachments',
+            'view tickets',
+            'view assets',
+            'view knowledge',
+            'view projects',
         ]);
 
         // ── 3. 创建默认管理员账号 ────────────────────────────
@@ -96,7 +122,7 @@ class DatabaseSeeder extends Seeder
                 'is_active'  => true,
             ]
         );
-        $demoUser->assignRole('项目经理');
+        $demoUser->assignRole('IT 工程师');
 
         // ── 5. 创建项目分类 ──────────────────────────────────
         $categories = [

@@ -24,22 +24,41 @@ class RoleManager extends Component
 
     // 权限分组（中文显示名映射）
     protected array $permGroups = [
-        '用户管理' => ['create users', 'edit users', 'delete users', 'view users'],
+        // ITSM 服务管理 (面向公司全员 + IT)
+        '工单管理' => ['view tickets', 'manage tickets'],
+        '资产管理' => ['view assets', 'manage assets'],
+        '知识库'   => ['view knowledge', 'edit knowledge'],
+        '变更管理' => ['view changes', 'approve changes'],
+        '故障管理' => ['view incidents', 'manage incidents'],
+        'SLA 管理' => ['view slas', 'manage slas'],
+        // IT 项目管理 (面向 IT 成员)
         '项目管理' => ['create projects', 'edit projects', 'delete projects', 'view projects', 'view all projects', 'assign project members'],
         '分类管理' => ['create categories', 'edit categories', 'delete categories', 'view categories'],
         '附件管理' => ['upload attachments', 'delete attachments'],
-        '系统管理' => ['manage roles'],
+        // 系统管理
+        '用户管理' => ['create users', 'edit users', 'delete users', 'view users'],
+        '系统设置' => ['manage roles'],
     ];
 
     protected array $permLabels = [
-        'create users'          => '创建用户',
-        'edit users'            => '编辑用户',
-        'delete users'          => '删除用户',
-        'view users'            => '查看用户',
+        // ITSM
+        'view tickets'          => '查看工单（自己）',
+        'manage tickets'        => '管理工单（全部+处理）',
+        'view assets'           => '查看资产（自己）',
+        'manage assets'         => '管理资产（全部+编辑）',
+        'view knowledge'        => '查看知识库',
+        'edit knowledge'        => '编辑知识库',
+        'view changes'          => '查看变更',
+        'approve changes'       => '审批变更',
+        'view incidents'        => '查看故障',
+        'manage incidents'      => '管理故障（处理+关闭）',
+        'view slas'             => '查看 SLA',
+        'manage slas'           => '管理 SLA（编辑+删除）',
+        // IT 项目管理
         'create projects'       => '创建项目',
         'edit projects'         => '编辑项目',
         'delete projects'       => '删除项目',
-        'view projects'         => '查看项目',
+        'view projects'         => '查看项目（参与）',
         'view all projects'     => '查看所有项目',
         'assign project members'=> '分配项目成员',
         'create categories'     => '创建分类',
@@ -48,6 +67,11 @@ class RoleManager extends Component
         'view categories'       => '查看分类',
         'upload attachments'    => '上传附件',
         'delete attachments'    => '删除附件',
+        // 系统管理
+        'create users'          => '创建用户',
+        'edit users'            => '编辑用户',
+        'delete users'          => '删除用户',
+        'view users'            => '查看用户',
         'manage roles'          => '管理角色权限',
     ];
 

@@ -26,7 +26,7 @@ class AdSyncUsers extends Command
         $baseDn    = config('ad-auth.base_dn');
         $adminUser = config('ad-auth.admin_username');
         $adminPass = config('ad-auth.admin_password');
-        $defaultRole = config('ad-auth.sync.default_role', '普通成员');
+        $defaultRole = config('ad-auth.sync.default_role', '普通员工');
         $isDryRun  = $this->option('dry-run');
 
         if (empty($server) || empty($domain) || empty($baseDn)) {

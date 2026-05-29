@@ -64,7 +64,7 @@ class ImSettings extends Component
                     'password' => bcrypt(str()->random(32)),
                     'is_active' => true,
                 ]);
-                $user->assignRole('普通成员');
+                $user->assignRole('普通员工');
                 $created++;
             }
         }
@@ -109,7 +109,7 @@ class ImSettings extends Component
                     'password' => bcrypt(str()->random(32)),
                     'is_active' => true,
                 ]);
-                $user->assignRole('普通成员');
+                $user->assignRole('普通员工');
                 $created++;
             }
         }

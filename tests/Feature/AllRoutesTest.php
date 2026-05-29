@@ -30,7 +30,7 @@ class AllRoutesTest extends TestCase
 
         $superAdmin = Role::firstOrCreate(['name' => '超级管理员', 'guard_name' => 'web']);
         $superAdmin->syncPermissions(Permission::all());
-        Role::firstOrCreate(['name' => '普通成员', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => '普通员工', 'guard_name' => 'web']);
 
         $admin = User::create([
             'name' => '系统管理员', 'username' => 'admin',
@@ -243,7 +243,7 @@ class AllRoutesTest extends TestCase
             'name' => 'Applicant', 'username' => 'applicant',
             'email' => 'app@test.local', 'password' => bcrypt('password'), 'is_active' => true,
         ]);
-        $testUser->assignRole('普通成员');
+        $testUser->assignRole('普通员工');
 
         // Apply as test user
         $this->actingAs($testUser);

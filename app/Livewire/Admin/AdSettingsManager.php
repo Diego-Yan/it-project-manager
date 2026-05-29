@@ -64,7 +64,7 @@ class AdSettingsManager extends Component
         $this->adAdminPassword   = $env['AD_ADMIN_PASSWORD'] ?? '';
         $this->adAutoCreateUser  = ($env['AD_AUTO_CREATE_USER'] ?? 'true') === 'true';
         $this->adAutoSyncGroups  = ($env['AD_AUTO_SYNC_GROUPS'] ?? 'false') === 'true';
-        $this->adDefaultRole     = $env['AD_DEFAULT_ROLE'] ?? '普通成员';
+        $this->adDefaultRole     = $env['AD_DEFAULT_ROLE'] ?? '普通员工';
         $this->adSyncInterval    = $env['AD_SYNC_INTERVAL'] ?? '60';
         $this->adFallbackToLocal = ($env['AD_FALLBACK_TO_LOCAL'] ?? 'true') === 'true';
         $this->adLockAfterFailed = $env['AD_LOCK_AFTER_FAILED'] ?? '5';
