@@ -8,7 +8,7 @@ class Asset extends Model
 {
     protected $fillable = [
         'asset_tag','name','type','category','brand','model','serial_number',
-        'status','assigned_to','location','department',
+        'status','quantity','assigned_to','location','department',
         'purchase_date','warranty_expiry','notes',
     ];
 

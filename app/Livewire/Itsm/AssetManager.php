@@ -14,6 +14,7 @@ class AssetManager extends Component
     public bool $showForm = false; public ?int $editingId = null;
     public string $formAssetTag = '', $formName = '', $formType = 'other', $formCategory = 'fixed', $formBrand = '', $formModel = '', $formSerial = '', $formStatus = 'in_use', $formLocation = '', $formDept = '', $formNotes = '';
     public int|string $formAssignedTo = '';
+    public int $formQuantity = 1;
     public string $formPurchaseDate = '', $formWarrantyExpiry = '';
 
     protected $rules = ['formName'=>'required|max:100','formAssetTag'=>'required|unique:assets,asset_tag'];
@@ -22,7 +23,7 @@ class AssetManager extends Component
     {
         $rules = $this->editingId ? ['formName'=>'required','formAssetTag'=>'required|unique:assets,asset_tag,'.$this->editingId] : $this->rules;
         $this->validate($rules);
-        $data = ['asset_tag'=>$this->formAssetTag,'name'=>$this->formName,'type'=>$this->formType, 'category'=>$this->formCategory,'brand'=>$this->formBrand?:null,'model'=>$this->formModel?:null,'serial_number'=>$this->formSerial?:null,'status'=>$this->formStatus,'assigned_to'=>$this->formAssignedTo?:null,'location'=>$this->formLocation?:null,'department'=>$this->formDept?:null,'notes'=>$this->formNotes?:null,'purchase_date'=>$this->formPurchaseDate?:null,'warranty_expiry'=>$this->formWarrantyExpiry?:null];
+        $data = ['asset_tag'=>$this->formAssetTag,'name'=>$this->formName,'type'=>$this->formType, 'category'=>$this->formCategory,'brand'=>$this->formBrand?:null,'model'=>$this->formModel?:null,'serial_number'=>$this->formSerial?:null,'status'=>$this->formStatus,'quantity'=>$this->formCategory==='consumable' ? max(1, (int)$this->formQuantity) : 1,'assigned_to'=>$this->formAssignedTo?:null,'location'=>$this->formLocation?:null,'department'=>$this->formDept?:null,'notes'=>$this->formNotes?:null,'purchase_date'=>$this->formPurchaseDate?:null,'warranty_expiry'=>$this->formWarrantyExpiry?:null];
         if ($this->editingId) { Asset::findOrFail($this->editingId)->update($data); }
         else { Asset::create($data); }
         $this->resetForm();
@@ -32,6 +33,7 @@ class AssetManager extends Component
     {
         $a = Asset::findOrFail($id);
         $this->editingId=$id; $this->formAssetTag=$a->asset_tag; $this->formName=$a->name; $this->formType=$a->type; $this->formCategory=$a->category??'fixed'; $this->formBrand=$a->brand??''; $this->formModel=$a->model??''; $this->formSerial=$a->serial_number??''; $this->formStatus=$a->status; $this->formAssignedTo=$a->assigned_to??''; $this->formLocation=$a->location??''; $this->formDept=$a->department??''; $this->formNotes=$a->notes??''; $this->formPurchaseDate=$a->purchase_date?->format('Y-m-d')??''; $this->formWarrantyExpiry=$a->warranty_expiry?->format('Y-m-d')??'';
+        $this->formQuantity=$a->quantity??1;
         $this->showForm=true;
     }
 
