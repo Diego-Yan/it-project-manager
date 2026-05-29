@@ -13,11 +13,14 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password',
-        'username', 'ad_guid', 'department', 'position', 'phone',
+        'username', 'source', 'ad_guid', 'department', 'position', 'phone',
         'is_active', 'last_login_at',
         // AD 相关字段
         'ad_domain', 'ad_username', 'ad_display_name', 'ad_email',
         'ad_authenticated', 'ad_last_sync_at',
+        // 企微/钉钉
+        'wechat_userid', 'dingtalk_userid',
+        'password',
     ];
 
     protected $hidden = ['password', 'remember_token'];

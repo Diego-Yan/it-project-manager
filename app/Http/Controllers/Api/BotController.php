@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Models\Sla;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -19,30 +20,57 @@ class BotController extends Controller
         $data = $request->all();
         Log::info('WeChat bot message', $data);
 
-        // 企业微信回调格式: { "msgtype":"text", "text":{"content":"xxx"}, "from":{"userid":"xxx","name":"xxx"} }
         $content = $data['text']['content'] ?? $data['msg'] ?? '';
-        $userName = $data['from']['name'] ?? ($data['userName'] ?? '企微用户');
+        $userName = $data['from']['name'] ?? '企微用户';
+        $userId = $data['from']['userid'] ?? null;
 
-        return $this->handleMessage($content, $userName, 'wechat');
+        return $this->handleMessage($content, $userName, $userId, 'wechat');
     }
 
-    /**
-     * 钉钉机器人回调
-     * POST /api/bot/dingtalk
-     */
     public function dingtalk(Request $request)
     {
         $data = $request->all();
         Log::info('DingTalk bot message', $data);
 
-        // 钉钉回调格式: { "text":{"content":"xxx"}, "senderNick":"xxx" }
         $content = $data['text']['content'] ?? '';
         $userName = $data['senderNick'] ?? '钉钉用户';
+        $userId = $data['senderId'] ?? null;
 
-        return $this->handleMessage($content, $userName, 'dingtalk');
+        return $this->handleMessage($content, $userName, $userId, 'dingtalk');
     }
 
-    private function handleMessage(string $content, string $userName, string $platform): array
+    /**
+     * 查找或创建系统用户
+     */
+    private function findOrCreateUser(string $userId, string $userName, string $platform): User
+    {
+        $field = $platform === 'wechat' ? 'wechat_userid' : 'dingtalk_userid';
+
+        $user = User::where($field, $userId)->first();
+
+        if (!$user) {
+            // 尝试匹配现有用户（同名）
+            $user = User::where('name', $userName)->where('source', $platform)->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $userName,
+                    'username' => $platform . '_' . ($userId ?: uniqid()),
+                    'password' => bcrypt(str()->random(32)),
+                    'source' => $platform,
+                    $field => $userId,
+                    'is_active' => true,
+                ]);
+                $user->assignRole('普通成员');
+            } elseif ($userId) {
+                $user->update([$field => $userId]);
+            }
+        }
+
+        return $user;
+    }
+
+    private function handleMessage(string $content, string $userName, ?string $userId, string $platform): array
     {
         $content = trim($content);
         if (empty($content)) {
@@ -72,13 +100,16 @@ class BotController extends Controller
             $priority = 'high';
         }
 
+        // 匹配或创建系统用户
+        $user = $this->findOrCreateUser($userId ?? '', $userName, $platform);
+
         $ticket = Ticket::create([
             'title'       => mb_substr($content, 0, 200),
             'type'        => 'request',
             'priority'    => $priority,
             'status'      => 'open',
-            'source'      => $platform === 'wechat' ? 'portal' : 'portal', // 标记来自手机端
-            'created_by'  => 1, // 默认用户，实际应映射企业微信用户到系统用户
+            'source'      => $platform === 'wechat' ? 'portal' : 'portal',
+            'created_by'  => $user->id,
             'description' => "来自{$platform}手机端: {$userName}\n{$content}",
             'sla_deadline' => Sla::getDeadline($priority),
         ]);

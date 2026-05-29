@@ -1,7 +1,44 @@
 <div class="space-y-6">
-    <div><h1 class="text-xl font-bold text-zinc-900 dark:text-white">Bot 配置</h1><p class="text-sm text-zinc-500 mt-1">企业微信 / 钉钉群机器人，手机端直接发消息建工单、查状态</p></div>
+    <div><h1 class="text-xl font-bold text-zinc-900 dark:text-white">Bot 配置</h1><p class="text-sm text-zinc-500 mt-1">企业微信 / 钉钉群机器人 + 用户同步</p></div>
 
-    {{-- 企微 --}}
+    @if(session('success'))<div class="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm">{{ session('success') }}</div>@endif
+    @if($testResult)<div class="p-3 bg-sky-50 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-800 rounded-xl text-sky-700 dark:text-sky-400 text-sm">{{ $testResult }}</div>@endif
+
+    {{-- 企微 API 凭证 --}}
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <h2 class="text-base font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-950/40 flex items-center justify-center text-green-600 text-sm">微</span>
+            企业微信 API 凭证
+        </h2>
+        <p class="text-sm text-zinc-500 mt-2">配置后可以同步企业微信通讯录用户，Bot 消息也能自动匹配用户身份。</p>
+        <div class="grid sm:grid-cols-2 gap-3 mt-4">
+            <div><label class="text-xs font-medium text-zinc-500">Corp ID（企业ID）</label><input wire:model="wechatCorpId" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
+            <div><label class="text-xs font-medium text-zinc-500">Corp Secret（应用密钥）</label><input wire:model="wechatCorpSecret" type="password" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
+        </div>
+        <div class="flex gap-2 mt-3">
+            <button wire:click="saveWechat" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button>
+            <button wire:click="testWechat" class="px-4 py-2 text-sm text-sky-600 border border-sky-300 rounded-xl">测试连接</button>
+        </div>
+    </div>
+
+    {{-- 钉钉 API 凭证 --}}
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <h2 class="text-base font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 text-sm">钉</span>
+             钉钉 API 凭证
+        </h2>
+        <p class="text-sm text-zinc-500 mt-2">配置后可以同步钉钉通讯录用户，Bot 消息也能自动匹配用户身份。</p>
+        <div class="grid sm:grid-cols-2 gap-3 mt-4">
+            <div><label class="text-xs font-medium text-zinc-500">App Key（应用Key）</label><input wire:model="dingtalkAppKey" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
+            <div><label class="text-xs font-medium text-zinc-500">App Secret（应用密钥）</label><input wire:model="dingtalkAppSecret" type="password" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></div>
+        </div>
+        <div class="flex gap-2 mt-3">
+            <button wire:click="saveDingtalk" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button>
+            <button wire:click="testDingtalk" class="px-4 py-2 text-sm text-sky-600 border border-sky-300 rounded-xl">测试连接</button>
+        </div>
+    </div>
+
+    {{-- 企微 Bot --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 class="text-base font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
             <span class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-950/40 flex items-center justify-center text-green-600 text-sm">微</span>
