@@ -21,6 +21,8 @@
             <input type="date" wire:model="formWarrantyExpiry" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" title="保修到期">
         </div>
         <textarea wire:model="formNotes" rows="2" placeholder="备注" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+        @error('formAssetTag')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3"><button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button><button wire:click="save" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button></div>
     </div>
     @endif

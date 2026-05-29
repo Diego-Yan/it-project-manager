@@ -16,6 +16,7 @@
             <input wire:model="formHealthUrl" placeholder="健康检查 URL" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
         </div>
         <textarea wire:model="formDescription" rows="2" placeholder="描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <input wire:model="formTags" placeholder="标签，逗号分隔: production, k8s, beijing" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
         <div class="flex gap-2 justify-end mt-3">
             <button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button>

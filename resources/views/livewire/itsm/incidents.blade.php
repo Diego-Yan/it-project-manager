@@ -21,6 +21,7 @@
             <select wire:model="formAssignedTo" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">分配处理人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
         </div>
         <textarea wire:model="formDescription" rows="3" placeholder="故障描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3">
             <button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button>
             <button wire:click="save" class="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-xl">创建故障</button>
