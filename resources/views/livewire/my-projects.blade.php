@@ -17,13 +17,13 @@
 
     {{-- 统计 --}}
     <div class="grid grid-cols-3 gap-4">
-        @php $statCards = [['total'=>'全部',$counts['total'],'zinc'],['in_progress'=>'进行中',$counts['in_progress'],'sky'],['completed'=>'已完成',$counts['completed'],'green']]; @endphp
+        @php $statCards = [['key'=>'','label'=>'全部','count'=>$counts['total'],'color'=>'zinc'],['key'=>'in_progress','label'=>'进行中','count'=>$counts['in_progress'],'color'=>'sky'],['key'=>'completed','label'=>'已完成','count'=>$counts['completed'],'color'=>'green']]; @endphp
         @foreach($statCards as $card)
-        <button wire:click="$set('filterProgress', '{{ $card[0] === '全部' ? '' : $card[0] }}')"
+        <button wire:click="$set('filterProgress', '{{ $card['key'] }}')"
             class="bg-white dark:bg-zinc-900 rounded-xl border p-4 text-left transition-colors
-                {{ $filterProgress === ($card[0] === '全部' ? '' : $card[0]) ? 'border-'.$card[2].'-500 ring-1 ring-'.$card[2].'-500' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300' }}">
-            <p class="text-xs text-zinc-500">{{ $card[0] }}</p>
-            <p class="text-2xl font-bold text-{{ $card[2] }}-600 dark:text-{{ $card[2] }}-400 mt-1">{{ $card[1] }}</p>
+                {{ $filterProgress === $card['key'] ? 'border-'.$card['color'].'-500 ring-1 ring-'.$card['color'].'-500' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300' }}">
+            <p class="text-xs text-zinc-500">{{ $card['label'] }}</p>
+            <p class="text-2xl font-bold text-{{ $card['color'] }}-600 dark:text-{{ $card['color'] }}-400 mt-1">{{ $card['count'] }}</p>
         </button>
         @endforeach
     </div>
