@@ -11,11 +11,11 @@ use App\Livewire\Admin\RoleManager;
 use App\Livewire\Categories\CategoryManager;
 use Illuminate\Support\Facades\Route;
 
-// ── 机器人回调（无需登录，无需 CSRF） ──────────────────
+// ── 机器人回调（无需登录，无需 CSRF，每分钟限 60 次） ──
 Route::post('/api/bot/wechat', [\App\Http\Controllers\Api\BotController::class, 'wechat'])
-    ->withoutMiddleware(['web', 'auth']);
+    ->withoutMiddleware(['web', 'auth'])->middleware('throttle:60,1');
 Route::post('/api/bot/dingtalk', [\App\Http\Controllers\Api\BotController::class, 'dingtalk'])
-    ->withoutMiddleware(['web', 'auth']);
+    ->withoutMiddleware(['web', 'auth'])->middleware('throttle:60,1');
 
 // ── 认证路由 ──────────────────────────────────────────
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

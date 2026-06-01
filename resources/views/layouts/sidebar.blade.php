@@ -17,13 +17,13 @@
 
         <x-sidebar-link route="my.tasks" icon='M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'>
             我的任务
-            @php $pc = App\Models\Task::where('assigned_to', auth()->id())->where('status', 'pending_confirmation')->count(); @endphp
+            @php $pc = $sidebarPendingTasks; @endphp
             @if($pc > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">{{ $pc }}</span>@endif
         </x-sidebar-link>
 
         <x-sidebar-link route="my.tickets" icon='M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'>
             我的工单
-            @php $mtc = App\Models\Ticket::where('assigned_to', auth()->id())->whereIn('status', ['open','in_progress'])->count(); @endphp
+            @php $mtc = $sidebarOpenTickets; @endphp
             @if($mtc > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">{{ $mtc }}</span>@endif
         </x-sidebar-link>
 
@@ -31,7 +31,7 @@
 
         <x-sidebar-link route="my.assets" icon='M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9'>
             我的资产
-            @php $wsc = App\Models\Asset::where('assigned_to', auth()->id())->whereNotNull('warranty_expiry')->where('warranty_expiry', '<=', now()->addDays(30))->where('status', '!=', 'retired')->count(); @endphp
+            @php $wsc = $sidebarWarrantySoon; @endphp
             @if($wsc > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">{{ $wsc }}</span>@endif
         </x-sidebar-link>
 
@@ -45,7 +45,7 @@
         @canany(['manage tickets','manage assets','edit knowledge','approve changes','manage incidents','manage slas'])
         <p class="px-3 mt-5 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">ITSM 服务管理</p>
 
-        @php $tc = App\Models\Ticket::whereIn('status',['open','in_progress'])->count(); @endphp
+        @php $tc = $sidebarTotalOpenTickets; @endphp
         <x-sidebar-link route="itsm.tickets" icon='M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'>
             工单管理
             @if($tc > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">{{ $tc }}</span>@endif
@@ -59,7 +59,7 @@
 
         <x-sidebar-link route="itsm.changes" icon='M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5'>变更管理</x-sidebar-link>
 
-        @php $oic = App\Models\Incident::whereIn('status',['open','investigating'])->count(); @endphp
+        @php $oic = $sidebarOpenIncidents; @endphp
         <x-sidebar-link route="itsm.incidents" icon='M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z'>
             故障管理
             @if($oic > 0)<span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">{{ $oic }}</span>@endif
