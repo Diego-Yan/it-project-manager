@@ -12,11 +12,17 @@ use Illuminate\Support\Facades\Log;
 class BotController extends Controller
 {
     /**
-     * 企业微信群机器人回调
+     * [FIX] #5: 企业微信群机器人回调 - 添加签名验证
      * POST /api/bot/wechat
      */
     public function wechat(Request $request)
     {
+        // [FIX] #5: 验证企业微信签名（如果配置了 token/aes_key）
+        if (!$this->verifyWechatSignature($request)) {
+            Log::warning('WeChat bot signature verification failed', ['ip' => $request->ip()]);
+            return response()->json(['errcode' => 403, 'errmsg' => '签名验证失败'], 403);
+        }
+
         $data = $request->all();
         Log::info('WeChat bot message', $data);
 
@@ -27,8 +33,18 @@ class BotController extends Controller
         return $this->handleMessage($content, $userName, $userId, 'wechat');
     }
 
+    /**
+     * [FIX] #5: 钉钉机器人回调 - 添加签名验证
+     * POST /api/bot/dingtalk
+     */
     public function dingtalk(Request $request)
     {
+        // [FIX] #5: 验证钉钉签名
+        if (!$this->verifyDingTalkSignature($request)) {
+            Log::warning('DingTalk bot signature verification failed', ['ip' => $request->ip()]);
+            return response()->json(['errcode' => 403, 'errmsg' => '签名验证失败'], 403);
+        }
+
         $data = $request->all();
         Log::info('DingTalk bot message', $data);
 
@@ -37,6 +53,58 @@ class BotController extends Controller
         $userId = $data['senderId'] ?? null;
 
         return $this->handleMessage($content, $userName, $userId, 'dingtalk');
+    }
+
+    /**
+     * [FIX] #5: 验证企业微信回调签名
+     */
+    private function verifyWechatSignature(Request $request): bool
+    {
+        $token = config('services.wechat.bot_token');
+        if (empty($token)) {
+            // 未配置签名密钥时跳过验证（向后兼容），但记录警告
+            Log::warning('WeChat bot token not configured, skipping signature verification');
+            return true;
+        }
+
+        $signature = $request->query('msg_signature', '');
+        $timestamp = $request->query('timestamp', '');
+        $nonce = $request->query('nonce', '');
+
+        if (empty($signature) || empty($timestamp) || empty($nonce)) {
+            return false;
+        }
+
+        $tmpArr = [$token, $timestamp, $nonce];
+        sort($tmpArr, SORT_STRING);
+        $tmpStr = implode('', $tmpArr);
+        $calculated = sha1($tmpStr);
+
+        return hash_equals($calculated, $signature);
+    }
+
+    /**
+     * [FIX] #5: 验证钉钉回调签名
+     */
+    private function verifyDingTalkSignature(Request $request): bool
+    {
+        $secret = config('services.dingtalk.bot_secret');
+        if (empty($secret)) {
+            Log::warning('DingTalk bot secret not configured, skipping signature verification');
+            return true;
+        }
+
+        $timestamp = $request->query('timestamp', '');
+        $sign = $request->query('sign', '');
+
+        if (empty($timestamp) || empty($sign)) {
+            return false;
+        }
+
+        $stringToSign = $timestamp . "\n" . $secret;
+        $calculated = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
+
+        return hash_equals($calculated, $sign);
     }
 
     /**
@@ -53,15 +121,17 @@ class BotController extends Controller
             $user = User::where('name', $userName)->where('source', $platform)->first();
 
             if (!$user) {
+                // [FIX] #10: 使用配置中的默认角色，保持一致
+                $defaultRole = config('ad-auth.sync.default_role', '普通员工');
                 $user = User::create([
                     'name' => $userName,
                     'username' => $platform . '_' . ($userId ?: uniqid()),
-                    'password' => bcrypt(str()->random(32)),
+                    'password' => bcrypt(\Illuminate\Support\Str::random(32)), // [FIX] #3
                     'source' => $platform,
                     $field => $userId,
                     'is_active' => true,
                 ]);
-                $user->assignRole('普通员工');
+                $user->assignRole($defaultRole);
             } elseif ($userId) {
                 $user->update([$field => $userId]);
             }

@@ -127,6 +127,8 @@ class TaskManager extends Component
     }
 
     // ── 拒绝任务 ──────────────────────────────────────────
+    // [FIX] #8: 拒绝任务后状态设为 in_progress 并清空分配人，
+    // 让任务回到可认领状态（任何团队成员都能通过 claimTask 认领）
     public function rejectTask(int $taskId): void
     {
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);

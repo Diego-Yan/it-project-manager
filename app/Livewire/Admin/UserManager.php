@@ -230,7 +230,7 @@ class UserManager extends Component
                 'name'             => $this->formName,
                 'username'         => $this->formUsername,
                 'email'            => $this->formEmail ?: $this->formUsername . '@' . config('ad-auth.domain', 'yanmade.com'),
-                'password'         => Hash::make('ad_placeholder_' . uniqid()),
+                'password'         => Hash::make(\Illuminate\Support\Str::random(32)),
                 'department'       => $this->formDepartment,
                 'phone'            => $this->formPhone,
                 'is_active'        => $this->formIsActive,

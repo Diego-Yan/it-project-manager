@@ -195,7 +195,7 @@ class LdapAuthService
                 'ad_email' => $userInfo['email'],
                 'ad_authenticated' => true,
                 'ad_last_sync_at' => now(),
-                'password' => bcrypt('ad_user_' . $username), // 临时密码
+                'password' => bcrypt(\Illuminate\Support\Str::random(32)), // [FIX] #3: 随机不可预测密码
             ]);
 
             // 分配默认角色

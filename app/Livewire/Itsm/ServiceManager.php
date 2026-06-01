@@ -65,7 +65,7 @@ class ServiceManager extends Component
         $this->showForm = true;
     }
 
-    public function delete(int $id): void { Service::findOrFail($id)->delete(); }
+    public function delete(int $id): void { if (!auth()->user()->can("manage assets")) { session()->flash("error", "没有删除权限"); return; } Service::findOrFail($id)->delete(); }
 
     public function resetForm(): void
     {

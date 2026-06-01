@@ -3,6 +3,7 @@
 namespace App\Livewire\Itsm;
 
 use App\Models\Asset;
+use Illuminate\Support\Facades\DB;
 use App\Models\ConsumableCatalog;
 use App\Models\User;
 use Livewire\Component;
@@ -50,10 +51,15 @@ class AssetManager extends Component
             'warranty_expiry' => $this->formCategory !== 'consumable' ? ($this->formWarrantyExpiry ?: null) : null,
         ];
 
-        // 损耗品自动生成资产编号
+        // [FIX] #7: 使用事务 + MAX 聚合避免并发竞态（原代码: count()+1，并发会重复）
         if ($this->formCategory === 'consumable') {
-            $count = Asset::where('category', 'consumable')->count() + 1;
-            $data['asset_tag'] = 'CON-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+            $data['asset_tag'] = DB::transaction(function () {
+                $maxTag = Asset::where('category','consumable')
+                    ->where('asset_tag', 'LIKE', 'CON-%')
+                    ->lockForUpdate()->max('asset_tag');
+                $nextNum = $maxTag ? (int)substr($maxTag, 4) + 1 : 1;
+                return 'CON-' . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
+            });
         } else {
             $data['asset_tag'] = $this->formAssetTag;
         }

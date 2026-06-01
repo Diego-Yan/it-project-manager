@@ -38,11 +38,15 @@ return [
     'wechat' => [
         'corp_id'     => env('WECHAT_CORP_ID', ''),
         'corp_secret' => env('WECHAT_CORP_SECRET', ''),
+        // [FIX] #5: 企业微信机器人回调签名验证
+        'bot_token'   => env('WECHAT_BOT_TOKEN', ''),
     ],
 
     'dingtalk' => [
         'app_key'    => env('DINGTALK_APP_KEY', ''),
         'app_secret' => env('DINGTALK_APP_SECRET', ''),
+        // [FIX] #5: 钉钉机器人回调签名验证
+        'bot_secret' => env('DINGTALK_BOT_SECRET', ''),
     ],
 
     'embedding' => [

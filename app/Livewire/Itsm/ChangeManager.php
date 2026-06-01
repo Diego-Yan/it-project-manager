@@ -76,7 +76,7 @@ class ChangeManager extends Component
         $this->showForm=true;
     }
 
-    public function delete(int $id): void { ChangeRequest::findOrFail($id)->delete(); }
+    public function delete(int $id): void { if (!auth()->user()->can("approve changes")) { session()->flash("error", "没有删除权限"); return; } ChangeRequest::findOrFail($id)->delete(); }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formProjectId','formServiceId','formType','formRisk','formDescription','formRollbackPlan','formWindowStart','formWindowEnd']); $this->formType='config'; $this->formRisk='low'; }
 
     public function render()

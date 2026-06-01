@@ -8,6 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // [FIX] #1: 资产管理 — 必须在工单表之前创建，因为 tickets.asset_id 引用 assets
+        // 原代码: assets 在 tickets 之后创建导致 foreign key 约束失败
+        Schema::create('assets', function (Blueprint $table) {
+            $table->id();
+            $table->string('asset_tag')->unique();          // 资产编号: IT-2024-0001
+            $table->string('name');
+            $table->string('type')->default('other');       // laptop|desktop|printer|switch|server|monitor|software|license|other
+            $table->string('brand')->nullable();
+            $table->string('model')->nullable();
+            $table->string('serial_number')->nullable();
+            $table->string('status')->default('in_use');    // in_use|available|repair|retired
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
+            $table->string('location')->nullable();         // 位置：3楼A区
+            $table->string('department')->nullable();
+            $table->date('purchase_date')->nullable();
+            $table->date('warranty_expiry')->nullable();
+            $table->text('notes')->nullable();
+            $table->timestamps();
+        });
+
         // ── 1. 工单系统 ────────────────────────────────
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
@@ -40,26 +60,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ── 2. 资产管理 ────────────────────────────────
-        Schema::create('assets', function (Blueprint $table) {
-            $table->id();
-            $table->string('asset_tag')->unique();          // 资产编号: IT-2024-0001
-            $table->string('name');
-            $table->string('type')->default('other');       // laptop|desktop|printer|switch|server|monitor|software|license|other
-            $table->string('brand')->nullable();
-            $table->string('model')->nullable();
-            $table->string('serial_number')->nullable();
-            $table->string('status')->default('in_use');    // in_use|available|repair|retired
-            $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
-            $table->string('location')->nullable();         // 位置：3楼A区
-            $table->string('department')->nullable();
-            $table->date('purchase_date')->nullable();
-            $table->date('warranty_expiry')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
-
-        // ── 3. 知识库 ──────────────────────────────────
+        // ── 2. 知识库 ──────────────────────────────────
         Schema::create('knowledge_articles', function (Blueprint $table) {
             $table->id();
             $table->string('title');
@@ -72,7 +73,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ── 4. SLA 配置 ────────────────────────────────
+        // ── 3. SLA 配置 ────────────────────────────────
         Schema::create('slas', function (Blueprint $table) {
             $table->id();
             $table->string('name');

@@ -39,7 +39,8 @@ class AiSettings extends Component
         \Illuminate\Support\Facades\Artisan::call('config:clear');
     }
 
-    public function testEmbedding(): void { /* ... same as before ... */
+    public function testEmbedding(): void
+    {
         if (empty($this->embeddingUrl) || empty($this->embeddingKey)) { $this->testResult = '请先填写 API 地址和密钥'; return; }
         try {
             $resp = \Illuminate\Support\Facades\Http::withToken($this->embeddingKey)->timeout(10)->post($this->embeddingUrl, ['model' => $this->embeddingModel ?: 'text-embedding-3-small', 'input' => 'test']);
@@ -67,34 +68,53 @@ class AiSettings extends Component
         } catch (\Exception $e) { $this->llmTestResult = '连接失败: ' . $e->getMessage(); }
     }
 
+    // [FIX] #12: 使用文件锁避免并发写入截断 .env
     private function updateEnv(array $updates): void
     {
         $envPath = base_path('.env');
         if (!file_exists($envPath)) return;
 
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
-        $written = [];
-        $newLines = [];
+        $fp = fopen($envPath, 'r+');
+        if (!$fp) return;
 
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
-            if ($trimmed === '' || str_starts_with($trimmed, '#')) { $newLines[] = $line; continue; }
-            $eqPos = strpos($trimmed, '=');
-            if ($eqPos === false) { $newLines[] = $line; continue; }
-            $key = trim(substr($trimmed, 0, $eqPos));
-            if (array_key_exists($key, $updates)) {
-                if (!isset($written[$key])) {
-                    $newLines[] = $key . '=' . $updates[$key];
-                    $written[$key] = true;
-                }
-            } else {
-                $newLines[] = $line;
+        try {
+            if (!flock($fp, LOCK_EX)) {
+                fclose($fp);
+                return;
             }
+
+            $content = stream_get_contents($fp);
+            $lines = explode("\n", $content);
+            $written = [];
+            $newLines = [];
+
+            foreach ($lines as $line) {
+                $trimmed = trim($line);
+                if ($trimmed === '' || str_starts_with($trimmed, '#')) { $newLines[] = $line; continue; }
+                $eqPos = strpos($trimmed, '=');
+                if ($eqPos === false) { $newLines[] = $line; continue; }
+                $key = trim(substr($trimmed, 0, $eqPos));
+                if (array_key_exists($key, $updates)) {
+                    if (!isset($written[$key])) {
+                        $newLines[] = $key . '=' . $updates[$key];
+                        $written[$key] = true;
+                    }
+                } else {
+                    $newLines[] = $line;
+                }
+            }
+            foreach ($updates as $key => $value) {
+                if (!isset($written[$key])) { $newLines[] = $key . '=' . $value; }
+            }
+
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, implode("\n", $newLines) . "\n");
+            fflush($fp);
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
         }
-        foreach ($updates as $key => $value) {
-            if (!isset($written[$key])) { $newLines[] = $key . '=' . $value; }
-        }
-        file_put_contents($envPath, implode("\n", $newLines) . "\n");
     }
 
     public function render()

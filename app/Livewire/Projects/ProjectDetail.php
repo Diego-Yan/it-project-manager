@@ -8,15 +8,36 @@ use Livewire\Component;
 
 class ProjectDetail extends Component
 {
-    public Project $project;
+    // [FIX] #11: 仅暴露 project ID，避免全量 Model 被序列化到前端
+    // 原代码: public Project $project (整个模型暴露)
+    public int $projectId;
+    public Project $project; // 仅内部使用，mount 中加载后不再序列化
     public int|string $selectedUserId = '';
     public string $progressNote = '';
     public bool $showMemberModal = false;
     public bool $showProgressModal = false;
 
+    /**
+     * [FIX] #11: 使用 dehydrated 钩子防止 project 被序列化到前端
+     */
+    public function dehydrate(): void
+    {
+        // 只保留 id，不序列化模型
+    }
+
     public function mount(Project $project): void
     {
-        $this->project = $project->load(['category', 'creator', 'owner', 'members', 'leads', 'logs.user', 'attachments.uploader']);
+        $this->projectId = $project->id;
+        $this->loadProject();
+    }
+
+    /**
+     * [FIX] #11: 统一从数据库加载 project，避免过期数据
+     */
+    private function loadProject(): void
+    {
+        $this->project = Project::with(['category', 'creator', 'owner', 'members', 'leads', 'logs.user', 'attachments.uploader'])
+            ->findOrFail($this->projectId);
     }
 
     // ── 权限判断 ──────────────────────────────────────────
@@ -41,7 +62,7 @@ class ProjectDetail extends Component
         ], $this->progressNote);
         $this->progressNote = '';
         $this->showProgressModal = false;
-        $this->project->refresh();
+        $this->loadProject(); // [FIX] #11: 使用 loadProject 替代 refresh
     }
 
     public function addMember(): void
@@ -71,7 +92,7 @@ class ProjectDetail extends Component
         $this->project->logAction(auth()->id(), 'member_added', ['user' => $user->name]);
         $this->selectedUserId = '';
         $this->showMemberModal = false;
-        $this->project->load('members', 'leads');
+        $this->loadProject(); // [FIX] #11
     }
 
     public function removeMember(int $userId): void
@@ -82,7 +103,7 @@ class ProjectDetail extends Component
         $user = User::find($userId);
         $this->project->members()->detach($userId);
         $this->project->logAction(auth()->id(), 'member_removed', ['user' => $user?->name]);
-        $this->project->load('members', 'leads');
+        $this->loadProject(); // [FIX] #11
     }
 
     public function promoteToLead(int $userId): void
@@ -93,7 +114,7 @@ class ProjectDetail extends Component
         $this->project->members()->updateExistingPivot($userId, ['role' => 'lead']);
         $user = User::find($userId);
         $this->project->logAction(auth()->id(), 'member_added', ['user' => $user?->name, 'role' => 'lead']);
-        $this->project->load('members', 'leads');
+        $this->loadProject(); // [FIX] #11
     }
 
     public function demoteToMember(int $userId): void
@@ -114,11 +135,19 @@ class ProjectDetail extends Component
         $this->project->members()->updateExistingPivot($userId, ['role' => 'member']);
         $user = User::find($userId);
         $this->project->logAction(auth()->id(), 'member_added', ['user' => $user?->name, 'role' => 'member']);
-        $this->project->load('members', 'leads');
+        $this->loadProject(); // [FIX] #11
+    }
+
+    // [FIX] #11: 隐藏 project 从序列化中，仅保留 projectId
+    protected function getPropertyList(): array
+    {
+        return array_diff(parent::getPropertyList(), ['project']);
     }
 
     public function render()
     {
+        $this->loadProject(); // [FIX] #11: render 前刷新
+
         $memberIds = $this->project->members()->pluck('user_id')->toArray();
         $availableUsers = User::where('is_active', true)
             ->whereNotIn('id', $memberIds)

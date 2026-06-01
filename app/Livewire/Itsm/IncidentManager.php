@@ -65,7 +65,7 @@ class IncidentManager extends Component
         $this->showForm=true;
     }
 
-    public function delete(int $id): void { Incident::findOrFail($id)->delete(); }
+    public function delete(int $id): void { if (!auth()->user()->can("manage incidents")) { session()->flash("error", "没有删除权限"); return; } Incident::findOrFail($id)->delete(); }
     public function toggleTimeline(int $id): void { $this->viewTimelineId = $this->viewTimelineId === $id ? null : $id; }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formSeverity','formDescription','formProjectId','formServiceId','formAssignedTo']); $this->formSeverity='P3'; }
 

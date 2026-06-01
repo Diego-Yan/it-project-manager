@@ -43,7 +43,7 @@ return [
     'sync' => [
         'auto_create_user' => env('AD_AUTO_CREATE_USER', true),
         'auto_sync_groups' => env('AD_AUTO_SYNC_GROUPS', false),
-        'default_role' => env('AD_DEFAULT_ROLE', 'user'),
+        'default_role' => env('AD_DEFAULT_ROLE', '普通员工'), // [FIX] #10: 与 BotController 和 Seeder 的角色名保持一致
         'sync_fields' => [
             'display_name' => 'displayname',
             'email' => 'mail',
