@@ -20,7 +20,7 @@
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
 
         {{-- ═══ 工作台 ═══ --}}
-        <button @click="toggle('workbench')" class="w-full flex items-center gap-2 px-3 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+        <button @click="toggle('workbench')" class="w-full flex items-center gap-2 px-3 mb-1 text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
             <svg :class="isOpen('workbench') ? 'rotate-90' : ''" class="w-3 h-3 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             工作台
         </button>
@@ -42,7 +42,7 @@
         </div>
 
         {{-- ═══ 项目管理 ═══ --}}
-        <button @click="toggle('projects')" class="w-full flex items-center gap-2 px-3 mt-4 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+        <button @click="toggle('projects')" class="w-full flex items-center gap-2 px-3 mt-4 mb-1 text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
             <svg :class="isOpen('projects') ? 'rotate-90' : ''" class="w-3 h-3 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             项目管理
         </button>
@@ -54,7 +54,7 @@
 
         {{-- ═══ ITSM 服务管理 ═══ --}}
         @canany(['manage tickets','manage assets','edit knowledge','approve changes','manage incidents','manage slas'])
-        <button @click="toggle('itsm')" class="w-full flex items-center gap-2 px-3 mt-4 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+        <button @click="toggle('itsm')" class="w-full flex items-center gap-2 px-3 mt-4 mb-1 text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
             <svg :class="isOpen('itsm') ? 'rotate-90' : ''" class="w-3 h-3 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             ITSM 服务管理
         </button>
@@ -80,7 +80,7 @@
 
         {{-- ═══ 系统管理 ═══ --}}
         @canany(['view users', 'manage roles'])
-        <button @click="toggle('admin')" class="w-full flex items-center gap-2 px-3 mt-4 mb-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+        <button @click="toggle('admin')" class="w-full flex items-center gap-2 px-3 mt-4 mb-1 text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
             <svg :class="isOpen('admin') ? 'rotate-90' : ''" class="w-3 h-3 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             系统管理
         </button>
