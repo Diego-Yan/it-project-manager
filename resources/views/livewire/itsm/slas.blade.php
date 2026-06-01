@@ -10,23 +10,23 @@
         <div class="grid sm:grid-cols-4 gap-4">
             <div>
                 <label class="block text-xs font-medium text-zinc-500 mb-1.5 h-4">SLA 名称</label>
-                <input wire:model="formName" placeholder="如：紧急故障处理" class="w-full px-3 py-2.5 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                <input wire:model="formName" placeholder="如：紧急故障处理" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                 @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="block text-xs font-medium text-zinc-500 mb-1.5 h-4">优先级</label>
-                <select wire:model="formPriority" class="w-full px-3 py-2.5 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                <select wire:model="formPriority" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                     <option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="critical">紧急</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-medium text-zinc-500 mb-1.5 h-4">响应时限（分钟）</label>
-                <input type="number" wire:model="formResponse" min="1" class="w-full px-3 py-2.5 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                <input type="number" wire:model="formResponse" min="1" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                 @error('formResponse')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="block text-xs font-medium text-zinc-500 mb-1.5 h-4">解决时限（分钟）</label>
-                <input type="number" wire:model="formResolution" min="1" class="w-full px-3 py-2.5 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                <input type="number" wire:model="formResolution" min="1" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                 @error('formResolution')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
         </div>
