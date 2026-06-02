@@ -61,4 +61,8 @@ return [
         'model' => env('LLM_MODEL', ''),
     ],
 
+    'logo' => [
+        'url' => env('LOGO_URL', ''),
+    ],
+
 ];

@@ -186,6 +186,10 @@
 <body>
     <div class="login-card">
         <div class="login-header">
+            @php $logoUrl = config('services.logo.url') ? asset('storage/' . config('services.logo.url')) : null; @endphp
+            @if($logoUrl)
+            <div style="margin-bottom:12px"><img src="{{ $logoUrl }}" style="height:48px;max-width:100%"></div>
+            @endif
             <h1>IT服务管理</h1>
             <p>V1.3 - 企业IT服务管理平台</p>
         </div>

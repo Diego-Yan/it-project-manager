@@ -3,9 +3,13 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class AiSettings extends Component
 {
+    use WithFileUploads;
+
+    public $logoFile = null;
     public string $embeddingUrl = '';
     public string $embeddingKey = '';
     public string $embeddingModel = '';
@@ -117,9 +121,34 @@ class AiSettings extends Component
         }
     }
 
+    public function uploadLogo(): void
+    {
+        $this->validate(['logoFile' => 'image|max:1024']);
+        $path = $this->logoFile->storeAs('logos', 'company-logo.' . $this->logoFile->extension(), 'public');
+        $this->updateEnv(['LOGO_URL' => $path]);
+        session()->flash('success', 'Logo 已上传');
+        $this->logoFile = null;
+    }
+
+    public function removeLogo(): void
+    {
+        \Storage::disk('public')->delete('logos/company-logo.png');
+        \Storage::disk('public')->delete('logos/company-logo.jpg');
+        \Storage::disk('public')->delete('logos/company-logo.jpeg');
+        \Storage::disk('public')->delete('logos/company-logo.webp');
+        $this->updateEnv(['LOGO_URL' => '']);
+        session()->flash('success', 'Logo 已移除');
+    }
+
+    public function logoUrl(): string
+    {
+        $path = config('services.logo.url', '');
+        return $path ? asset('storage/' . $path) : '';
+    }
+
     public function render()
     {
         return view('livewire.admin.ai-settings')
-            ->layout('layouts.app', ['title' => 'AI 配置']);
+            ->layout('layouts.app', ['title' => '系统设置']);
     }
 }
