@@ -6,7 +6,7 @@
     {{-- ═══ 企业 Logo ═══ --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border p-6">
         <h2 class="text-base font-semibold mb-1">企业 Logo</h2>
-        <p class="text-sm text-zinc-500 mb-4">显示在登录页和系统左上角。建议正方形 PNG，透明背景。</p>
+        <p class="text-sm text-zinc-500 mb-4">显示在登录页和系统左上角。支持 PNG / JPG / WebP，最大 1MB。建议正方形透明 PNG。</p>
         <div class="flex items-center gap-4">
             @php $logo = $this->logoUrl(); @endphp
             <div class="w-16 h-16 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center overflow-hidden bg-white">
@@ -18,6 +18,7 @@
             </div>
             <div class="space-y-2">
                 <input type="file" wire:model="logoFile" accept="image/png,image/jpeg,image/webp" class="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-sky-50 file:text-sky-700">
+                <p class="text-xs text-zinc-400">PNG / JPG / WebP · 最大 1MB</p>
                 <div wire:loading wire:target="logoFile" class="text-xs text-sky-500">上传中...</div>
                 @error('logoFile')<p class="text-xs text-red-500">{{ $message }}</p>@enderror
                 <div class="flex gap-2">
