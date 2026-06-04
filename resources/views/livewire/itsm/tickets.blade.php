@@ -26,7 +26,10 @@
             <select wire:model="formAssetId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联资产</option>@foreach($assets as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->asset_tag }})</option>@endforeach</select>
             <select wire:model="formAssignedTo" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">分配处理人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
         </div>
-        <textarea wire:model="formDescription" rows="2" placeholder="详细描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formDescription" rows="3" placeholder="详细描述"
+            x-data x-init="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+            @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+            class="w-full mt-3 px-3 py-2 min-h-[80px] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 resize-none"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mb-2">{{ $message }}</p>@enderror
         @error('formRegionId')<p class="text-xs text-red-500 mb-2">请选择地区</p>@enderror
         <div class="flex gap-2 justify-end mt-3"><button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button><button wire:click="save" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button></div>
@@ -106,8 +109,8 @@
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border p-6 w-full max-w-md shadow-2xl" wire:click.stop="">
             <h3 class="text-base font-semibold mb-2">关闭工单确认</h3>
             <p class="text-sm text-zinc-500 mb-4">请填写处理过程总结，确认后工单将关闭。</p>
-            <textarea wire:model="closeNote" rows="3" placeholder="处理过程总结（必填）*"
-                class="w-full px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-2"></textarea>
+            <textarea wire:model="closeNote" rows="4" placeholder="处理过程总结（必填）*"
+                class="w-full px-3 py-2 min-h-[100px] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-2 resize-none"></textarea>
             @if(session('ticket_error'))<p class="text-xs text-red-500 mb-2">{{ session('ticket_error') }}</p>@endif
             <div class="flex gap-2 justify-end">
                 <button wire:click="$set('showCloseConfirm', false)" class="px-4 py-2 text-sm text-zinc-500">取消</button>

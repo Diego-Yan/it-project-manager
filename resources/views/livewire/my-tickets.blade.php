@@ -16,7 +16,10 @@
             <select wire:model="formPriority" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="critical">紧急</option></select>
             <select wire:model="formSource" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="portal">自助</option><option value="phone">电话</option><option value="email">邮件</option><option value="walk_in">现场</option></select>
         </div>
-        <textarea wire:model="formDescription" rows="2" placeholder="详细描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formDescription" rows="3" placeholder="详细描述"
+            x-data x-init="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+            @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+            class="w-full mt-3 px-3 py-2 min-h-[80px] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 resize-none"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         @error('formRegionId')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3"><button wire:click="$set('showForm', false)" class="px-4 py-2 text-sm text-zinc-500">取消</button><button wire:click="createTicket" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">提交工单</button></div>
