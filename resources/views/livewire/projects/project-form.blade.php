@@ -135,8 +135,10 @@
             {{-- 描述 --}}
             <div>
                 <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">项目描述</label>
-                <textarea wire:model="description" rows="4" placeholder="请描述项目背景、目标和范围..."
-                    class="w-full px-4 h-10 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500 transition-colors resize-none"></textarea>
+                <textarea wire:model="description" rows="5" placeholder="请描述项目背景、目标和范围..."
+                    x-data x-init="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+                    @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+                    class="w-full px-4 py-3 min-h-[120px] text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500 transition-colors resize-none"></textarea>
             </div>
 
             {{-- 备注 --}}
