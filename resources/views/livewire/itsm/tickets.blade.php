@@ -18,13 +18,52 @@
         <h3 class="text-sm font-semibold mb-4">{{ $editingId ? '编辑工单' : '新建工单' }}</h3>
         <div class="grid sm:grid-cols-3 gap-3">
             <input wire:model="formTitle" placeholder="工单标题*" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-3">
-            <select wire:model="formType" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="request">服务请求</option><option value="incident">故障报修</option><option value="change">变更申请</option><option value="problem">问题管理</option></select>
-            <select wire:model="formPriority" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">优先级：低</option><option value="medium">优先级：中</option><option value="high">优先级：高</option><option value="critical">优先级：紧急</option></select>
-            <select wire:model="formSource" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="phone">电话</option><option value="email">邮件</option><option value="portal">自助</option><option value="walk_in">现场</option></select>
-            <select wire:model="formProjectId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联项目</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
-            <select wire:model="formRegionId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">请选择地区 *</option>@foreach($regions as $r)<option value="{{ $r->id }}">{{ $r->name }}</option>@endforeach</select>
-            <select wire:model="formAssetId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联资产</option>@foreach($assets as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->asset_tag }})</option>@endforeach</select>
-            <select wire:model="formAssignedTo" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">分配处理人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
+            <div>
+                <label class="text-xs text-zinc-500">类型 <span class="text-red-500">*</span></label>
+                <select wire:model="formType" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                    <option value="request">服务请求 — 需要 IT 提供某样东西</option>
+                    <option value="incident">故障报修 — 东西坏了要修</option>
+                    <option value="change">变更申请 — 计划性改动需审批</option>
+                    <option value="problem">问题管理 — 查根因防复发</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">优先级</label>
+                <select wire:model="formPriority" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="critical">紧急</option></select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">来源</label>
+                <select wire:model="formSource" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="phone">电话</option><option value="email">邮件</option><option value="portal">自助</option><option value="walk_in">现场</option></select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">系统分类</label>
+                <select wire:model.live="formCategoryId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">选择系统</option>@foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach</select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">关联项目</label>
+                <select wire:model="formProjectId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">可选</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">地区 <span class="text-red-500">*</span></label>
+                <select wire:model="formRegionId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">请选择</option>@foreach($regions as $r)<option value="{{ $r->id }}">{{ $r->name }}</option>@endforeach</select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">关联资产</label>
+                <select wire:model="formAssetId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">可选</option>@foreach($assets as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->asset_tag }})</option>@endforeach</select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-500">分配处理人</label>
+                <select wire:model="formAssignedTo" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">暂不分配</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
+            </div>
+            @if($suggestedEngineers)
+            <div class="sm:col-span-3 flex items-center gap-2 flex-wrap text-xs p-2 bg-sky-50 dark:bg-sky-950/20 rounded-lg">
+                <span class="font-medium text-sky-700 dark:text-sky-400">💡 推荐处理人：</span>
+                @foreach($suggestedEngineers as $eng)
+                <button wire:click="$set('formAssignedTo', '{{ $eng['id'] }}')"
+                    class="px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400 hover:bg-sky-200">{{ $eng['name'] }}</button>
+                @endforeach
+            </div>
+            @endif
         </div>
         <textarea wire:model="formDescription" rows="3" placeholder="详细描述"
             x-data x-init="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"

@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->hasMany(ProjectLog::class);
     }
 
+    public function expertiseCategories()
+    {
+        return $this->belongsToMany(ProjectCategory::class, 'user_categories', 'user_id', 'category_id');
+    }
+
     public function getRoleNamesStringAttribute(): string
     {
         return $this->getRoleNames()->implode(', ') ?: '无角色';
