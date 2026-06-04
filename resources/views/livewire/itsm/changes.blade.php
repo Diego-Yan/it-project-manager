@@ -8,17 +8,17 @@
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
         <h3 class="text-sm font-semibold mb-4">{{ $editingId ? '编辑变更' : '新建变更请求' }}</h3>
         <div class="grid sm:grid-cols-3 gap-3">
-            <input wire:model="formTitle" placeholder="变更标题" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-3">
-            <select wire:model="formProjectId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">选择项目*</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
-            <select wire:model="formServiceId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联服务</option>@foreach($services as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach</select>
-            <select wire:model="formType" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="release">发布</option><option value="config">配置变更</option><option value="rollback">回滚</option><option value="hotfix">紧急修复</option></select>
-            <select wire:model="formRisk" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">风险：低</option><option value="medium">风险：中</option><option value="high">风险：高</option><option value="critical">风险：严重</option></select>
-            <input type="datetime-local" wire:model="formWindowStart" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" placeholder="变更窗口开始">
-            <input type="datetime-local" wire:model="formWindowEnd" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" placeholder="变更窗口结束">
+            <input wire:model="formTitle" placeholder="变更标题" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-3">
+            <select wire:model="formProjectId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">选择项目*</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
+            <select wire:model="formServiceId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联服务</option>@foreach($services as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach</select>
+            <select wire:model="formType" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="release">发布</option><option value="config">配置变更</option><option value="rollback">回滚</option><option value="hotfix">紧急修复</option></select>
+            <select wire:model="formRisk" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">风险：低</option><option value="medium">风险：中</option><option value="high">风险：高</option><option value="critical">风险：严重</option></select>
+            <input type="datetime-local" wire:model="formWindowStart" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" placeholder="变更窗口开始">
+            <input type="datetime-local" wire:model="formWindowEnd" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" placeholder="变更窗口结束">
         </div>
-        <textarea wire:model="formDescription" rows="2" placeholder="变更描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formDescription" rows="2" placeholder="变更描述" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
-        <textarea wire:model="formRollbackPlan" rows="2" placeholder="回滚方案" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formRollbackPlan" rows="2" placeholder="回滚方案" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3">
             <button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button>

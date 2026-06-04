@@ -8,16 +8,16 @@
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
         <h3 class="text-sm font-semibold mb-4">{{ $editingId ? '编辑服务' : '添加服务' }}</h3>
         <div class="grid sm:grid-cols-3 gap-3">
-            <input wire:model="formName" placeholder="服务名称" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            <select wire:model="formProjectId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联项目（可选）</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
-            <select wire:model="formType" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="web">🌐 Web</option><option value="database">🗄️ 数据库</option><option value="cache">⚡ 缓存</option><option value="queue">📨 队列</option><option value="storage">💾 存储</option><option value="api">🔌 API</option><option value="custom">🔧 其他</option></select>
-            <select wire:model="formStatus" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="healthy">🟢 健康</option><option value="degraded">🟡 降级</option><option value="down">🔴 宕机</option><option value="maintenance">⚙️ 维护中</option></select>
-            <select wire:model="formOwnerId" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">负责人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
-            <input wire:model="formHealthUrl" placeholder="健康检查 URL" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formName" placeholder="服务名称" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <select wire:model="formProjectId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">关联项目（可选）</option>@foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->title }}</option>@endforeach</select>
+            <select wire:model="formType" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="web">🌐 Web</option><option value="database">🗄️ 数据库</option><option value="cache">⚡ 缓存</option><option value="queue">📨 队列</option><option value="storage">💾 存储</option><option value="api">🔌 API</option><option value="custom">🔧 其他</option></select>
+            <select wire:model="formStatus" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="healthy">🟢 健康</option><option value="degraded">🟡 降级</option><option value="down">🔴 宕机</option><option value="maintenance">⚙️ 维护中</option></select>
+            <select wire:model="formOwnerId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">负责人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
+            <input wire:model="formHealthUrl" placeholder="健康检查 URL" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
         </div>
-        <textarea wire:model="formDescription" rows="2" placeholder="描述" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formDescription" rows="2" placeholder="描述" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
-        <input wire:model="formTags" placeholder="标签，逗号分隔: production, k8s, beijing" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+        <input wire:model="formTags" placeholder="标签，逗号分隔: production, k8s, beijing" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
         <div class="flex gap-2 justify-end mt-3">
             <button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button>
             <button wire:click="save" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button>

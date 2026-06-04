@@ -11,7 +11,7 @@
         {{-- 分类首位置 --}}
         <div class="flex items-center gap-3 mb-4">
             <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">资产分类</label>
-            <select wire:model.live="formCategory" class="px-4 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <select wire:model.live="formCategory" class="px-4 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                 <option value="fixed">固定资产</option><option value="non_fixed">非固定资产</option><option value="consumable">损耗品</option>
             </select>
         </div>
@@ -19,43 +19,43 @@
         <div class="grid sm:grid-cols-3 gap-3">
             {{-- 固定资产/非固定资产：编号 --}}
             @if($formCategory !== 'consumable')
-            <input wire:model="formAssetTag" placeholder="{{ $formCategory === 'fixed' ? '固定资产编号' : '管制资产编号' }} *" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formAssetTag" placeholder="{{ $formCategory === 'fixed' ? '固定资产编号' : '管制资产编号' }} *" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             @endif
 
             {{-- 损耗品：下拉选择 --}}
             @if($formCategory === 'consumable')
-            <select wire:model="formName" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <select wire:model="formName" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                 <option value="">选择损耗品 *</option>
                 @foreach($catalog as $item)
                 <option value="{{ $item->name }}">{{ $item->name }} @if($item->brand) ({{ $item->brand }}) @endif</option>
                 @endforeach
             </select>
-            <input type="number" wire:model="formQuantity" min="1" placeholder="库存数量" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="number" wire:model="formQuantity" min="1" placeholder="库存数量" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             @else
             {{-- 固定资产/非固定资产：设备名称 --}}
-            <input wire:model="formName" placeholder="设备名称 *" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formName" placeholder="设备名称 *" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
 
             {{-- 设备类型 --}}
-            <select wire:model="formType" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="laptop">💻 笔记本</option><option value="desktop">🖥️ 台式机</option><option value="printer">🖨️ 打印机</option><option value="switch">🌐 交换机</option><option value="server">🗄️ 服务器</option><option value="monitor">🖥️ 显示器</option><option value="software">💿 软件</option><option value="other">📦 其他</option></select>
+            <select wire:model="formType" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="laptop">💻 笔记本</option><option value="desktop">🖥️ 台式机</option><option value="printer">🖨️ 打印机</option><option value="switch">🌐 交换机</option><option value="server">🗄️ 服务器</option><option value="monitor">🖥️ 显示器</option><option value="software">💿 软件</option><option value="other">📦 其他</option></select>
 
             {{-- 品牌 + 型号 --}}
-            <input wire:model="formBrand" placeholder="品牌" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            <input wire:model="formModel" placeholder="型号" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formBrand" placeholder="品牌" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formModel" placeholder="型号" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
 
             {{-- 固定资产才有序列号 --}}
             @if($formCategory === 'fixed')
-            <input wire:model="formSerial" placeholder="序列号" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formSerial" placeholder="序列号" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             @endif
 
-            <select wire:model="formStatus" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="in_use">使用中</option><option value="available">空闲</option><option value="repair">维修中</option><option value="retired">已报废</option></select>
-            <select wire:model="formAssignedTo" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">使用人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
-            <input wire:model="formLocation" placeholder="位置: 3楼A区" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            <input type="date" wire:model="formPurchaseDate" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" title="购买日期">
-            <input type="date" wire:model="formWarrantyExpiry" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" title="保修到期">
+            <select wire:model="formStatus" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="in_use">使用中</option><option value="available">空闲</option><option value="repair">维修中</option><option value="retired">已报废</option></select>
+            <select wire:model="formAssignedTo" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">使用人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
+            <input wire:model="formLocation" placeholder="位置: 3楼A区" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="date" wire:model="formPurchaseDate" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" title="购买日期">
+            <input type="date" wire:model="formWarrantyExpiry" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" title="保修到期">
             @endif
         </div>
 
-        <textarea wire:model="formNotes" rows="2" placeholder="备注" class="w-full mt-3 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formNotes" rows="2" placeholder="备注" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         @error('formAssetTag')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3"><button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button><button wire:click="save" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl">保存</button></div>
@@ -70,9 +70,9 @@
         </div>
         @if($showCatalog)
         <div class="flex gap-2 mb-3">
-            <input wire:model="catalogName" wire:keydown.enter="addCatalogItem" placeholder="名称" class="flex-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            <input wire:model="catalogBrand" placeholder="品牌" class="w-28 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            <select wire:model="catalogUnit" class="px-2 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="个">个</option><option value="箱">箱</option><option value="包">包</option><option value="支">支</option><option value="卷">卷</option><option value="套">套</option></select>
+            <input wire:model="catalogName" wire:keydown.enter="addCatalogItem" placeholder="名称" class="flex-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="catalogBrand" placeholder="品牌" class="w-28 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <select wire:model="catalogUnit" class="px-2 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="个">个</option><option value="箱">箱</option><option value="包">包</option><option value="支">支</option><option value="卷">卷</option><option value="套">套</option></select>
             <button wire:click="addCatalogItem" class="px-3 py-2 text-xs font-medium bg-sky-600 text-white rounded-xl">添加</button>
         </div>
         <div class="flex gap-2 flex-wrap">

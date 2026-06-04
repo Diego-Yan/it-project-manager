@@ -7,8 +7,8 @@
     @if(session('kb_success'))<div class="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm">{{ session('kb_success') }}</div>@endif
 
     <div class="flex gap-3 items-center flex-wrap">
-        <input wire:model.live.debounce.300ms="search" placeholder="搜索文章标题或内容..." class="flex-1 min-w-48 px-4 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-        <select wire:model.live="filterTag" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+        <input wire:model.live.debounce.300ms="search" placeholder="搜索文章标题或内容..." class="flex-1 min-w-48 px-4 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+        <select wire:model.live="filterTag" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <option value="">全部标签</option>
             @foreach($allTags as $t)<option value="{{ $t->id }}">{{ $t->name }} ({{ $t->count }})</option>@endforeach
         </select>
@@ -30,9 +30,9 @@
     @if($showForm)
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border p-5">
         <h3 class="text-sm font-semibold mb-4">{{ $editingId ? '编辑文章' : '撰写文章' }}</h3>
-        <input wire:model="formTitle" placeholder="文章标题*" class="w-full px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-3">
+        <input wire:model="formTitle" placeholder="文章标题*" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-3">
         <div class="grid sm:grid-cols-2 gap-3 mb-3">
-            <select wire:model="formCategory" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <select wire:model="formCategory" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                 <option value="general">通用</option><option value="hardware">硬件</option><option value="software">软件</option><option value="network">网络</option><option value="account">账号</option><option value="printer">打印</option>
             </select>
             <div>
@@ -43,7 +43,7 @@
                 @error('uploadFile')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
         </div>
-        <textarea wire:model="formContent" rows="6" placeholder="文章内容* (支持 Markdown)" class="w-full px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-3"></textarea>
+        <textarea wire:model="formContent" rows="6" placeholder="文章内容* (支持 Markdown)" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-3"></textarea>
         {{-- 标签选择 --}}
         <div class="mb-3">
             <label class="block text-xs font-medium text-zinc-500 mb-2">标签</label>

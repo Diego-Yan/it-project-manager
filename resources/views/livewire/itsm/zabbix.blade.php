@@ -10,18 +10,18 @@
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border p-5">
         <h3 class="text-sm font-semibold mb-4">{{ $editingId ? '编辑 Zabbix' : '添加 Zabbix' }}</h3>
         <div class="grid sm:grid-cols-2 gap-3">
-            <input wire:model="formName" placeholder="名称: 深圳生产环境" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
-            <input wire:model="formUrl" placeholder="URL: https://zbx.example.com/api_jsonrpc.php" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-2">
-            <input wire:model="formApiToken" placeholder="API Token" class="px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-2">
+            <input wire:model="formName" placeholder="名称: 深圳生产环境" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+            <input wire:model="formUrl" placeholder="URL: https://zbx.example.com/api_jsonrpc.php" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-2">
+            <input wire:model="formApiToken" placeholder="API Token" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-2">
             <div>
                 <label class="text-xs font-medium text-zinc-500">最低告警级别</label>
-                <select wire:model="formMinSeverity" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                <select wire:model="formMinSeverity" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
                     <option value="3">一般严重</option><option value="4">严重</option><option value="5">灾难</option>
                 </select>
             </div>
             <div>
                 <label class="text-xs font-medium text-zinc-500">轮询间隔 (分钟)</label>
-                <input type="number" wire:model="formPollInterval" class="w-full mt-1 px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                <input type="number" wire:model="formPollInterval" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             </div>
         </div>
         <label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" wire:model="formIsActive" class="rounded"> 启用</label>
