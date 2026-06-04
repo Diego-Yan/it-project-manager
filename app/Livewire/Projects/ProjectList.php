@@ -13,19 +13,38 @@ class ProjectList extends Component
     use WithPagination;
 
     public string $search = '';
-    public string $filterProgress = '';
-    public string $filterCategory = '';
-    public string $filterType = '';
-
-    protected $queryString = [
-        'search'          => ['except' => ''],
-        'filterProgress'  => ['except' => ''],
-        'filterCategory'  => ['except' => ''],
-    ];
+    public array $filterProgress = [];
+    public array $filterCategory = [];
+    public array $filterType = [];
+    public array $filterUrgency = [];
+    public array $filterImportance = [];
+    public array $filterRegion = [];
 
     public function updatingSearch(): void { $this->resetPage(); }
-    public function updatingFilterProgress(): void { $this->resetPage(); }
-    public function updatingFilterCategory(): void { $this->resetPage(); }
+
+    public function toggleFilter(string $field, string $value): void
+    {
+        $key = array_search($value, $this->{$field});
+        if ($key !== false) {
+            unset($this->{$field}[$key]);
+        } else {
+            $this->{$field}[] = $value;
+        }
+        $this->{$field} = array_values($this->{$field});
+        $this->resetPage();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->filterProgress = [];
+        $this->filterCategory = [];
+        $this->filterType = [];
+        $this->filterUrgency = [];
+        $this->filterImportance = [];
+        $this->filterRegion = [];
+        $this->search = '';
+        $this->resetPage();
+    }
 
     public function applyToProject(int $id): void
     {
@@ -71,15 +90,18 @@ class ProjectList extends Component
         $user = auth()->user();
         $isAdmin = $user->can('view all projects');
 
-        $projects = Project::with(['category', 'creator', 'members'])
+        $projects = Project::with(['category', 'creator', 'members', 'region'])
             ->when(!$isAdmin, function ($q) use ($user) {
                 $q->whereHas('members', fn($m) => $m->where('user_id', $user->id))
                   ->orWhere('created_by', $user->id);
             })
             ->when($this->search, fn($q) => $q->where('title', 'like', "%{$this->search}%"))
-            ->when($this->filterProgress, fn($q) => $q->where('progress', $this->filterProgress))
-            ->when($this->filterCategory, fn($q) => $q->where('category_id', $this->filterCategory))
-            ->when($this->filterType, fn($q) => $q->where('type', $this->filterType))
+            ->when(!empty($this->filterProgress), fn($q) => $q->whereIn('progress', $this->filterProgress))
+            ->when(!empty($this->filterCategory), fn($q) => $q->whereIn('category_id', $this->filterCategory))
+            ->when(!empty($this->filterType), fn($q) => $q->whereIn('type', $this->filterType))
+            ->when(!empty($this->filterUrgency), fn($q) => $q->whereIn('urgency', $this->filterUrgency))
+            ->when(!empty($this->filterImportance), fn($q) => $q->whereIn('importance', $this->filterImportance))
+            ->when(!empty($this->filterRegion), fn($q) => $q->whereIn('region_id', $this->filterRegion))
             ->latest()
             ->paginate(15);
 
@@ -88,8 +110,9 @@ class ProjectList extends Component
         $appliedIds = ProjectApplication::where('user_id', $user->id)->where('status', 'pending')->pluck('project_id')->toArray();
 
         $categories = ProjectCategory::where('is_active', true)->orderBy('sort_order')->get();
+        $regions = \App\Models\Region::orderBy('sort_order')->get();
 
-        return view('livewire.projects.project-list', compact('projects', 'categories', 'memberOfIds', 'appliedIds'))
+        return view('livewire.projects.project-list', compact('projects', 'categories', 'regions', 'memberOfIds', 'appliedIds'))
             ->layout('layouts.app', ['title' => '项目管理']);
     }
 }

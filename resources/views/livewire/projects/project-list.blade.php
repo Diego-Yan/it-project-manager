@@ -2,43 +2,73 @@
 
     {{-- 顶部操作栏 --}}
     <div class="space-y-3">
-        {{-- 搜索 --}}
-        <div class="relative">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-            </svg>
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="搜索项目名称..."
-                class="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
-        </div>
-
-        {{-- 筛选 + 新建 --}}
-        <div class="flex items-center gap-2 flex-wrap">
-            <select wire:model.live="filterProgress"
-                class="text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-sky-500 transition-colors">
-                <option value="">全部进度</option>
-                <option value="pending">未开始</option>
-                <option value="in_progress">进行中</option>
-                <option value="paused">已暂停</option>
-                <option value="completed">已完成</option>
-            </select>
-
-            <select wire:model.live="filterCategory"
-                class="text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-sky-500 transition-colors">
-                <option value="">全部分类</option>
-                @foreach($categories as $cat)
-                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                @endforeach
-            </select>
-
+        <div class="flex items-center gap-3">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="搜索项目名称..."
+                    class="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500 transition-colors">
+            </div>
             @can('create projects')
             <a href="{{ route('projects.create') }}"
-                class="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-xl transition-all hover:shadow-lg hover:shadow-sky-500/20 ml-auto">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
+                class="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-xl transition-all shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 <span class="hidden sm:inline">新建项目</span>
             </a>
             @endcan
+        </div>
+
+        {{-- 多选筛选标签 --}}
+        <div class="space-y-2">
+            @php
+            $filterGroups = [
+                '进度' => [''=>'filterProgress', 'pending'=>'未开始','in_progress'=>'进行中','paused'=>'已暂停','completed'=>'已完成'],
+                '分类' => [''=>'filterCategory'],
+                '类型' => [''=>'filterType', 'new'=>'新增','improved'=>'改善','issue'=>'异常'],
+                '紧急度' => [''=>'filterUrgency', 'not_urgent'=>'不紧急','normal'=>'一般','urgent'=>'紧急'],
+                '重要性' => [''=>'filterImportance', 'normal'=>'一般','important'=>'重要','very_important'=>'非常重要'],
+            ];
+            @endphp
+            @foreach($filterGroups as $groupName => $group)
+            @php $field = $group['']; unset($group['']); @endphp
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-medium text-zinc-500 w-12 shrink-0">{{ $groupName }}</span>
+                @if($field === 'filterCategory')
+                @foreach($categories as $cat)
+                <button wire:click="toggleFilter('{{ $field }}', '{{ $cat->id }}')"
+                    class="px-2.5 py-1 text-xs rounded-lg border transition-colors {{ in_array($cat->id, $filterCategory) ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300' }}">
+                    {{ $cat->name }}
+                </button>
+                @endforeach
+                @elseif($field === 'filterRegion')
+                @foreach($regions as $r)
+                <button wire:click="toggleFilter('{{ $field }}', '{{ $r->id }}')"
+                    class="px-2.5 py-1 text-xs rounded-lg border transition-colors {{ in_array($r->id, $filterRegion) ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300' }}">
+                    {{ $r->name }}
+                </button>
+                @endforeach
+                @else
+                @foreach($group as $val => $label)
+                <button wire:click="toggleFilter('{{ $field }}', '{{ $val }}')"
+                    class="px-2.5 py-1 text-xs rounded-lg border transition-colors {{ in_array($val, ${$field}) ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300' }}">
+                    {{ $label }}
+                </button>
+                @endforeach
+                @endif
+            </div>
+            @endforeach
+
+            {{-- 地区 --}}
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-medium text-zinc-500 w-12 shrink-0">地区</span>
+                @foreach($regions as $r)
+                <button wire:click="toggleFilter('filterRegion', '{{ $r->id }}')"
+                    class="px-2.5 py-1 text-xs rounded-lg border transition-colors {{ in_array($r->id, $filterRegion) ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300' }}">
+                    {{ $r->name }}
+                </button>
+                @endforeach
+            </div>
         </div>
     </div>
 
