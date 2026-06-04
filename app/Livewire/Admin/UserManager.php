@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\ProjectCategory;
 use App\Models\User;
 use App\Services\LdapAuthService;
 use Livewire\Component;
@@ -41,6 +42,7 @@ class UserManager extends Component
     public string $formPhone      = '';
     public string $formRole       = '';
     public bool   $formIsActive   = true;
+    public array  $formExpertiseCategories = [];
 
     // 删除确认
     public bool   $showDeleteModal = false;
@@ -56,6 +58,7 @@ class UserManager extends Component
         $this->reset([
             'formName','formUsername','formEmail','formPassword',
             'formDepartment','formPhone','formRole',
+            'formExpertiseCategories',
             'isEditing','editingUserId','isAdUser',
             'createType','adSearchKeyword','adSearchResults','adSearching','adSelectedUser',
         ]);
@@ -72,6 +75,7 @@ class UserManager extends Component
         $this->reset([
             'formName','formUsername','formEmail','formPassword',
             'formDepartment','formPhone','formRole',
+            'formExpertiseCategories',
             'adSearchKeyword','adSearchResults','adSearching','adSelectedUser',
         ]);
         $this->formIsActive = true;
@@ -140,6 +144,7 @@ class UserManager extends Component
         $this->formDepartment = $user->department ?? '';
         $this->formPhone      = $user->phone ?? '';
         $this->formRole       = $user->roles->first()?->name ?? '';
+        $this->formExpertiseCategories = $user->expertiseCategories()->pluck('category_id')->toArray();
         $this->formIsActive   = (bool) $user->is_active;
 
         $this->showUserModal = true;
@@ -211,6 +216,7 @@ class UserManager extends Component
 
             if ($this->formRole) {
                 $user->syncRoles([$this->formRole]);
+            $user->expertiseCategories()->sync($this->formExpertiseCategories);
             }
 
             session()->flash('success', '用户信息已更新。');
@@ -244,6 +250,7 @@ class UserManager extends Component
 
             if ($this->formRole) {
                 $user->assignRole($this->formRole);
+            $user->expertiseCategories()->sync($this->formExpertiseCategories);
             }
 
             session()->flash('success', 'AD 域账号已添加：' . $this->formName);
@@ -263,6 +270,7 @@ class UserManager extends Component
 
             if ($this->formRole) {
                 $user->assignRole($this->formRole);
+            $user->expertiseCategories()->sync($this->formExpertiseCategories);
             }
 
             session()->flash('success', '本地用户创建成功。');
@@ -333,7 +341,7 @@ class UserManager extends Component
 
         return view('livewire.admin.user-manager', [
             'users' => $query->paginate(15),
-            'roles' => Role::orderBy('name')->get(),
+            'roles' => Role::orderBy('name')->get(), 'categories' => ProjectCategory::where('is_active',true)->orderBy('name')->get(),
         ])->layout('layouts.app', ['title' => '用户管理']);
     }
 }
