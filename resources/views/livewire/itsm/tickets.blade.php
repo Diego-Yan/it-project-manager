@@ -4,6 +4,9 @@
         <button wire:click="$set('showForm', true)" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-xl">+ 新建工单</button>
     </div>
 
+    @if(session('ticket_msg'))<div class="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm">{{ session('ticket_msg') }}</div>@endif
+    @if(session('ticket_error'))<div class="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm">{{ session('ticket_error') }}</div>@endif
+
     @if($openCount > 0)
     <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-700 dark:text-amber-400">
         {{ $openCount }} 个工单待处理
@@ -66,9 +69,14 @@
                     @endif
                     @if($ticket->status === 'in_progress' && $ticket->assigned_to === auth()->id())
                     <button wire:click="resolve({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-500 rounded-lg min-w-[44px]">解决</button>
+                    <select wire:model="assignToUserId" class="text-xs border rounded-lg px-2 py-1.5 dark:bg-zinc-800 dark:border-zinc-700 min-w-[80px]">
+                        <option value="">转让...</option>
+                        @foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach
+                    </select>
+                    <button wire:click="transfer({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg">转让</button>
                     @endif
                     @if($ticket->status === 'resolved')
-                    <button wire:click="close({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-zinc-700 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg min-w-[44px]">关闭</button>
+                    <button wire:click="confirmClose({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-zinc-700 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg min-w-[44px]">关闭</button>
                     @endif
                     <button wire:click="toggleView({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg min-w-[36px]">详情</button>
                     <button wire:click="edit({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg min-w-[36px]">编辑</button>
@@ -91,4 +99,21 @@
         @endif
     </div>
     @if($tickets->hasPages())<div class="flex justify-center">{{ $tickets->links() }}</div>@endif
+
+    {{-- 关闭确认弹窗 --}}
+    @if($showCloseConfirm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" wire:click="$set('showCloseConfirm', false)">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border p-6 w-full max-w-md shadow-2xl" wire:click.stop="">
+            <h3 class="text-base font-semibold mb-2">关闭工单确认</h3>
+            <p class="text-sm text-zinc-500 mb-4">请填写处理过程总结，确认后工单将关闭。</p>
+            <textarea wire:model="closeNote" rows="3" placeholder="处理过程总结（必填）*"
+                class="w-full px-3 py-2 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-2"></textarea>
+            @if(session('ticket_error'))<p class="text-xs text-red-500 mb-2">{{ session('ticket_error') }}</p>@endif
+            <div class="flex gap-2 justify-end">
+                <button wire:click="$set('showCloseConfirm', false)" class="px-4 py-2 text-sm text-zinc-500">取消</button>
+                <button wire:click="close" class="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-xl">确认关闭</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

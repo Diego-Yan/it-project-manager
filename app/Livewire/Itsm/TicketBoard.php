@@ -59,18 +59,54 @@ class TicketBoard extends Component
         $this->assignToUserId = '';
     }
 
+    // 转让工单给其他 IT 成员
+    public function transfer(int $id): void
+    {
+        if (empty($this->assignToUserId)) return;
+        $ticket = Ticket::findOrFail($id);
+        $fromUser = $ticket->assignee?->name ?? '未分配';
+        $toUser = User::find($this->assignToUserId)?->name ?? '未知';
+        $ticket->update(['assigned_to' => $this->assignToUserId]);
+        TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>"转让工单: {$fromUser} → {$toUser}"]);
+        $this->assignToUserId = '';
+        session()->flash('ticket_msg', "工单已转让给 {$toUser}");
+    }
+
     public function resolve(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
         if ($ticket->status !== 'in_progress' || $ticket->assigned_to != auth()->id()) return;
         $ticket->update(['status'=>'resolved','resolved_by'=>auth()->id(),'resolved_at'=>now()]);
+        TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>'标记为已解决']);
     }
 
-    public function close(int $id): void
+    public string $closeNote = '';
+    public bool $showCloseConfirm = false;
+    public ?int $closingTicketId = null;
+
+    public function confirmClose(int $id): void
     {
-        $ticket = Ticket::findOrFail($id);
+        $this->closingTicketId = $id;
+        $this->closeNote = '';
+        $this->showCloseConfirm = true;
+    }
+
+    public function close(): void
+    {
+        $ticket = Ticket::findOrFail($this->closingTicketId);
         if ($ticket->status !== 'resolved') return;
+
+        if (empty(trim($this->closeNote))) {
+            session()->flash('ticket_error', '请填写处理过程总结再关闭工单');
+            return;
+        }
+
+        TicketComment::create(['ticket_id'=>$this->closingTicketId, 'user_id'=>auth()->id(), 'content'=>'关闭工单: '.trim($this->closeNote)]);
         $ticket->update(['status'=>'closed','closed_at'=>now()]);
+        $this->showCloseConfirm = false;
+        $this->closingTicketId = null;
+        $this->closeNote = '';
+        session()->flash('ticket_msg', '工单已关闭');
     }
 
     public function addComment(int $id): void
