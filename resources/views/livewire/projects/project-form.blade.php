@@ -42,14 +42,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">地区</label>
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">地区 <span class="text-red-500">*</span></label>
                     <select wire:model="region_id"
                         class="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-sky-500 transition-colors">
-                        <option value="">选择地区</option>
+                        <option value="">请选择地区</option>
                         @foreach($regions as $r)
                         <option value="{{ $r->id }}">{{ $r->name }}</option>
                         @endforeach
                     </select>
+                    @error('region_id')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
 
                 <div>

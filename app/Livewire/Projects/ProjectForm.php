@@ -60,7 +60,7 @@ class ProjectForm extends Component
             'title'              => 'required|string|max:200',
             'description'        => 'nullable|string|max:2000',
             'category_id'        => 'required|exists:project_categories,id',
-            'region_id'          => 'nullable|exists:regions,id',
+            'region_id'          => 'required|exists:regions,id',
             'owner_id'           => 'nullable|exists:users,id',
             'type'               => 'required|in:new,improved,issue',
             'progress'           => 'required|in:pending,in_progress,paused,completed',
