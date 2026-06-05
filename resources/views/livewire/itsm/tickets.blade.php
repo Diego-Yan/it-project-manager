@@ -32,8 +32,8 @@
                 <select wire:model="formPriority" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="critical">紧急</option></select>
             </div>
             <div>
-                <label class="text-xs text-zinc-500">来源</label>
-                <select wire:model="formSource" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="phone">电话</option><option value="email">邮件</option><option value="portal">自助</option><option value="walk_in">现场</option></select>
+                <label class="text-xs text-zinc-500">期望处理方式</label>
+                <select wire:model="formSource" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="phone">电话远程</option><option value="walk_in">现场处理</option><option value="email">邮件沟通</option><option value="portal">自助报修</option></select>
             </div>
             <div>
                 <label class="text-xs text-zinc-500">系统分类 <span class="text-red-500">*</span></label>
@@ -51,10 +51,6 @@
             <div>
                 <label class="text-xs text-zinc-500">关联资产</label>
                 <select wire:model="formAssetId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">可选</option>@foreach($assets as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->asset_tag }})</option>@endforeach</select>
-            </div>
-            <div>
-                <label class="text-xs text-zinc-500">分配处理人</label>
-                <select wire:model="formAssignedTo" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">暂不分配</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
             </div>
             @if($suggestedEngineers)
             <div class="sm:col-span-3 flex items-center gap-2 flex-wrap text-xs p-2 bg-sky-50 dark:bg-sky-950/20 rounded-lg">

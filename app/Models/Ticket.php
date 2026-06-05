@@ -31,7 +31,7 @@ class Ticket extends Model
     public function getPriorityLabelAttribute(): string { return match($this->priority) { 'low'=>'低','medium'=>'中','high'=>'高','critical'=>'紧急', default=>$this->priority }; }
     public function getPriorityColorAttribute(): string { return match($this->priority) { 'low'=>'zinc','medium'=>'sky','high'=>'amber','critical'=>'red', default=>'zinc' }; }
     public function getStatusLabelAttribute(): string { return match($this->status) { 'open'=>'未处理','in_progress'=>'处理中','resolved'=>'已解决','closed'=>'已关闭', default=>$this->status }; }
-    public function getSourceLabelAttribute(): string { return match($this->source) { 'phone'=>'电话','email'=>'邮件','portal'=>'自助','walk_in'=>'现场', default=>$this->source }; }
+    public function getSourceLabelAttribute(): string { return match($this->source) { 'phone'=>'电话远程','email'=>'邮件沟通','portal'=>'自助报修','walk_in'=>'现场处理', default=>$this->source }; }
 
     public function isSlaBreached(): bool { return $this->sla_deadline && now()->gt($this->sla_deadline) && !in_array($this->status,['resolved','closed']); }
 }
