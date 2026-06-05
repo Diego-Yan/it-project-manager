@@ -24,7 +24,7 @@ class TicketBoard extends Component
     public int|string $assignToUserId = ''; // IT 主管分配工单给指定人员
     public array $suggestedEngineers = [];
 
-    protected $rules = ['formTitle'=>'required|max:200', 'formRegionId'=>'required|exists:regions,id', 'formType'=>'required|in:request,incident,change,problem'];
+    protected $rules = ['formTitle'=>'required|max:200', 'formRegionId'=>'required|exists:regions,id', 'formCategoryId'=>'required|exists:project_categories,id', 'formType'=>'required|in:request,incident,change,problem'];
 
     public function save(): void
     {

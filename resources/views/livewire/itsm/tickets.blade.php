@@ -36,8 +36,9 @@
                 <select wire:model="formSource" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="phone">电话</option><option value="email">邮件</option><option value="portal">自助</option><option value="walk_in">现场</option></select>
             </div>
             <div>
-                <label class="text-xs text-zinc-500">系统分类</label>
-                <select wire:model.live="formCategoryId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">选择系统</option>@foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach</select>
+                <label class="text-xs text-zinc-500">系统分类 <span class="text-red-500">*</span></label>
+                <select wire:model.live="formCategoryId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">请选择系统</option>@foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach</select>
+                @error('formCategoryId')<p class="text-xs text-red-500 mt-1">请选择系统分类</p>@enderror
             </div>
             <div>
                 <label class="text-xs text-zinc-500">关联项目</label>
