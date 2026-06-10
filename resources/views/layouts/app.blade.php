@@ -75,6 +75,9 @@
             </div>
 
             <div class="flex items-center gap-3">
+                {{-- 通知中心 --}}
+                @livewire(\App\Livewire\NotificationBell::class)
+
                 {{-- 主题切换: light → dark → system --}}
                 <button @click="theme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'"
                     :title="{ light: '浅色', dark: '深色', system: '跟随系统' }[theme]"

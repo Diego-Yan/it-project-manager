@@ -47,6 +47,9 @@ class TicketBoard extends Component
             $ticket = Ticket::create($data);
             // 代填工单 → 通知被代填人
             if ($ticket->reported_for && $ticket->reported_for != auth()->id()) {
+                \App\Models\Notification::send($ticket->reported_for,
+                    "{$ticket->creator->name} 代你提交了工单",
+                    "工单: {$ticket->title}", 'info');
                 try {
                     NotificationService::send('ticket.proxy_created', [
                         'project_id'    => $ticket->project_id,
