@@ -64,10 +64,18 @@
                         @if($ticket->assignee)<span>· {{ $ticket->assignee->name }}</span>@endif
                         @if($ticket->asset)<span>· {{ $ticket->asset->name }}</span>@endif
                         <span>· {{ $ticket->sourceLabel }}</span>
+                        @if($ticket->reported_for && $ticket->reported_for != $ticket->created_by)
+                        <span class="text-amber-600">· {{ $ticket->creator->name }} 代填</span>
+                        @endif
                         <span>· {{ $ticket->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
+                @if($ticket->reported_for == auth()->id() && !$ticket->user_confirmed_at)
+                <button wire:click="confirmProxy({{ $ticket->id }})"
+                    class="px-3 py-1.5 text-xs font-medium text-white bg-amber-600 hover:bg-amber-500 rounded-lg min-w-[44px] shrink-0">待确认</button>
+                @else
                 <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-medium bg-{{ $ticket->priorityColor }}-100 dark:bg-{{ $ticket->priorityColor }}-950/40 text-{{ $ticket->priorityColor }}-700 dark:text-{{ $ticket->priorityColor }}-400 shrink-0">{{ $ticket->statusLabel }}</span>
+                @endif
             </div>
             @endforeach
         </div>

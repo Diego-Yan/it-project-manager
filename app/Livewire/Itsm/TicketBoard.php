@@ -20,6 +20,8 @@ class TicketBoard extends Component
     public bool $showForm = false; public ?int $editingId = null;
     public string $formTitle = '', $formDescription = '', $formType = 'request', $formPriority = 'medium', $formSource = 'portal';
     public int|string $formProjectId = '', $formRegionId = '', $formCategoryId = '', $formAssetId = '', $formAssignedTo = '';
+    public bool $formIsProxy = false;     // 是否代填
+    public int|string $formReportedFor = ''; // 代填给谁
     public string $newComment = ''; public ?int $viewTicketId = null;
     public int|string $assignToUserId = ''; // IT 主管分配工单给指定人员
     public array $suggestedEngineers = [];
@@ -35,6 +37,8 @@ class TicketBoard extends Component
             'project_id'=>$this->formProjectId?:null,'asset_id'=>$this->formAssetId?:null,
             'region_id'=>$this->formRegionId?:null, 'category_id'=>$this->formCategoryId?:null,
             'assigned_to'=>$this->formAssignedTo?:null,'created_by'=>auth()->id(),
+            'reported_for'=>$this->formIsProxy ? ($this->formReportedFor ?: null) : null,
+            'user_confirmed_at'=>$this->formIsProxy ? null : now(),
             'sla_deadline'=>Sla::getDeadline($this->formPriority),
         ];
         if ($this->editingId) { Ticket::findOrFail($this->editingId)->update($data); }
@@ -142,7 +146,7 @@ class TicketBoard extends Component
         if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) return;
         $ticket->delete();
     }
-    public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formCategoryId','formAssetId','formAssignedTo']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; $this->suggestedEngineers=[]; }
+    public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formCategoryId','formAssetId','formAssignedTo','formIsProxy','formReportedFor']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; $this->suggestedEngineers=[]; $this->formIsProxy=false; $this->formReportedFor=''; }
 
     public function render()
     {

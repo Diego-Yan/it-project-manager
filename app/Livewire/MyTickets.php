@@ -37,16 +37,27 @@ class MyTickets extends Component
         session()->flash('success', '工单已创建');
     }
 
+    // 用户确认代填工单
+    public function confirmProxy(int $id): void
+    {
+        $ticket = Ticket::findOrFail($id);
+        if ($ticket->reported_for == auth()->id() && !$ticket->user_confirmed_at) {
+            $ticket->update(['user_confirmed_at' => now()]);
+            session()->flash('success', '工单已确认');
+        }
+    }
+
     public function render()
     {
         $user = auth()->user();
 
         $tickets = Ticket::where(function ($q) use ($user) {
                 $q->where('assigned_to', $user->id)
-                  ->orWhere('created_by', $user->id);
+                  ->orWhere('created_by', $user->id)
+                  ->orWhere('reported_for', $user->id);
             })
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
-            ->with('asset')
+            ->with(['asset', 'creator'])
             ->latest()
             ->paginate(15);
 

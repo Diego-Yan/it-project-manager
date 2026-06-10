@@ -9,6 +9,7 @@ class Ticket extends Model
     protected $fillable = [
         'project_id','region_id','category_id','asset_id','title','description','type','priority',
         'status','source','assigned_to','created_by','resolved_by',
+        'reported_for','user_confirmed_at',
         'resolution','sla_deadline','resolved_at','closed_at',
     ];
 
@@ -24,6 +25,7 @@ class Ticket extends Model
     public function assignee() { return $this->belongsTo(User::class,'assigned_to'); }
     public function creator() { return $this->belongsTo(User::class,'created_by'); }
     public function resolver() { return $this->belongsTo(User::class,'resolved_by'); }
+    public function reportedFor() { return $this->belongsTo(User::class,'reported_for'); }
     public function comments() { return $this->hasMany(TicketComment::class)->latest(); }
 
     public function getTypeLabelAttribute(): string { return match($this->type) { 'incident'=>'故障','request'=>'请求','change'=>'变更','problem'=>'问题', default=>$this->type }; }

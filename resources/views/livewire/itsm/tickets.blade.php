@@ -52,6 +52,23 @@
                 <label class="text-xs text-zinc-500">关联资产</label>
                 <select wire:model="formAssetId" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">可选</option>@foreach($assets as $a)<option value="{{ $a->id }}">{{ $a->name }} ({{ $a->asset_tag }})</option>@endforeach</select>
             </div>
+            {{-- 代填 --}}
+            <div class="sm:col-span-3 flex items-center gap-3">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" wire:model.live="formIsProxy" class="rounded text-sky-600"> 代他人提交工单
+                </label>
+                @if($formIsProxy)
+                <select wire:model="formReportedFor" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
+                    <option value="">选择实际报修人 *</option>
+                    @foreach($users as $u)
+                    @if($u->id != auth()->id())
+                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                    @endif
+                    @endforeach
+                </select>
+                @endif
+            </div>
+
             @if($suggestedEngineers)
             <div class="sm:col-span-3 flex items-center gap-2 flex-wrap text-xs p-2 bg-sky-50 dark:bg-sky-950/20 rounded-lg">
                 <span class="font-medium text-sky-700 dark:text-sky-400">💡 推荐处理人：</span>
