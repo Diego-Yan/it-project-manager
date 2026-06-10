@@ -10,6 +10,7 @@ use App\Models\Sla;
 use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\User;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -42,7 +43,22 @@ class TicketBoard extends Component
             'sla_deadline'=>Sla::getDeadline($this->formPriority),
         ];
         if ($this->editingId) { Ticket::findOrFail($this->editingId)->update($data); }
-        else { Ticket::create($data); }
+        else {
+            $ticket = Ticket::create($data);
+            // 代填工单 → 通知被代填人
+            if ($ticket->reported_for && $ticket->reported_for != auth()->id()) {
+                try {
+                    NotificationService::send('ticket.proxy_created', [
+                        'project_id'    => $ticket->project_id,
+                        'project_title' => '工单系统',
+                        'task_title'    => $ticket->title,
+                        'user_name'     => $ticket->creator->name,
+                        'assignee_name' => $ticket->reportedFor->name,
+                        'message'       => "{$ticket->creator->name} 代你提交了工单，请在系统中确认",
+                    ]);
+                } catch (\Throwable $e) {}
+            }
+        }
         $this->resetForm();
     }
 
