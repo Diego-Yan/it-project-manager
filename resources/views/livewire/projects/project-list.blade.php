@@ -33,7 +33,7 @@
             @foreach($filterGroups as $groupName => $group)
             @php $field = $group['']; unset($group['']); @endphp
             <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-medium text-zinc-500 w-12 shrink-0">{{ $groupName }}</span>
+                <span class="text-xs font-medium text-zinc-500 w-10 sm:w-12 shrink-0 truncate">{{ $groupName }}</span>
                 @if($field === 'filterCategory')
                 @foreach($categories as $cat)
                 <button wire:click="toggleFilter('{{ $field }}', '{{ $cat->id }}')"

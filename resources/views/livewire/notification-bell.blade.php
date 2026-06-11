@@ -12,7 +12,7 @@
 
     {{-- Dropdown --}}
     @if($showDropdown)
-    <div class="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 z-50 overflow-hidden">
+    <div class="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 z-50 overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
             <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">通知</h3>
             @if($unreadCount > 0)
