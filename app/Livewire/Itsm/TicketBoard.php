@@ -47,16 +47,18 @@ class TicketBoard extends Component
             $ticket = Ticket::create($data);
             // 代填工单 → 通知被代填人
             if ($ticket->reported_for && $ticket->reported_for != auth()->id()) {
+                $creatorName = auth()->user()->name;
+                $reportedForUser = User::find($ticket->reported_for);
                 \App\Models\Notification::send($ticket->reported_for,
-                    "{$ticket->creator->name} 代你提交了工单",
+                    "{$creatorName} 代你提交了工单",
                     "工单: {$ticket->title}", 'info');
                 try {
                     NotificationService::send('ticket.proxy_created', [
                         'project_id'    => $ticket->project_id,
                         'project_title' => '工单系统',
                         'task_title'    => $ticket->title,
-                        'user_name'     => $ticket->creator->name,
-                        'assignee_name' => $ticket->reportedFor->name,
+                        'user_name'     => $creatorName,
+                        'assignee_name' => $reportedForUser?->name,
                         'message'       => "{$ticket->creator->name} 代你提交了工单，请在系统中确认",
                     ]);
                 } catch (\Throwable $e) {}
@@ -89,6 +91,8 @@ class TicketBoard extends Component
     {
         if (empty($this->assignToUserId)) return;
         $ticket = Ticket::findOrFail($id);
+        // 只有当前处理人或 IT 主管可以转让
+        if ($ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) return;
         $fromUser = $ticket->assignee?->name ?? '未分配';
         $toUser = User::find($this->assignToUserId)?->name ?? '未知';
         $ticket->update(['assigned_to' => $this->assignToUserId]);
@@ -147,6 +151,7 @@ class TicketBoard extends Component
         $this->editingId=$id; $this->formTitle=$t->title; $this->formDescription=$t->description??'';
         $this->formType=$t->type; $this->formPriority=$t->priority; $this->formSource=$t->source;
         $this->formProjectId=$t->project_id??''; $this->formRegionId=$t->region_id??''; $this->formCategoryId=$t->category_id??''; $this->formAssetId=$t->asset_id??''; $this->formAssignedTo=$t->assigned_to??'';
+        $this->formIsProxy = (bool) $t->reported_for; $this->formReportedFor = $t->reported_for ?? '';
         $this->showForm=true; $this->updatedFormCategory();
     }
 
