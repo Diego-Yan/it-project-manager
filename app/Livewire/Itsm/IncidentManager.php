@@ -52,7 +52,9 @@ class IncidentManager extends Component
 
     public function close(int $id): void
     {
-        Incident::findOrFail($id)->update(['status'=>'closed']);
+        $inc = Incident::findOrFail($id);
+        if (!in_array($inc->status, ['resolved', 'mitigated'])) return;
+        $inc->update(['status'=>'closed']);
         IncidentTimeline::create(['incident_id'=>$id, 'user_id'=>auth()->id(), 'action'=>'closed', 'description'=>'关闭故障', 'created_at'=>now()]);
     }
 

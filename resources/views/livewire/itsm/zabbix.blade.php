@@ -13,6 +13,9 @@
             <input wire:model="formName" placeholder="名称: 深圳生产环境" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
             <input wire:model="formUrl" placeholder="URL: https://zbx.example.com/api_jsonrpc.php" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-2">
             <input wire:model="formApiToken" placeholder="API Token" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 sm:col-span-2">
+            @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+            @error('formUrl')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+            @error('formApiToken')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             <div>
                 <label class="text-xs font-medium text-zinc-500">最低告警级别</label>
                 <select wire:model="formMinSeverity" class="w-full mt-1 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
