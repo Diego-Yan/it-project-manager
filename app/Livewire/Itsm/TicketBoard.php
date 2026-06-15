@@ -174,7 +174,7 @@ class TicketBoard extends Component
 
     public function render()
     {
-        $tickets = Ticket::with(['project','asset','assignee','creator'])->latest()->paginate(15);
+        $tickets = Ticket::with(['project','asset','assignee','creator','region','category'])->latest()->paginate(15);
         $projects = Project::orderBy('title')->get(['id','title']);
         $regions = Region::orderBy('sort_order')->get();
         $categories = ProjectCategory::where('is_active', true)->orderBy('sort_order')->get();

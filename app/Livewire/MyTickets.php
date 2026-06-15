@@ -57,7 +57,7 @@ class MyTickets extends Component
                   ->orWhere('reported_for', $user->id);
             })
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
-            ->with(['asset', 'creator'])
+            ->with(['asset', 'creator', 'region'])
             ->latest()
             ->paginate(15);
 
