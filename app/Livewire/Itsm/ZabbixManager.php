@@ -25,10 +25,14 @@ class ZabbixManager extends Component
     {
         $this->validate();
         $data = [
-            'name' => $this->formName, 'url' => $this->formUrl, 'api_token' => $this->formApiToken,
+            'name' => $this->formName, 'url' => $this->formUrl,
             'min_severity' => $this->formMinSeverity, 'poll_interval' => $this->formPollInterval,
             'is_active' => $this->formIsActive,
         ];
+        // 编辑时留空 token 表示保留原值，不更新
+        if (!$this->editingId || !empty($this->formApiToken)) {
+            $data['api_token'] = $this->formApiToken;
+        }
         if ($this->editingId) { ZabbixConfig::findOrFail($this->editingId)->update($data); }
         else { ZabbixConfig::create($data); }
         $this->resetForm();

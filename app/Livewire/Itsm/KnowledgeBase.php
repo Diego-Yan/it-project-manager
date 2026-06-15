@@ -21,7 +21,7 @@ class KnowledgeBase extends Component
     public string $search = '';
     public string $filterTag = '';
 
-    protected $rules = ['formTitle'=>'required|max:200','formContent'=>'required'];
+    protected $rules = ['formTitle'=>'required|max:200','formContent'=>'required','uploadFile'=>'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,webp,mp4,mov|max:20480'];
 
     public function save(): void
     {
@@ -66,6 +66,8 @@ class KnowledgeBase extends Component
     public function deleteAttachment(int $attId): void
     {
         $att = KbAttachment::findOrFail($attId);
+        // 只有文章作者或管理员可删除附件
+        if ($att->article->created_by != auth()->id() && !auth()->user()->can('edit knowledge')) return;
         \Storage::disk('public')->delete($att->file_path);
         $att->delete();
     }

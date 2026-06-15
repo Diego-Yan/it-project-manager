@@ -36,33 +36,44 @@ class ChangeManager extends Component
 
     public function submitForApproval(int $id): void
     {
-        ChangeRequest::findOrFail($id)->update(['status' => 'pending_approval']);
+        $cr = ChangeRequest::findOrFail($id);
+        if (!in_array($cr->status, ['draft', 'rejected'])) return;
+        $cr->update(['status' => 'pending_approval']);
     }
 
     public function approve(int $id): void
     {
         $cr = ChangeRequest::findOrFail($id);
+        if ($cr->status !== 'pending_approval') return;
         $cr->update(['status' => 'approved', 'approver_id' => auth()->id()]);
     }
 
     public function reject(int $id): void
     {
-        ChangeRequest::findOrFail($id)->update(['status' => 'rejected', 'approver_id' => auth()->id()]);
+        $cr = ChangeRequest::findOrFail($id);
+        if ($cr->status !== 'pending_approval') return;
+        $cr->update(['status' => 'rejected', 'approver_id' => auth()->id()]);
     }
 
     public function startImplement(int $id): void
     {
-        ChangeRequest::findOrFail($id)->update(['status' => 'in_progress']);
+        $cr = ChangeRequest::findOrFail($id);
+        if ($cr->status !== 'approved') return;
+        $cr->update(['status' => 'in_progress']);
     }
 
     public function complete(int $id): void
     {
-        ChangeRequest::findOrFail($id)->update(['status' => 'completed', 'implemented_at' => now()]);
+        $cr = ChangeRequest::findOrFail($id);
+        if ($cr->status !== 'in_progress') return;
+        $cr->update(['status' => 'completed', 'implemented_at' => now()]);
     }
 
     public function rollback(int $id): void
     {
-        ChangeRequest::findOrFail($id)->update(['status' => 'rolled_back', 'implemented_at' => now()]);
+        $cr = ChangeRequest::findOrFail($id);
+        if (!in_array($cr->status, ['in_progress', 'completed'])) return;
+        $cr->update(['status' => 'rolled_back', 'implemented_at' => now()]);
     }
 
     public function edit(int $id): void

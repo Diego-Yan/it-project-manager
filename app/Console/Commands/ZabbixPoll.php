@@ -67,7 +67,7 @@ class ZabbixPoll extends Command
                         'priority' => $severity >= 4 ? 'high' : ($severity >= 3 ? 'medium' : 'low'),
                         'status' => 'open',
                         'source' => 'portal',
-                        'created_by' => 1, // 系统用户
+                        'created_by' => \App\Models\User::where('is_active', true)->first()?->id ?? 1, // 系统用户
                     ]);
                     $totalCreated++;
                     $this->info("  ✅ 创建工单: {$title}");
