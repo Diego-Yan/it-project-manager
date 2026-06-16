@@ -10,6 +10,12 @@ class ApplicationManager extends Component
 {
     public Project $project;
 
+    // [REVIEW-FIX] H1: 隐藏 project 模型，防止 Livewire 序列化到前端
+    protected function getPropertyList(): array
+    {
+        return array_diff(parent::getPropertyList(), ['project']);
+    }
+
     public function mount(Project $project): void
     {
         $this->project = $project;

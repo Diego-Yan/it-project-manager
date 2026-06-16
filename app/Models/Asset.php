@@ -16,7 +16,7 @@ class Asset extends Model
         'purchase_date','warranty_expiry','notes',
     ];
 
-    protected function casts(): array { return ['purchase_date'=>'date','warranty_expiry'=>'date']; }
+    protected function casts(): array { return ['purchase_date'=>'date','warranty_expiry'=>'date', 'quantity'=>'integer']; }
 
     public function assignee(): BelongsTo { return $this->belongsTo(User::class,'assigned_to'); }
     public function tickets(): HasMany { return $this->hasMany(Ticket::class); }

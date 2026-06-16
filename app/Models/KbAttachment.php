@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class KbAttachment extends Model
 {
     protected $fillable = ['article_id', 'file_name', 'file_path', 'mime_type', 'file_size', 'preview_type'];
+    protected function casts(): array { return ['file_size'=>'integer']; }
 
     public function article(): BelongsTo { return $this->belongsTo(KnowledgeArticle::class, 'article_id'); }
 

@@ -219,18 +219,21 @@ class UserManager extends Component
                 $user->update($data);
             }
 
+            // [REVIEW-FIX] H3: 角色和类别独立同步，避免角色为空时类别被跳过
             if ($this->formRole) {
                 $user->syncRoles([$this->formRole]);
-            $user->expertiseCategories()->sync($this->formExpertiseCategories);
             }
+            $user->expertiseCategories()->sync($this->formExpertiseCategories);
 
             session()->flash('success', '用户信息已更新。');
 
         } elseif ($this->createType === 'ad') {
             // 检查是否已存在
-            $existing = User::where('ad_username', $this->formUsername)
-                ->orWhere('username', $this->formUsername)
-                ->first();
+            // [REVIEW-FIX] L4: 嵌套 where 防止 orWhere 误匹配无关用户
+            $existing = User::where(function ($q) {
+                $q->where('ad_username', $this->formUsername)
+                  ->orWhere('username', $this->formUsername);
+            })->first();
 
             if ($existing) {
                 $this->addError('adSearchKeyword', '该 AD 账号已存在于系统中（' . $existing->name . '）');
@@ -255,8 +258,8 @@ class UserManager extends Component
 
             if ($this->formRole) {
                 $user->assignRole($this->formRole);
-            $user->expertiseCategories()->sync($this->formExpertiseCategories);
             }
+            $user->expertiseCategories()->sync($this->formExpertiseCategories);
 
             session()->flash('success', 'AD 域账号已添加：' . $this->formName);
 
@@ -275,8 +278,8 @@ class UserManager extends Component
 
             if ($this->formRole) {
                 $user->assignRole($this->formRole);
-            $user->expertiseCategories()->sync($this->formExpertiseCategories);
             }
+            $user->expertiseCategories()->sync($this->formExpertiseCategories);
 
             session()->flash('success', '本地用户创建成功。');
         }

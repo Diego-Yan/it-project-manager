@@ -34,9 +34,13 @@ class IncidentManager extends Component
         if ($this->editingId) {
             Incident::findOrFail($this->editingId)->update($data);
         } else {
-            $inc = Incident::create($data);
-            // [REVIEW-FIX] M6: 手动设置 created_at（IncidentTimeline $timestamps=false）
-            IncidentTimeline::create(['incident_id'=>$inc->id, 'user_id'=>auth()->id(), 'action'=>'created', 'description'=>'创建故障工单', 'created_at'=>now()]);
+            // [REVIEW-FIX] SP2.3: 创建故障 + 时间线条目包裹事务防半成状态
+            $inc = \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+                $incident = Incident::create($data);
+                // [REVIEW-FIX] M6: 手动设置 created_at（IncidentTimeline $timestamps=false）
+                IncidentTimeline::create(['incident_id'=>$incident->id, 'user_id'=>auth()->id(), 'action'=>'created', 'description'=>'创建故障工单', 'created_at'=>now()]);
+                return $incident;
+            });
         }
         $this->resetForm();
     }

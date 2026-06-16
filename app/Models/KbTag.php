@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class KbTag extends Model
 {
     protected $fillable = ['name', 'color', 'count'];
+    protected function casts(): array { return ['count'=>'integer']; }
 
     public function articles(): BelongsToMany
     {

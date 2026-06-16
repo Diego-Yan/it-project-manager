@@ -11,7 +11,7 @@ class ZabbixConfig extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'last_poll_at' => 'datetime'];
+        return ['is_active' => 'boolean', 'last_poll_at' => 'datetime', 'poll_interval' => 'integer'];
     }
 
     // [FIX] #2: api_token 加密存储，防止数据库泄露

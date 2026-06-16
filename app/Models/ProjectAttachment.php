@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProjectAttachment extends Model
 {
     protected $fillable = ['project_id', 'uploaded_by', 'file_name', 'file_path', 'mime_type', 'file_size'];
+    protected function casts(): array { return ['file_size'=>'integer']; }
 
     public function project(): BelongsTo
     {

@@ -35,13 +35,15 @@ class KnowledgeBase extends Component
             $article = KnowledgeArticle::create($data);
         }
 
-        // Sync tags — [REVIEW-FIX] I15: 批量更新标签计数，避免 N+1
+        // [REVIEW-FIX] SP2.2: 标签同步 + 计数更新包裹事务防半成状态
         if (!empty($this->selectedTagIds)) {
-            $article->kbTags()->sync($this->selectedTagIds);
-            $tags = KbTag::whereIn('id', $this->selectedTagIds)->withCount('articles')->get();
-            foreach ($tags as $tag) {
-                $tag->update(['count' => $tag->articles_count]);
-            }
+            \Illuminate\Support\Facades\DB::transaction(function () use ($article) {
+                $article->kbTags()->sync($this->selectedTagIds);
+                $tags = KbTag::whereIn('id', $this->selectedTagIds)->withCount('articles')->get();
+                foreach ($tags as $tag) {
+                    $tag->update(['count' => $tag->articles_count]);
+                }
+            });
         }
 
         // File upload

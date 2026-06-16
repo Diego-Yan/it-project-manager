@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class KnowledgeArticle extends Model
 {
     use HasFactory;
-    protected $fillable = ['title','content','category','tags','view_count','is_published','created_by']; // [REVIEW-FIX] R4.5: 移除 summary/is_vectorized/vector_ids（DB中不存在的字段）
+    protected $fillable = ['title','content','category','view_count','is_published','created_by']; // [REVIEW-FIX] SP3.2: 移除冗余 tags JSON 列（已由 kbTags() 关系替代） // [REVIEW-FIX] R4.5: 移除 summary/is_vectorized/vector_ids（DB中不存在的字段）
 
+    // [REVIEW-FIX] SP3.2: 移除 'tags'=>'array' cast — tags 已由 kb_article_tag 多对多关系替代，JSON列已废弃
     protected function casts(): array
     {
-        return ['tags'=>'array', 'is_published'=>'boolean']; // [REVIEW-FIX] R4.5: 移除 vector_ids/is_vectorized
+        return ['is_published'=>'boolean', 'view_count'=>'integer'];
     }
 
     public function author(): BelongsTo { return $this->belongsTo(User::class,'created_by'); }
@@ -36,4 +37,3 @@ class KnowledgeArticle extends Model
         return $first ? asset('storage/'.$first->file_path) : null;
     }
 }
-

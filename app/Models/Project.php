@@ -28,6 +28,7 @@ class Project extends Model
             'start_date'      => 'date',
             'end_date'        => 'date',
             'actual_end_date' => 'date',
+            'completion_percent' => 'integer',
         ];
     }
 

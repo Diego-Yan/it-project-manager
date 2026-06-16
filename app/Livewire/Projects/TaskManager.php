@@ -12,6 +12,11 @@ use Livewire\Component;
 class TaskManager extends Component
 {
     public Project $project;
+    // [REVIEW-FIX] H1: 隐藏 project 模型，防止 Livewire 序列化到前端
+    protected function getPropertyList(): array
+    {
+        return array_diff(parent::getPropertyList(), ['project']);
+    }
     public bool $showTaskForm = false;
     public bool $editingTask = false;
     public ?int $editingTaskId = null;

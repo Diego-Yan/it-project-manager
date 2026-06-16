@@ -82,9 +82,10 @@ class LoginController extends Controller
     private function handleLocalLogin(Request $request, string $username, string $password)
     {
         // 支持用户名或邮箱登录
-        $user = User::where('username', $username)
-                    ->orWhere('email', $username)
-                    ->first();
+        // [REVIEW-FIX] L2: 嵌套 where 防止 orWhere 泄漏到外部查询条件
+        $user = User::where(function ($q) use ($username) {
+            $q->where('username', $username)->orWhere('email', $username);
+        })->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
             return back()->with('error', '用户名或密码错误，请重试。')->withInput(['username' => $username]);

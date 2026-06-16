@@ -11,7 +11,7 @@ class TicketComment extends Model
 
     protected function casts(): array
     {
-        return ['is_internal' => 'boolean'];
+        return ['is_internal' => 'boolean', 'time_spent' => 'integer'];
     }
 
     public function user(): BelongsTo

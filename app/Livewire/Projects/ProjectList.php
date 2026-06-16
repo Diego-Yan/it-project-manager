@@ -24,6 +24,10 @@ class ProjectList extends Component
 
     public function toggleFilter(string $field, string $value): void
     {
+        // [REVIEW-FIX] C1: allowlist 防止通过 Livewire 请求篡改任意属性
+        $allowed = ['filterProgress', 'filterCategory', 'filterType', 'filterUrgency', 'filterImportance', 'filterRegion'];
+        if (!in_array($field, $allowed, true)) return;
+
         $key = array_search($value, $this->{$field});
         if ($key !== false) {
             unset($this->{$field}[$key]);

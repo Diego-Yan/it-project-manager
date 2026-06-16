@@ -62,9 +62,12 @@ class BotController extends Controller
     {
         $token = config('services.wechat.bot_token');
         if (empty($token)) {
-            // 未配置签名密钥时跳过验证（向后兼容），但记录警告
-            Log::warning('WeChat bot token not configured, skipping signature verification');
-            return true;
+            // [REVIEW-FIX] H2: 未配置时拒绝请求（生产环境），仅本地开发允许
+            Log::warning('WeChat bot token not configured — rejecting webhook');
+            if (app()->isProduction()) {
+                abort(503, 'Bot webhook not configured');
+            }
+            return false;
         }
 
         $signature = $request->query('msg_signature', '');
@@ -90,8 +93,12 @@ class BotController extends Controller
     {
         $secret = config('services.dingtalk.bot_secret');
         if (empty($secret)) {
-            Log::warning('DingTalk bot secret not configured, skipping signature verification');
-            return true;
+            // [REVIEW-FIX] H2: 未配置时拒绝请求（生产环境），仅本地开发允许
+            Log::warning('DingTalk bot secret not configured — rejecting webhook');
+            if (app()->isProduction()) {
+                abort(503, 'Bot webhook not configured');
+            }
+            return false;
         }
 
         $timestamp = $request->query('timestamp', '');

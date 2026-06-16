@@ -16,7 +16,14 @@ class MyTickets extends Component
     public string $formTitle = '', $formDescription = '', $formType = 'request', $formPriority = 'medium', $formSource = 'portal';
     public int|string $formRegionId = '';
 
-    protected $rules = ['formTitle' => 'required|max:200', 'formRegionId' => 'required|exists:regions,id'];
+    // [REVIEW-FIX] M2: 补全缺失的字段验证
+    protected $rules = [
+        'formTitle'       => 'required|max:200',
+        'formRegionId'    => 'required|exists:regions,id',
+        'formType'        => 'required|in:request,incident,change',
+        'formPriority'    => 'required|in:low,medium,high,urgent',
+        'formSource'      => 'required|in:portal,email,phone,im_wechat,im_dingtalk',
+    ];
 
     public function createTicket(): void
     {

@@ -18,6 +18,7 @@ class Service extends Model
     {
         return [
             'tags'                 => 'array',
+            'health_check_interval' => 'integer',
             'last_health_check_at' => 'datetime',
         ];
     }

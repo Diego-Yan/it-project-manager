@@ -9,6 +9,11 @@ use Livewire\Component;
 class LinkManager extends Component
 {
     public Project $project;
+    // [REVIEW-FIX] H1: 隐藏 project 模型，防止 Livewire 序列化到前端
+    protected function getPropertyList(): array
+    {
+        return array_diff(parent::getPropertyList(), ['project']);
+    }
     public bool $showLinkForm = false;
     public string $linkType = 'relates_to';
     public int|string $targetProjectId = '';

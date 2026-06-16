@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Sla extends Model
 {
     protected $fillable = ['name','priority','response_minutes','resolution_minutes','is_active'];
-    protected function casts(): array { return ['is_active'=>'boolean']; }
+    protected function casts(): array { return ['is_active'=>'boolean', 'response_minutes'=>'integer', 'resolution_minutes'=>'integer']; }
 
     public static function getDeadline(string $priority): ?\Carbon\Carbon
     {

@@ -120,7 +120,16 @@ class ChangeManager extends Component
 
     public function edit(int $id): void
     {
+        // [REVIEW-FIX] SP2.1: 编辑变更需权限检查 + 仅允许编辑 draft/rejected 状态
+        if (!auth()->user()->can('approve changes')) {
+            session()->flash('error', '没有变更管理权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
+        if (!in_array($cr->status, ['draft', 'rejected'])) {
+            session()->flash('error', '只能编辑草稿或已拒绝的变更。');
+            return;
+        }
         $this->editingId=$id; $this->formTitle=$cr->title; $this->formProjectId=$cr->project_id;
         $this->formServiceId=$cr->service_id??''; $this->formType=$cr->type; $this->formRisk=$cr->risk;
         $this->formDescription=$cr->description??''; $this->formRollbackPlan=$cr->rollback_plan??'';

@@ -35,7 +35,8 @@ class CategoryManager extends Component
         }
         $this->validate();
         if ($this->editingId) {
-            ProjectCategory::find($this->editingId)->update([
+            // [REVIEW-FIX] M1: findOrFail 防止删除后编辑导致 NPE
+            ProjectCategory::findOrFail($this->editingId)->update([
                 'name'        => $this->name,
                 'type'        => $this->type,
                 'description' => $this->description,
