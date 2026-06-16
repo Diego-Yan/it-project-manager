@@ -15,8 +15,9 @@ class RegionManager extends Component
 
     public function save(): void // [REVIEW-FIX] R3.4: 加权限守卫
     {
-        // [REVIEW-FIX] N6: save() 需权限检查（Livewire action 绕过路由中间件）
-        if (!auth()->user()->can('view categories')) {
+        // [REVIEW-FIX] C4: save() 需要写权限，非只读 view categories
+        $requiredPerm = $this->editingId ? 'edit categories' : 'create categories';
+        if (!auth()->user()->can($requiredPerm)) {
             session()->flash('error', '没有地区管理权限');
             return;
         }

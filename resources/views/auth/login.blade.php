@@ -240,6 +240,7 @@
                         type="password"
                         id="password"
                         name="password"
+                        autocomplete="current-password"
                         placeholder="{{ $loginMode === 'ad' ? 'AD 域密码' : '输入登录密码' }}"
                         required>
                 </div>
@@ -276,7 +277,7 @@
             document.getElementById('ad_login').value = mode === 'ad' ? 1 : 0;
             document.getElementById('username').placeholder = mode === 'ad' ? '例如: zhangsan' : '输入用户名或邮箱';
             document.getElementById('password').placeholder = mode === 'ad' ? 'AD 域密码' : '输入登录密码';
-            window.location.href = '/login?mode=' + mode;
+            window.location.href = '{{ route('login') }}?mode=' + mode;
         }
     </script>
 </body>

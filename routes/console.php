@@ -9,8 +9,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // AD 用户定时同步
-$syncInterval = (int) env('AD_SYNC_INTERVAL', 60);
-if ($syncInterval > 0 && env('AD_AUTH_ENABLED') === 'true') {
+// [REVIEW-FIX] I2+M8: 使用 config() 替代 env()，兼容 config:cache
+$syncInterval = (int) config('ad-auth.sync_interval', 60);
+if ($syncInterval > 0 && config('ad-auth.enabled')) {
     Schedule::command('ad:sync-users')
         ->everyMinutes($syncInterval)
         ->withoutOverlapping()

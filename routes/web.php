@@ -50,7 +50,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/categories', CategoryManager::class)->name('categories.index')->middleware('can:view categories');
 
     // 地区管理
-    Route::get('/admin/regions', \App\Livewire\Admin\RegionManager::class)->name('admin.regions')->middleware('can:view categories');
+    // [REVIEW-FIX] C6: 地区管理页面使用 edit categories（写权限），非只读 view
+    // 进一步改进：应新增 'manage regions' 独立权限
+    Route::get('/admin/regions', \App\Livewire\Admin\RegionManager::class)->name('admin.regions')->middleware('can:edit categories');
 
     // 用户管理
     Route::get('/admin/users', UserManager::class)->name('admin.users')->middleware('can:view users');

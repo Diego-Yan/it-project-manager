@@ -100,7 +100,7 @@ class CheckDeadlines extends Command
             ->get();
 
         foreach ($nearTasks as $task) {
-            $this->info("  任务即将到期: {$task->title} ({$task->assignee->name})");
+            $this->info("  任务即将到期: {$task->title} (" . ($task->assignee?->name ?? '未分配') . ")");
 
             if (!$dryRun) {
                 NotificationService::send('task.deadline_near', [

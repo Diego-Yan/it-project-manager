@@ -63,7 +63,9 @@ class AdSyncUsers extends Command
         $filter = '(&(objectClass=person)(objectCategory=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))';
         $attrs  = ['sAMAccountName', 'cn', 'mail', 'department', 'telephoneNumber', 'distinguishedName', 'objectGUID'];
 
-        $result = @ldap_search($ldapConn, $baseDn, $filter, $attrs, 0, 1000, 30);
+        // [REVIEW-FIX] C3: 移除 1000 条大小限制，避免 AD 用户被静默丢弃
+        // sizelimit=0 表示无限制；超大数据集使用 LDAP 分页控制
+        $result = @ldap_search($ldapConn, $baseDn, $filter, $attrs, 0, 0, 30);
         if (!$result) {
             $this->error('LDAP 搜索失败: ' . ldap_error($ldapConn));
             ldap_close($ldapConn);

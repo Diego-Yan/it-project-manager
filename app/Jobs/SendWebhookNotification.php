@@ -7,15 +7,15 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 // [REVIEW-FIX] R8.5: Webhook HTTP 调用异步化 — 从 Livewire 请求周期中剥离
+// [REVIEW-FIX] M10: 移除 SerializesModels — 无 Eloquent 模型参数，序列化开销无价值
 // 避免慢速/故障的 webhook 端点阻塞 UI 响应
 class SendWebhookNotification implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable;
 
     public int $tries = 3;
     public int $backoff = 10; // 重试间隔（秒）

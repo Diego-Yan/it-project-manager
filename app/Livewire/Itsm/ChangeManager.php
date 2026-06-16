@@ -41,7 +41,8 @@ class ChangeManager extends Component
 
     public function submitForApproval(int $id): void
     {
-        if (!auth()->user()->can('view changes')) {
+        // [REVIEW-FIX] C5: 提交审批是写操作，需要 approve changes 非只读 view changes
+        if (!auth()->user()->can('approve changes')) {
             session()->flash('error', '没有变更管理权限');
             return;
         }

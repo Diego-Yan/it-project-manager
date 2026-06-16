@@ -100,8 +100,14 @@ class Dashboard extends Component
             'app_pending' => $pendingApplications->count(),
         ];
 
-        // 最近日志
+        // [REVIEW-FIX] C1: 最近日志按用户权限过滤 — 非管理员只看自己项目的日志
         $recentLogs = ProjectLog::with(['user', 'project'])
+            ->when(!$isAdmin, function ($q) use ($user) {
+                $q->whereHas('project', function ($sub) use ($user) {
+                    $sub->whereHas('members', fn($m) => $m->where('user_id', $user->id))
+                        ->orWhere('created_by', $user->id);
+                });
+            })
             ->latest('created_at')->limit(10)->get();
 
         // 即将到期项目 — [REVIEW-FIX] I2: orWhere 包裹在嵌套 where()

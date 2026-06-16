@@ -60,7 +60,7 @@ return [
         'url' => env('APP_LOGO_URL', env('LOGO_URL', '')),
     ],
 
-        'llm' => [
+    'llm' => [
         'url'   => env('LLM_API_URL', ''),
         'key'   => env('LLM_API_KEY', ''),
         'model' => env('LLM_MODEL', ''),

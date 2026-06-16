@@ -146,7 +146,7 @@ class AllRoutesTest extends TestCase
                 $instance = new $class;
                 if (method_exists($instance, 'mount')) $instance->mount();
                 $instance->render();
-                $this->assertTrue(true);
+                // render success — component didn't throw
             } catch (\Throwable $e) {
                 $this->fail("{$class}: " . $e->getMessage());
             }
@@ -164,7 +164,7 @@ class AllRoutesTest extends TestCase
                 $instance = new $class;
                 if (method_exists($instance, 'mount')) $instance->mount($project);
                 $instance->render();
-                $this->assertTrue(true);
+                // render success — component didn't throw
             } catch (\Throwable $e) {
                 $this->fail("{$class}: " . $e->getMessage());
             }
@@ -281,11 +281,20 @@ class AllRoutesTest extends TestCase
 
     #[Test] public function sole_lead_cannot_be_demoted(): void
     {
+        // [REVIEW-FIX] I4: 实际测试降级唯一负责人被拒绝
         $admin = $this->loginAsAdmin();
         $project = Project::first();
 
         $this->assertTrue($project->isLead($admin->id));
-        // admin created the project → they are the lead
+
+        // Attempt to demote the sole lead — should fail
+        $component = new \App\Livewire\Projects\ProjectDetail;
+        $component->mount($project);
+        $component->demoteToMember($admin->id);
+
+        // Verify the admin is STILL a lead after the attempt
+        $project->refresh();
+        $this->assertTrue($project->isLead($admin->id), 'Sole lead should not be demotable');
     }
 
     #[Test] public function apply_reapply_approve_flow(): void

@@ -36,6 +36,10 @@ class TicketBoard extends Component
         'formProjectId'   => 'nullable|exists:projects,id',
         'formAssetId'     => 'nullable|exists:assets,id',
         'formAssignedTo'  => 'nullable|exists:users,id',
+        // [REVIEW-FIX] I3: 补全缺失的字段验证
+        'formPriority'    => 'required|in:low,medium,high,urgent',
+        'formDescription' => 'nullable|string|max:5000',
+        'formReportedFor' => 'nullable|exists:users,id',
     ];
 
     public function save(): void

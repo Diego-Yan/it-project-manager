@@ -35,13 +35,12 @@ class KnowledgeBase extends Component
             $article = KnowledgeArticle::create($data);
         }
 
-        // Sync tags
+        // Sync tags — [REVIEW-FIX] I15: 批量更新标签计数，避免 N+1
         if (!empty($this->selectedTagIds)) {
             $article->kbTags()->sync($this->selectedTagIds);
-            // Update tag counts
-            foreach ($this->selectedTagIds as $tid) {
-                $tag = KbTag::find($tid);
-                if ($tag) $tag->update(['count' => $tag->articles()->count()]);
+            $tags = KbTag::whereIn('id', $this->selectedTagIds)->withCount('articles')->get();
+            foreach ($tags as $tag) {
+                $tag->update(['count' => $tag->articles_count]);
             }
         }
 

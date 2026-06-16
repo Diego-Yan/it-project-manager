@@ -50,10 +50,11 @@ class DingTalkService
         $token = $this->getAccessToken();
         if (!$token) return [];
 
-        $resp = Http::withToken($token)
-            ->post('https://oapi.dingtalk.com/topapi/v2/department/listsub', [
-                'dept_id' => $parentId,
-            ]);
+        // [REVIEW-FIX] C7: 旧版 oapi 端点需要 ?access_token= 查询参数，非 Bearer
+        $resp = Http::post('https://oapi.dingtalk.com/topapi/v2/department/listsub', [
+            'access_token' => $token,
+            'dept_id' => $parentId,
+        ]);
 
         if ($resp->failed()) return [];
 
@@ -70,12 +71,13 @@ class DingTalkService
         $cursor = 0;
 
         do {
-            $resp = Http::withToken($token)
-                ->post('https://oapi.dingtalk.com/topapi/v2/user/list', [
-                    'dept_id' => $parentDeptId,
-                    'cursor' => $cursor,
-                    'size' => 100,
-                ]);
+            // [REVIEW-FIX] C7: 旧版 oapi 端点需要 ?access_token= 查询参数
+            $resp = Http::post('https://oapi.dingtalk.com/topapi/v2/user/list', [
+                'access_token' => $token,
+                'dept_id' => $parentDeptId,
+                'cursor' => $cursor,
+                'size' => 100,
+            ]);
 
             if ($resp->failed()) break;
 
@@ -134,10 +136,11 @@ class DingTalkService
         $token = $this->getAccessToken();
         if (!$token) return null;
 
-        $resp = Http::withToken($token)
-            ->post('https://oapi.dingtalk.com/topapi/v2/user/get', [
-                'userid' => $userid,
-            ]);
+        // [REVIEW-FIX] C7: 旧版 oapi 端点需要 ?access_token= 查询参数
+        $resp = Http::post('https://oapi.dingtalk.com/topapi/v2/user/get', [
+            'access_token' => $token,
+            'userid' => $userid,
+        ]);
 
         if ($resp->failed()) return null;
         return $resp->json()['result'] ?? null;

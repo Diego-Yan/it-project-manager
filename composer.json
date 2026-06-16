@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "diego/it-project-manager",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "IT 服务管理系统 — 项目/工单/资产/知识库/变更/故障/SLA/IM/AI",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {

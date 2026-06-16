@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // [REVIEW-FIX] I9: Zabbix 自动工单使用的系统用户 ID
+    'zabbix_system_user_id' => (int) env('ZABBIX_SYSTEM_USER_ID', 1),
+
 ];
