@@ -55,14 +55,18 @@ return [
         'model' => env('EMBEDDING_MODEL', ''),
     ],
 
-    'llm' => [
+    // [REVIEW-FIX] R6.6: 合并重复 logo 键 — APP_LOGO_URL 优先，LOGO_URL 作为兼容回退
+    'logo' => [
+        'url' => env('APP_LOGO_URL', env('LOGO_URL', '')),
+    ],
+
+        'llm' => [
         'url'   => env('LLM_API_URL', ''),
         'key'   => env('LLM_API_KEY', ''),
         'model' => env('LLM_MODEL', ''),
+        // [REVIEW-FIX] R10.1: 管理员可关闭上下文注入，防止敏感数据外泄
+        'send_context' => env('LLM_SEND_CONTEXT', true),
     ],
 
-    'logo' => [
-        'url' => env('LOGO_URL', ''),
-    ],
 
 ];

@@ -98,9 +98,8 @@ class AdSyncUsers extends Command
             }
 
             // 查找或创建用户
-            $user = User::where('ad_username', $username)
-                        ->orWhere('username', $username)
-                        ->first();
+            $user = User::where('ad_username', $username) // [REVIEW-FIX] P0.4: 移除 orWhere username，避免误匹配本地同名账号
+                        ->first(); // [REVIEW-FIX] P0.4
 
             if ($user) {
                 // 更新现有用户

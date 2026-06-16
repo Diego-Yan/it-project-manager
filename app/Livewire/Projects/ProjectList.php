@@ -92,10 +92,17 @@ class ProjectList extends Component
 
         $projects = Project::with(['category', 'creator', 'members', 'region'])
             ->when(!$isAdmin, function ($q) use ($user) {
-                $q->whereHas('members', fn($m) => $m->where('user_id', $user->id))
-                  ->orWhere('created_by', $user->id);
+                // [REVIEW-FIX] I2: orWhere 包裹在嵌套 where() 防止 AND/OR 分组错乱
+                $q->where(function ($sub) use ($user) {
+                    $sub->whereHas('members', fn($m) => $m->where('user_id', $user->id))
+                        ->orWhere('created_by', $user->id);
+                });
             })
-            ->when($this->search, fn($q) => $q->where('title', 'like', "%{$this->search}%"))
+            ->when($this->search, function ($q) {
+                // [REVIEW-FIX] I1: 转义 LIKE 通配符防止 %_ 被误匹配
+                $escaped = addcslashes($this->search, '%_');
+                $q->where('title', 'like', "%{$escaped}%");
+            })
             ->when(!empty($this->filterProgress), fn($q) => $q->whereIn('progress', $this->filterProgress))
             ->when(!empty($this->filterCategory), fn($q) => $q->whereIn('category_id', $this->filterCategory))
             ->when(!empty($this->filterType), fn($q) => $q->whereIn('type', $this->filterType))
@@ -105,9 +112,13 @@ class ProjectList extends Component
             ->latest()
             ->paginate(15);
 
-        // 当前用户的成员身份和申请状态
-        $memberOfIds = $user->assignedProjects()->pluck('project_id')->toArray();
-        $appliedIds = ProjectApplication::where('user_id', $user->id)->where('status', 'pending')->pluck('project_id')->toArray();
+        // [REVIEW-FIX] P2.12: 成员身份和申请状态缓存5分钟（登录期间不变）
+        $memberOfIds = \Illuminate\Support\Facades\Cache::remember("member_of:{$user->id}", 300, fn() =>
+            $user->assignedProjects()->pluck('project_id')->toArray()
+        );
+        $appliedIds = \Illuminate\Support\Facades\Cache::remember("applied_ids:{$user->id}", 300, fn() =>
+            ProjectApplication::where('user_id', $user->id)->where('status', 'pending')->pluck('project_id')->toArray()
+        );
 
         $categories = ProjectCategory::where('is_active', true)->orderBy('sort_order')->get();
         $regions = \App\Models\Region::orderBy('sort_order')->get();

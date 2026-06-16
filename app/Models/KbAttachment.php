@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class KbAttachment extends Model
 {
     protected $fillable = ['article_id', 'file_name', 'file_path', 'mime_type', 'file_size', 'preview_type'];
 
-    public function article() { return $this->belongsTo(KnowledgeArticle::class, 'article_id'); }
+    public function article(): BelongsTo { return $this->belongsTo(KnowledgeArticle::class, 'article_id'); }
 
     public function getFileSizeHumanAttribute(): string
     {

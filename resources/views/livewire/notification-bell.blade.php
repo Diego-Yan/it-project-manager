@@ -27,7 +27,7 @@
             @foreach($notifications as $n)
             <div class="px-4 py-3 border-b border-zinc-50 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors {{ $n->is_read ? 'opacity-60' : '' }}">
                 <div class="flex items-start gap-3">
-                    <div class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ $n->is_read ? 'bg-zinc-300' : 'bg-'.$n->typeColor.'-500' }}"></div>
+                    <div class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ $n->is_read ? 'bg-zinc-300' : match($n->typeColor) { 'green' => 'bg-green-500', 'amber' => 'bg-amber-500', 'red' => 'bg-red-500', default => 'bg-sky-500' } }}"></div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm text-zinc-800 dark:text-zinc-200">{{ $n->title }}</p>
                         @if($n->body)

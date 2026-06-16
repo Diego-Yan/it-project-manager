@@ -153,6 +153,10 @@ class UserManager extends Component
     // ── 保存用户 ───────────────────────────────────────
     public function saveUser(): void
     {
+        // [REVIEW-FIX] R9.1: 重新验证编辑权限 — 防止 editingUserId 客户端篡改
+        if ($this->isEditing && !auth()->user()->can('edit users')) {
+            abort(403);
+        }
         // 域账号只允许修改角色和部门
         if ($this->isEditing && $this->isAdUser) {
             $rules = [
@@ -180,7 +184,8 @@ class UserManager extends Component
                 'formName'       => 'required|string|max:100',
                 'formUsername'   => 'required|string|max:50|unique:users,username' . ($this->isEditing ? ",{$this->editingUserId}" : ''),
                 'formEmail'      => 'nullable|email|max:255',
-                'formPassword'   => $this->isEditing ? 'nullable|min:6' : 'required|min:6',
+                // [REVIEW-FIX] M4: 密码需至少8位，含至少一个字母和一个数字
+                'formPassword'   => $this->isEditing ? 'nullable|min:8|regex:/^(?=.*[A-Za-z])(?=.*\d).{8,}$/' : 'required|min:8|regex:/^(?=.*[A-Za-z])(?=.*\d).{8,}$/',
                 'formDepartment' => 'nullable|string|max:100',
                 'formPhone'      => 'nullable|string|max:20',
                 'formRole'       => 'nullable|string',

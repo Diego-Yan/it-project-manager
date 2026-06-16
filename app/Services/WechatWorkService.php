@@ -27,7 +27,9 @@ class WechatWorkService
     {
         if (!$this->isConfigured()) return null;
 
-        return Cache::remember('wechat_access_token', 7100, function () {
+        // [REVIEW-FIX] R15.2: 缓存键添加命名空间前缀，防多实例/多租户冲突
+        $cacheKey = 'itsm:wechat_token:' . sha1($this->corpId . ':' . $this->corpSecret);
+        return Cache::remember($cacheKey, 7100, function () {
             $resp = Http::get('https://qyapi.weixin.qq.com/cgi-bin/gettoken', [
                 'corpid' => $this->corpId,
                 'corpsecret' => $this->corpSecret,

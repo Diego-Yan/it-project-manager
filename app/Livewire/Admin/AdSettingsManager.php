@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Services\EnvService;
 use Livewire\Component;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
@@ -50,8 +51,8 @@ class AdSettingsManager extends Component
 
     private function loadFromEnv(): void
     {
-        // 直接解析 .env 文件，避免 Laravel config cache 的读取延迟
-        $env = $this->parseEnvFile();
+        // [REVIEW-FIX] C3: 使用共享 EnvService 替代重复的 parseEnvFile()
+        $env = EnvService::parse();
 
         $this->adEnabled         = ($env['AD_AUTH_ENABLED'] ?? 'false') === 'true';
         $this->adServer          = $this->cleanServer($env['AD_SERVER'] ?? '');
@@ -61,7 +62,7 @@ class AdSettingsManager extends Component
         $this->adDomain          = $env['AD_DOMAIN'] ?? '';
         $this->adBaseDn          = $env['AD_BASE_DN'] ?? '';
         $this->adAdminUsername   = $env['AD_ADMIN_USERNAME'] ?? '';
-        $this->adAdminPassword   = $env['AD_ADMIN_PASSWORD'] ?? '';
+        // [REVIEW-FIX] R4.3: 不在 mount 中加载 AD 管理员密码，防止 Livewire 序列化泄露
         $this->adAutoCreateUser  = ($env['AD_AUTO_CREATE_USER'] ?? 'true') === 'true';
         $this->adAutoSyncGroups  = ($env['AD_AUTO_SYNC_GROUPS'] ?? 'false') === 'true';
         $this->adDefaultRole     = $env['AD_DEFAULT_ROLE'] ?? '普通员工';
@@ -71,47 +72,6 @@ class AdSettingsManager extends Component
         $this->adLockMinutes     = $env['AD_LOCK_MINUTES'] ?? '30';
     }
 
-    /**
-     * 直接解析 .env 文件，返回键值对数组
-     */
-    private function parseEnvFile(): array
-    {
-        $envPath = base_path('.env');
-        if (!file_exists($envPath)) {
-            return [];
-        }
-
-        $result = [];
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-        // 如果同一个 key 出现多次，只取第一个（与 dotenv 行为一致）
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line === '' || str_starts_with($line, '#')) {
-                continue;
-            }
-            $eqPos = strpos($line, '=');
-            if ($eqPos === false) continue;
-
-            $key = trim(substr($line, 0, $eqPos));
-            $value = trim(substr($line, $eqPos + 1));
-
-            // 去掉首尾引号
-            if (strlen($value) >= 2 && (
-                (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
-                (str_starts_with($value, "'") && str_ends_with($value, "'"))
-            )) {
-                $value = substr($value, 1, -1);
-            }
-
-            if (!array_key_exists($key, $result)) {
-                $result[$key] = $value;
-            }
-        }
-
-        return $result;
-    }
-
     private function cleanServer(string $server): string
     {
         return preg_replace('#^ldaps?://#', '', $server);
@@ -119,6 +79,7 @@ class AdSettingsManager extends Component
 
     public function save(): void
     {
+        $this->guard(); // [REVIEW-FIX] R3.1
         $this->validate([
             'adServer'          => 'required|string',
             'adPort'            => 'required|numeric|min:1|max:65535',
@@ -163,18 +124,15 @@ class AdSettingsManager extends Component
             'AD_SYNC_INTERVAL'     => $this->adSyncInterval,
         ];
 
-        if (!empty($this->adAdminPassword)) {
-            $updates['AD_ADMIN_PASSWORD'] = $this->adAdminPassword;
+        // [REVIEW-FIX] R4.3: 密码留空时保留原值
+        $currentEnv = EnvService::parse();
+        $pwd = $this->adAdminPassword ?: ($currentEnv['AD_ADMIN_PASSWORD'] ?? '');
+        if (!empty($pwd)) {
+            $updates['AD_ADMIN_PASSWORD'] = $pwd;
         }
 
-        $this->writeEnvValues($envPath, $updates);
-
-        // 清除配置缓存
-        try {
-            Artisan::call('config:clear');
-        } catch (\Exception $e) {
-            Log::warning('配置缓存清除失败: ' . $e->getMessage());
-        }
+        // [REVIEW-FIX] C3: 使用共享 EnvService 替代私有 writeEnvValues()
+        EnvService::write($updates);
 
         // 重新加载当前显示（从文件读取，避免受 PHP env cache 影响）
         $this->loadFromEnv();
@@ -184,75 +142,11 @@ class AdSettingsManager extends Component
         $this->testMessage = '';
     }
 
-    /**
-     * 写入 .env 文件中的键值对
-     * 核心修复：读取 -> 重建每行 -> 写回，避免重复 key 和特殊字符问题
-     */
-    private function writeEnvValues(string $envPath, array $updates): void
-    {
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
-        $written = [];
-        $newLines = [];
-
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
-
-            // 注释和空行原样保留
-            if ($trimmed === '' || str_starts_with($trimmed, '#')) {
-                $newLines[] = $line;
-                continue;
-            }
-
-            $eqPos = strpos($trimmed, '=');
-            if ($eqPos === false) {
-                $newLines[] = $line;
-                continue;
-            }
-
-            $key = trim(substr($trimmed, 0, $eqPos));
-
-            if (array_key_exists($key, $updates)) {
-                if (isset($written[$key])) {
-                    // 跳过重复的 key（去重）
-                    continue;
-                }
-                $value = $updates[$key];
-                $newLines[] = $key . '=' . $this->envQuote($value);
-                $written[$key] = true;
-            } else {
-                $newLines[] = $line;
-            }
-        }
-
-        // 追加还没有出现过的新 key
-        foreach ($updates as $key => $value) {
-            if (!isset($written[$key])) {
-                $newLines[] = $key . '=' . $this->envQuote($value);
-            }
-        }
-
-        file_put_contents($envPath, implode("\n", $newLines) . "\n");
-    }
-
-    /**
-     * 如果值含空格、特殊字符或引号，用双引号包裹
-     */
-    private function envQuote(string $value): string
-    {
-        if ($value === '') return '';
-
-        // 如果含有空格、# = $ ! < > & | 等特殊字符则加引号
-        if (preg_match('/[\s#=\$!<>&|\'"`\\\\]/', $value)) {
-            // 内部双引号转义
-            $value = str_replace('"', '\\"', $value);
-            return '"' . $value . '"';
-        }
-
-        return $value;
-    }
+    // [REVIEW-FIX] C3: writeEnvValues() + envQuote() 已提取至 app/Services/EnvService.php
 
     public function testConnection(): void
     {
+        $this->guard(); // [REVIEW-FIX] R3.1
         if (empty($this->adServer) || empty($this->adDomain)) {
             $this->testStatus  = 'fail';
             $this->testMessage = '请先填写服务器地址和域名。';
@@ -286,9 +180,12 @@ class AdSettingsManager extends Component
             ldap_set_option($conn, LDAP_OPT_NETWORK_TIMEOUT, 5);
 
             // 如果有管理员账号，用它绑定；否则匿名
-            if (!empty($this->adAdminUsername) && !empty($this->adAdminPassword)) {
+            // [REVIEW-FIX] R16.5: 从 .env 读取密码（dehydrate 后会清除属性值）
+            $env = EnvService::parse();
+            $actualPassword = $env['AD_ADMIN_PASSWORD'] ?? '';
+            if (!empty($this->adAdminUsername) && !empty($actualPassword)) {
                 $bindUser = $this->adAdminUsername . '@' . $this->adDomain;
-                $bindResult = @ldap_bind($conn, $bindUser, $this->adAdminPassword);
+                $bindResult = @ldap_bind($conn, $bindUser, $actualPassword);
             } else {
                 $bindResult = @ldap_bind($conn);
             }
@@ -320,6 +217,7 @@ class AdSettingsManager extends Component
 
     public function syncNow(): void
     {
+        $this->guard(); // [REVIEW-FIX] R3.1
         $this->syncStatus  = 'running';
         $this->syncMessage = '正在同步 AD 账号...';
 
@@ -332,6 +230,20 @@ class AdSettingsManager extends Component
             $this->syncStatus  = 'fail';
             $this->syncMessage = '同步失败：' . $e->getMessage();
         }
+    }
+
+    /**
+     * [REVIEW-FIX] R4.3: dehydrate 时清除密码字段
+     */
+    public function dehydrate(): void
+    {
+        $this->adAdminPassword = '';
+    }
+
+    // [REVIEW-FIX] R3.1: Livewire action 绕过路由中间件，需内联权限检查
+    private function guard(): void
+    {
+        if (!auth()->user()->can('manage roles')) abort(403);
     }
 
     public function render()

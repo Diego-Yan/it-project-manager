@@ -27,7 +27,16 @@ class TicketBoard extends Component
     public int|string $assignToUserId = ''; // IT 主管分配工单给指定人员
     public array $suggestedEngineers = [];
 
-    protected $rules = ['formTitle'=>'required|max:200', 'formRegionId'=>'required|exists:regions,id', 'formCategoryId'=>'required|exists:project_categories,id', 'formType'=>'required|in:request,incident,change,problem'];
+    protected $rules = [
+        'formTitle'       => 'required|max:200',
+        'formRegionId'    => 'required|exists:regions,id',
+        'formCategoryId'  => 'required|exists:project_categories,id',
+        'formType'        => 'required|in:request,incident,change,problem',
+        // [REVIEW-FIX] I3: 验证外键引用存在，防止存储孤立引用
+        'formProjectId'   => 'nullable|exists:projects,id',
+        'formAssetId'     => 'nullable|exists:assets,id',
+        'formAssignedTo'  => 'nullable|exists:users,id',
+    ];
 
     public function save(): void
     {
@@ -42,7 +51,15 @@ class TicketBoard extends Component
             'user_confirmed_at'=>$this->formIsProxy ? null : now(),
             'sla_deadline'=>Sla::getDeadline($this->formPriority),
         ];
-        if ($this->editingId) { Ticket::findOrFail($this->editingId)->update($data); }
+        if ($this->editingId) {
+            // [REVIEW-FIX] R12.1: 编辑工单需检查所有权或管理权限
+            $ticket = Ticket::findOrFail($this->editingId);
+            if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) {
+                session()->flash('error', '只能编辑自己创建的工单');
+                return;
+            }
+            $ticket->update($data);
+        }
         else {
             $ticket = Ticket::create($data);
             // 代填工单 → 通知被代填人
@@ -73,6 +90,7 @@ class TicketBoard extends Component
         $ticket = Ticket::findOrFail($id);
         if ($ticket->status !== 'open') return;
         $ticket->update(['assigned_to'=>auth()->id(),'status'=>'in_progress']);
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
     }
 
     // IT 主管分配工单给指定人员
@@ -83,6 +101,7 @@ class TicketBoard extends Component
 
         $ticket = Ticket::findOrFail($id);
         $ticket->update(['assigned_to' => $this->assignToUserId, 'status' => 'in_progress']);
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
         $this->assignToUserId = '';
     }
 
@@ -103,9 +122,15 @@ class TicketBoard extends Component
 
     public function resolve(int $id): void
     {
+        // [REVIEW-FIX] R12.1: 解决工单需要管理权限
+        if (!auth()->user()->can('manage tickets')) {
+            session()->flash('error', '没有工单管理权限');
+            return;
+        }
         $ticket = Ticket::findOrFail($id);
         if ($ticket->status !== 'in_progress' || $ticket->assigned_to != auth()->id()) return;
         $ticket->update(['status'=>'resolved','resolved_by'=>auth()->id(),'resolved_at'=>now()]);
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
         TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>'标记为已解决']);
     }
 
@@ -120,8 +145,13 @@ class TicketBoard extends Component
         $this->showCloseConfirm = true;
     }
 
-    public function close(): void
+    public function close(): void // [REVIEW-FIX] M3: 空值防御
     {
+        if (!auth()->user()->can('manage tickets')) {
+            session()->flash('error', '没有工单管理权限');
+            return;
+        }
+        if (!$this->closingTicketId) return;
         $ticket = Ticket::findOrFail($this->closingTicketId);
         if ($ticket->status !== 'resolved') return;
 
@@ -132,6 +162,7 @@ class TicketBoard extends Component
 
         TicketComment::create(['ticket_id'=>$this->closingTicketId, 'user_id'=>auth()->id(), 'content'=>'关闭工单: '.trim($this->closeNote)]);
         $ticket->update(['status'=>'closed','closed_at'=>now()]);
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
         $this->showCloseConfirm = false;
         $this->closingTicketId = null;
         $this->closeNote = '';
@@ -152,7 +183,7 @@ class TicketBoard extends Component
         $this->formType=$t->type; $this->formPriority=$t->priority; $this->formSource=$t->source;
         $this->formProjectId=$t->project_id??''; $this->formRegionId=$t->region_id??''; $this->formCategoryId=$t->category_id??''; $this->formAssetId=$t->asset_id??''; $this->formAssignedTo=$t->assigned_to??'';
         $this->formIsProxy = (bool) $t->reported_for; $this->formReportedFor = $t->reported_for ?? '';
-        $this->showForm=true; $this->updatedFormCategory();
+        $this->showForm=true; $this->updatedFormCategoryId(); // [REVIEW-FIX] C2: 方法名修正
     }
 
     // 系统分类联动：推荐负责该系统的 IT 工程师

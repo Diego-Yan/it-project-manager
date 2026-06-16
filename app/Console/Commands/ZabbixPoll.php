@@ -39,9 +39,10 @@ class ZabbixPoll extends Command
                 $severity = (int) ($trigger['priority'] ?? 3);
                 $hosts = collect($trigger['hosts'] ?? [])->pluck('name')->implode(', ');
 
-                // 去重：trigger_id 已生成工单？
+                // [REVIEW-FIX] I5: 去重范围扩大至 24h 内的所有工单（含已解决/关闭），
+                // 防止告警恢复后再次触发时无法生成新工单。
                 $existing = Ticket::where('description', 'like', "%[Zabbix:{$triggerId}]%")
-                    ->whereIn('status', ['open', 'in_progress'])
+                    ->where('created_at', '>=', now()->subHours(24))
                     ->exists();
 
                 if ($existing) {
@@ -60,6 +61,12 @@ class ZabbixPoll extends Command
                 if ($dryRun) {
                     $this->warn("  [DRY RUN] 将创建工单: {$title}");
                 } else {
+                    // [REVIEW-FIX] R6.5: 使用配置化的系统用户 ID，避免无活动用户时 fallback 到不存在的 id=1
+                    $systemUserId = (int) config("app.zabbix_system_user_id", 1);
+                    if (!\App\Models\User::find($systemUserId)) {
+                        $systemUserId = \App\Models\User::where("is_active", true)->first()?->id;
+                        if (!$systemUserId) { $this->warn("  跳过: 无可用系统用户"); continue; }
+                    }
                     Ticket::create([
                         'title' => mb_substr($title, 0, 200),
                         'description' => $ticketDescription,
@@ -67,12 +74,12 @@ class ZabbixPoll extends Command
                         'priority' => $severity >= 4 ? 'high' : ($severity >= 3 ? 'medium' : 'low'),
                         'status' => 'open',
                         'source' => 'portal',
-                        'created_by' => \App\Models\User::where('is_active', true)->first()?->id ?? 1, // 系统用户
+                        'created_by' => $systemUserId,
                     ]);
-                    $totalCreated++;
                     $this->info("  ✅ 创建工单: {$title}");
                 }
 
+                // [REVIEW-FIX] C1: 原来的两个 $totalCreated++ 合并为一个（移到 if/else 之外）
                 $totalCreated++;
             }
 

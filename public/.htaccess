@@ -23,3 +23,21 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# [REVIEW-FIX] R5.2: 安全响应头 — Apache 层面兜底
+<IfModule mod_headers.c>
+    # 防止点击劫持
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # 防止 MIME 类型嗅探
+    Header always set X-Content-Type-Options "nosniff"
+    # 启用浏览器 XSS 过滤器
+    Header always set X-XSS-Protection "1; mode=block"
+    # Referrer 策略
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # 权限策略
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+    # HSTS（仅 HTTPS 环境生效，Apache 2.4+ 可用表达式判断）
+    # 如需启用，取消下面注释：
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>

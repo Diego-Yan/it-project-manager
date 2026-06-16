@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Incident extends Model
 {
@@ -20,11 +22,11 @@ class Incident extends Model
         ];
     }
 
-    public function project() { return $this->belongsTo(Project::class); }
-    public function service() { return $this->belongsTo(Service::class); }
-    public function reporter() { return $this->belongsTo(User::class, 'reported_by'); }
-    public function assignee() { return $this->belongsTo(User::class, 'assigned_to'); }
-    public function timeline() { return $this->hasMany(IncidentTimeline::class)->latest('created_at'); }
+    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
+    public function service(): BelongsTo { return $this->belongsTo(Service::class); }
+    public function reporter(): BelongsTo { return $this->belongsTo(User::class, 'reported_by'); }
+    public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assigned_to'); }
+    public function timeline(): HasMany { return $this->hasMany(IncidentTimeline::class)->latest('created_at'); }
 
     public function getSeverityLabelAttribute(): string
     {

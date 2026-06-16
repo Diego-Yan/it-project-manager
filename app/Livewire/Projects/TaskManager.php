@@ -29,6 +29,11 @@ class TaskManager extends Component
     public function addComment(int $taskId): void
     {
         if (empty(trim($this->newComment))) return;
+        // [REVIEW-FIX] R13.2: 限制评论长度防滥用
+        if (mb_strlen($this->newComment) > 5000) {
+            session()->flash('task_error', '评论内容不能超过5000字');
+            return;
+        }
 
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
         TaskComment::create([
@@ -38,7 +43,7 @@ class TaskManager extends Component
         ]);
 
         // 评论可以算作对任务的一次确认（如果还在待确认状态且评论人是被分配人）
-        if ($task->status === 'pending_confirmation' && $task->assigned_to == auth()->id()) {
+        if ($task->status === 'pending_confirmation' && (int)$task->assigned_to === auth()->id()) {
             $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
         }
 
@@ -103,7 +108,7 @@ class TaskManager extends Component
         } else {
             $task = Task::create($data);
             // 如果创建时分配给了自己，自动确认
-            if ($task->assigned_to == auth()->id()) {
+            if ((int)$task->assigned_to === auth()->id()) { // [REVIEW-FIX] R15.5: 严格比较
                 $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
             }
             // 通知被分配人
@@ -120,8 +125,10 @@ class TaskManager extends Component
     public function confirmTask(int $taskId): void
     {
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
-        if ($task->assigned_to == auth()->id() && $task->status === 'pending_confirmation') {
+        if ((int)$task->assigned_to === auth()->id() && $task->status === 'pending_confirmation') {
             $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
+            // [REVIEW-FIX] I6: 刷新侧边栏待确认任务计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             try { NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
     }
@@ -132,8 +139,13 @@ class TaskManager extends Component
     public function rejectTask(int $taskId): void
     {
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
-        if ($task->assigned_to == auth()->id() && $task->status === 'pending_confirmation') {
+        if ((int)$task->assigned_to === auth()->id() && $task->status === 'pending_confirmation') {
+            // [REVIEW-FIX] R13.3: 拒绝后设为 in_progress + 无分配人 → claimTask 可重新认领
             $task->update(['assigned_to' => null, 'status' => 'in_progress']);
+            // [REVIEW-FIX] I6: 刷新侧边栏计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+            // [REVIEW-FIX] R15.1: 通知任务创建者任务已被拒绝
+            try { \App\Services\NotificationService::taskRejected($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) {}
         }
     }
 
@@ -143,6 +155,8 @@ class TaskManager extends Component
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
         if (!$task->assigned_to && $task->status !== 'completed') {
             $task->update(['assigned_to' => auth()->id(), 'status' => 'in_progress', 'confirmed_at' => now()]);
+            // [REVIEW-FIX] I6: 刷新侧边栏计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
         }
     }
 
@@ -150,8 +164,10 @@ class TaskManager extends Component
     public function completeTask(int $taskId): void
     {
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
-        if ($task->assigned_to == auth()->id() && $task->status === 'in_progress') {
+        if ((int)$task->assigned_to === auth()->id() && $task->status === 'in_progress') {
             $task->update(['status' => 'completed', 'completed_at' => now()]);
+            // [REVIEW-FIX] I6: 刷新侧边栏计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             try { NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
     }

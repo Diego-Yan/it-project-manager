@@ -24,19 +24,29 @@ class IncidentManager extends Component
 
     public function save(): void
     {
+        // [REVIEW-FIX] R11.2: 操作权限检查
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有故障管理权限');
+            return;
+        }
         $this->validate();
         $data = ['project_id'=>$this->formProjectId, 'service_id'=>$this->formServiceId?:null, 'title'=>$this->formTitle, 'severity'=>$this->formSeverity, 'description'=>$this->formDescription?:null, 'reported_by'=>auth()->id(), 'assigned_to'=>$this->formAssignedTo?:null, 'status'=>'open', 'started_at'=>now()];
         if ($this->editingId) {
             Incident::findOrFail($this->editingId)->update($data);
         } else {
             $inc = Incident::create($data);
-            IncidentTimeline::create(['incident_id'=>$inc->id, 'user_id'=>auth()->id(), 'action'=>'created', 'description'=>'创建故障工单']);
+            // [REVIEW-FIX] M6: 手动设置 created_at（IncidentTimeline $timestamps=false）
+            IncidentTimeline::create(['incident_id'=>$inc->id, 'user_id'=>auth()->id(), 'action'=>'created', 'description'=>'创建故障工单', 'created_at'=>now()]);
         }
         $this->resetForm();
     }
 
     public function addTimeline(int $id, string $action): void
     {
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有故障管理权限');
+            return;
+        }
         $allowedActions = ['investigating', 'mitigated', 'resolved', 'commented'];
         if (!in_array($action, $allowedActions)) return;
 
@@ -52,6 +62,10 @@ class IncidentManager extends Component
 
     public function close(int $id): void
     {
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有故障管理权限');
+            return;
+        }
         $inc = Incident::findOrFail($id);
         if (!in_array($inc->status, ['resolved', 'mitigated'])) return;
         $inc->update(['status'=>'closed']);
@@ -60,6 +74,10 @@ class IncidentManager extends Component
 
     public function edit(int $id): void
     {
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有故障管理权限');
+            return;
+        }
         $inc = Incident::findOrFail($id);
         $this->editingId=$id; $this->formTitle=$inc->title; $this->formSeverity=$inc->severity;
         $this->formDescription=$inc->description??''; $this->formProjectId=$inc->project_id;

@@ -97,6 +97,11 @@ class RoleManager extends Component
     // ── 保存角色 ──────────────────────────────────────
     public function saveRole(): void
     {
+        // [REVIEW-FIX] R12.7: 角色管理操作需权限检查
+        if (!auth()->user()->can('manage roles')) {
+            session()->flash('error', '没有角色管理权限');
+            return;
+        }
         $uniqueRule = $this->isEditing
             ? 'unique:roles,name,' . $this->editingRoleId
             : 'unique:roles,name';
@@ -148,12 +153,19 @@ class RoleManager extends Component
         $this->showDeleteModal = true;
     }
 
+    // [REVIEW-FIX] M6: 删除前检查角色是否仍有用户在使用
     public function deleteRole(): void
     {
-        $role = Role::find($this->deletingRoleId);
+        if (!auth()->user()->can('manage roles')) {
+            session()->flash('error', '没有角色管理权限');
+            return;
+        }
+        $role = Role::withCount('users')->find($this->deletingRoleId);
         if ($role) {
             if (in_array($role->name, $this->systemRoles)) {
                 session()->flash('error', '系统保护角色不允许删除。');
+            } elseif ($role->users_count > 0) {
+                session()->flash('error', "角色「{$role->name}」仍有 {$role->users_count} 名用户在使用，请先移除用户后再删除。");
             } else {
                 $roleName = $role->name;
                 $role->delete();

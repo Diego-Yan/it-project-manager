@@ -18,7 +18,7 @@ class CategoryManager extends Component
         'name'        => 'required|string|max:50',
         'type'        => 'required|in:ops,dev',
         'description' => 'nullable|string|max:200',
-        'color'       => 'required|in:red,orange,yellow,green,cyan,blue,purple',
+        'color'       => 'required|in:red,orange,amber,yellow,green,cyan,sky,blue,indigo,violet,purple' // [REVIEW-FIX] R3.3: 颜色对齐 Seeder,
     ];
 
     protected $messages = [
@@ -28,6 +28,11 @@ class CategoryManager extends Component
 
     public function save(): void
     {
+        // [REVIEW-FIX] R12.5: 分类管理操作需权限检查
+        if (!auth()->user()->can('create categories')) {
+            session()->flash('error', '没有分类管理权限');
+            return;
+        }
         $this->validate();
         if ($this->editingId) {
             ProjectCategory::find($this->editingId)->update([
@@ -51,6 +56,10 @@ class CategoryManager extends Component
 
     public function edit(int $id): void
     {
+        if (!auth()->user()->can('edit categories')) {
+            session()->flash('error', '没有分类编辑权限');
+            return;
+        }
         $cat = ProjectCategory::findOrFail($id);
         $this->editingId   = $id;
         $this->name        = $cat->name;

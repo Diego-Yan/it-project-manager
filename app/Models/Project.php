@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+// [REVIEW-FIX] R15.4: 关系方法添加返回类型声明
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'category_id', 'region_id', 'created_by', 'owner_id',
@@ -27,33 +32,33 @@ class Project extends Model
     }
 
     // ── 关联 ──────────────────────────────────────────────
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(ProjectCategory::class, 'category_id');
     }
 
-    public function region()
+    public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function owner()
+    public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function members()
+    public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_user')
                     ->withPivot('role', 'assigned_at');
     }
 
-    public function leads()
+    public function leads(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_user')
                     ->withPivot('role', 'assigned_at')
@@ -70,27 +75,27 @@ class Project extends Model
         return $this->members()->where('user_id', $userId)->exists();
     }
 
-    public function logs()
+    public function logs(): HasMany
     {
         return $this->hasMany(ProjectLog::class)->latest();
     }
 
-    public function tasks()
+    public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }
 
-    public function applications()
+    public function applications(): HasMany
     {
         return $this->hasMany(ProjectApplication::class);
     }
 
-    public function outgoingLinks()
+    public function outgoingLinks(): HasMany
     {
         return $this->hasMany(ProjectLink::class, 'project_id');
     }
 
-    public function incomingLinks()
+    public function incomingLinks(): HasMany
     {
         return $this->hasMany(ProjectLink::class, 'target_id');
     }
@@ -149,12 +154,12 @@ class Project extends Model
         return $link?->target;
     }
 
-    public function webhooks()
+    public function webhooks(): HasMany
     {
         return $this->hasMany(WebhookConfig::class);
     }
 
-    public function attachments()
+    public function attachments(): HasMany
     {
         return $this->hasMany(ProjectAttachment::class);
     }

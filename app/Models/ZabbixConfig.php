@@ -33,18 +33,33 @@ class ZabbixConfig extends Model
             $this->attributes['api_token'] = null;
             return;
         }
-        // 如果已经是加密过的（不以明文常见前缀开头），不再重复加密
-        $this->attributes['api_token'] = Crypt::encryptString($value);
+        // [REVIEW-FIX] R16.1: 防止已加密值被重复加密
+        // Laravel Crypt 加密后的字符串以 base64 格式开头，尝试解密判断是否已加密
+        try {
+            Crypt::decryptString($value);
+            // 解密成功 → 已是加密值，直接赋值
+            $this->attributes['api_token'] = $value;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            // 解密失败 → 明文，正常加密
+            $this->attributes['api_token'] = Crypt::encryptString($value);
+        }
     }
 
     /**
      * [FIX] #2: 返回掩码后的 token，用于前端展示
+     * [REVIEW-FIX] M5: 处理短 token（≤12 字符）的边界情况
      */
     public function getMaskedTokenAttribute(): string
     {
         $token = $this->api_token;
-        if (empty($token) || strlen($token) <= 12) {
+        if (empty($token)) {
+            return '';
+        }
+        if (strlen($token) <= 6) {
             return '****';
+        }
+        if (strlen($token) <= 12) {
+            return substr($token, 0, 3) . '****' . substr($token, -3);
         }
         return substr($token, 0, 6) . '****' . substr($token, -6);
     }

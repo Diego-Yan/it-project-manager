@@ -3,6 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+// [REVIEW-FIX] R15.4: 关系方法添加返回类型声明
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -36,24 +40,24 @@ class User extends Authenticatable
         ];
     }
 
-    public function createdProjects()
+    public function createdProjects(): HasMany
     {
         return $this->hasMany(Project::class, 'created_by');
     }
 
-    public function assignedProjects()
+    public function assignedProjects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_user')
                     ->withPivot('role', 'assigned_at')
                     ->withTimestamps();
     }
 
-    public function projectLogs()
+    public function projectLogs(): HasMany
     {
         return $this->hasMany(ProjectLog::class);
     }
 
-    public function expertiseCategories()
+    public function expertiseCategories(): BelongsToMany
     {
         return $this->belongsToMany(ProjectCategory::class, 'user_categories', 'user_id', 'category_id');
     }

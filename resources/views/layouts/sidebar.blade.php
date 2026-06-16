@@ -1,5 +1,7 @@
 {{-- 侧边导航 — 可折叠分组 --}}
 <div class="flex flex-col h-full" x-data="{
+    {{-- [REVIEW-FIX] R7.5: 缓存 auth()->user() 避免重复调用 --}}
+    @php $authUser = auth()->user(); @endphp
     collapsed: JSON.parse(localStorage.getItem('sidebar_collapsed') || '{}'),
 
     toggle(key) {
@@ -104,8 +106,8 @@
     {{-- 底部用户信息 --}}
     <div class="shrink-0 border-t border-zinc-200 dark:border-zinc-800 p-3">
         <div class="flex items-center gap-3 px-2 py-2">
-            <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-semibold shrink-0">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
-            <div class="flex-1 min-w-0"><p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ auth()->user()->name }}</p><p class="text-xs text-zinc-500 truncate">{{ auth()->user()->getRoleNamesString }}</p></div>
+            <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-semibold shrink-0">{{ mb_substr($authUser->name, 0, 1) }}</div>
+            <div class="flex-1 min-w-0"><p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ $authUser->name }}</p><p class="text-xs text-zinc-500 truncate">{{ $authUser->getRoleNamesString }}</p></div>
         </div>
     </div>
 </div>

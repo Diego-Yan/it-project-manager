@@ -15,14 +15,24 @@ class ZabbixManager extends Component
     public string $testResult = '';
     public ?int $testConfigId = null;
 
-    protected $rules = [
-        'formName' => 'required|max:100',
-        'formUrl' => 'required|url|max:500',
-        'formApiToken' => 'required|string|max:255',
-    ];
+    protected function rules(): array
+    {
+        // [REVIEW-FIX] R16.3: 编辑时 token 留空=保留原值，不再 require
+        $tokenRule = $this->editingId ? 'nullable|string|max:255' : 'required|string|max:255';
+        return [
+            'formName' => 'required|max:100',
+            'formUrl' => 'required|url|max:500',
+            'formApiToken' => $tokenRule,
+        ];
+    }
 
     public function save(): void
     {
+        // [REVIEW-FIX] R12.3: Zabbix 配置管理需权限检查
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有 Zabbix 管理权限');
+            return;
+        }
         $this->validate();
         $data = [
             'name' => $this->formName, 'url' => $this->formUrl,
@@ -40,6 +50,10 @@ class ZabbixManager extends Component
 
     public function test(int $id): void
     {
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有 Zabbix 管理权限');
+            return;
+        }
         $config = ZabbixConfig::findOrFail($id);
         $svc = new ZabbixService($config);
         $this->testConfigId = $id;
@@ -52,6 +66,10 @@ class ZabbixManager extends Component
     // 用户需要重新输入或留空保留原值
     public function edit(int $id): void
     {
+        if (!auth()->user()->can('manage incidents')) {
+            session()->flash('error', '没有 Zabbix 管理权限');
+            return;
+        }
         $z = ZabbixConfig::findOrFail($id);
         $this->editingId=$id; $this->formName=$z->name; $this->formUrl=$z->url;
         // [FIX] #2: 不再填充真实 token，防止前端泄露

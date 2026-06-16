@@ -188,6 +188,7 @@ class LdapAuthService
             // 创建新用户
             $user = User::create([
                 'name' => $userInfo['display_name'] ?? $username,
+                'username' => $username, // [REVIEW-FIX] M5: AD 用户同步时设置 username
                 'email' => $userInfo['email'] ?? $username . '@' . $this->config['domain'],
                 'ad_domain' => $this->config['domain'],
                 'ad_username' => $username,
@@ -195,6 +196,8 @@ class LdapAuthService
                 'ad_email' => $userInfo['email'],
                 'ad_authenticated' => true,
                 'ad_last_sync_at' => now(),
+                'is_active' => true, // [REVIEW-FIX] R17.1: 补全缺失字段，防止依赖 DB 默认值
+                'source' => 'ad',   // [REVIEW-FIX] R17.1: 标记来源为 AD
                 'password' => bcrypt(\Illuminate\Support\Str::random(32)), // [FIX] #3: 随机不可预测密码
             ]);
 

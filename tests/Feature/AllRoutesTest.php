@@ -14,7 +14,7 @@ class AllRoutesTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function seedData(): void
+    protected function seedData(): void
     {
         // Create all permissions
         $perms = [
@@ -232,6 +232,51 @@ class AllRoutesTest extends TestCase
         $this->assertFalse(\App\Models\ProjectLink::wouldCreateBlocksCycle($p1->id, $p2->id));
         // P1 → P1: self-link IS a cycle
         $this->assertTrue(\App\Models\ProjectLink::wouldCreateBlocksCycle($p1->id, $p1->id));
+    }
+
+    // [REVIEW-FIX] M7: 验证未认证用户被重定向到登录页
+    #[Test] public function unauthenticated_user_redirected_to_login(): void
+    {
+        $protectedRoutes = [
+            '/', '/dashboard', '/my/projects', '/my/tasks', '/my/tickets', '/my/assets',
+            '/projects', '/projects/create', '/categories',
+            '/itsm/tickets', '/itsm/assets', '/itsm/knowledge', '/itsm/services',
+            '/itsm/changes', '/itsm/incidents', '/itsm/slas', '/itsm/zabbix',
+            '/admin/users', '/admin/ad-settings', '/admin/webhooks', '/admin/roles',
+            '/admin/im', '/admin/ai', '/admin/regions',
+        ];
+
+        foreach ($protectedRoutes as $route) {
+            $response = $this->get($route);
+            $this->assertEquals(302, $response->status(), "Route {$route} did not redirect unauthenticated user");
+            $this->assertStringContainsString('/login', $response->headers->get('Location'));
+        }
+    }
+
+    // [REVIEW-FIX] M7: 验证普通用户访问管理页面返回 403
+    #[Test] public function regular_user_cannot_access_admin_routes(): void
+    {
+        // Create a regular user with no admin permissions
+        $regularUser = User::create([
+            'name' => 'Regular User', 'username' => 'regular',
+            'email' => 'regular@itops.local', 'password' => bcrypt('password'),
+            'is_active' => true,
+        ]);
+        $regularUser->assignRole('普通员工');
+
+        $this->actingAs($regularUser);
+
+        $adminRoutes = [
+            '/admin/users', '/admin/ad-settings', '/admin/roles',
+            '/admin/webhooks', '/admin/im', '/admin/ai',
+        ];
+
+        foreach ($adminRoutes as $route) {
+            $response = $this->get($route);
+            $this->assertContains($response->status(), [403, 302],
+                "Regular user should not access {$route}, got {$response->status()}"
+            );
+        }
     }
 
     #[Test] public function sole_lead_cannot_be_demoted(): void

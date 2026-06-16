@@ -40,12 +40,12 @@ class NotificationBell extends Component
         $this->loadNotifications();
     }
 
+    // [REVIEW-FIX] R7.1: 2次查询(get+count)→1次查询，未读数从 collection 计算
     private function loadNotifications(): void
     {
         $this->notifications = Notification::where('user_id', auth()->id())
             ->latest()->limit(20)->get();
-        $this->unreadCount = Notification::where('user_id', auth()->id())
-            ->where('is_read', false)->count();
+        $this->unreadCount = $this->notifications->where('is_read', false)->count();
     }
 
     public function render()

@@ -15,6 +15,8 @@ class DailyDigest extends Command
     public function handle(): int
     {
         $dryRun = $this->option('dry-run');
+        // [REVIEW-FIX] I7: 先创建 $today 再创建 $now，意图清晰避免混淆
+        $today = now()->startOfDay();
         $now = now();
 
         // ── 统计 ────────────────────────────────────────────
@@ -28,7 +30,7 @@ class DailyDigest extends Command
         // 即将到期的项目
         $nearProjects = Project::where('progress', '!=', 'completed')
             ->whereNotNull('end_date')
-            ->whereBetween('end_date', [$now->startOfDay(), $now->copy()->addDays(7)->endOfDay()])
+            ->whereBetween('end_date', [$today, $today->copy()->addDays(7)->endOfDay()])
             ->orderBy('end_date')
             ->limit(5)
             ->get();

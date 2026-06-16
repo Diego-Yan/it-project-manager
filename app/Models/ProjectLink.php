@@ -3,22 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectLink extends Model
 {
     protected $fillable = ['project_id', 'target_id', 'link_type', 'created_by'];
 
-    public function project()
+    public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class, 'project_id');
     }
 
-    public function target()
+    public function target(): BelongsTo
     {
         return $this->belongsTo(Project::class, 'target_id');
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -51,14 +52,15 @@ class ProjectLink extends Model
     {
         if ($from === $to) return true;
 
+        // [REVIEW-FIX] R13.1: hash 键替代 in_array — O(n²)→O(n)
         $visited = [];
         $stack = [$to];
 
         while (!empty($stack)) {
             $current = array_pop($stack);
             if ($current === $from) return true;
-            if (in_array($current, $visited)) continue;
-            $visited[] = $current;
+            if (isset($visited[$current])) continue;
+            $visited[$current] = true;
 
             $nextIds = self::where('link_type', 'blocks')
                 ->where('project_id', $current)

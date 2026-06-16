@@ -51,7 +51,8 @@ class KnowledgeBase extends Component
             $mime = $this->uploadFile->getMimeType();
             KbAttachment::create([
                 'article_id' => $article->id,
-                'file_name' => $this->uploadFile->getClientOriginalName(),
+                                // [REVIEW-FIX] R8.6: 安全文件名 — 仅保留字母数字中文点号下划线横线
+                'file_name' => preg_replace('/[^a-zA-Z0-9.\x{4e00}-\x{9fff}_-]/u', '_', $this->uploadFile->getClientOriginalName()),
                 'file_path' => $path,
                 'mime_type' => $mime,
                 'file_size' => $this->uploadFile->getSize(),
@@ -80,6 +81,12 @@ class KnowledgeBase extends Component
 
     public function edit(int $id): void
     {
+        // [REVIEW-FIX] R12.8: 编辑文章前验证权限
+        $article = KnowledgeArticle::findOrFail($id);
+        if ($article->created_by != auth()->id() && !auth()->user()->can('edit knowledge')) {
+            session()->flash('error', '只能编辑自己创建的知识库文章');
+            return;
+        }
         $a = KnowledgeArticle::with('kbTags')->findOrFail($id);
         $this->editingId=$id; $this->formTitle=$a->title; $this->formContent=$a->content; $this->formCategory=$a->category;
         $this->selectedTagIds = $a->kbTags->pluck('id')->toArray();
@@ -92,7 +99,11 @@ class KnowledgeBase extends Component
     public function render()
     {
         $articles = KnowledgeArticle::with(['author', 'attachments', 'kbTags'])
-            ->when($this->search, fn($q)=>$q->where('title','like',"%{$this->search}%")->orWhere('content','like',"%{$this->search}%"))
+            ->when($this->search, function ($q) {
+                // [REVIEW-FIX] I1: 转义 LIKE 通配符防止 %_ 被误匹配
+                $escaped = addcslashes($this->search, '%_');
+                $q->where('title', 'like', "%{$escaped}%")->orWhere('content', 'like', "%{$escaped}%");
+            })
             ->when($this->filterTag, fn($q)=>$q->whereHas('kbTags', fn($t)=>$t->where('kb_tags.id', $this->filterTag)))
             ->where('is_published',true)->latest()->paginate(12);
 

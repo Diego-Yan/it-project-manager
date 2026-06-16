@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Service extends Model
 {
@@ -20,9 +22,9 @@ class Service extends Model
         ];
     }
 
-    public function project() { return $this->belongsTo(Project::class); }
-    public function owner() { return $this->belongsTo(User::class, 'owner_id'); }
-    public function dependencies() { return $this->hasMany(ServiceDependency::class); }
+    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
+    public function owner(): BelongsTo { return $this->belongsTo(User::class, 'owner_id'); }
+    public function dependencies(): HasMany { return $this->hasMany(ServiceDependency::class); }
 
     public function getStatusLabelAttribute(): string
     {

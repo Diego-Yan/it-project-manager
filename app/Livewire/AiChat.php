@@ -33,7 +33,8 @@ class AiChat extends Component
             $reply = $this->callLlm();
             $this->messages[] = ['role' => 'assistant', 'content' => $reply];
         } catch (\Exception $e) {
-            $this->messages[] = ['role' => 'assistant', 'content' => '抱歉，AI 服务暂时不可用：' . $e->getMessage()];
+            // [REVIEW-FIX] R10.2: 生产环境不暴露内部错误详情
+            $this->messages[] = ['role' => 'assistant', 'content' => '抱歉，AI 服务暂时不可用，请稍后重试。' . (app()->isProduction() ? '' : ' (' . $e->getMessage() . ')')];
         }
 
         $this->loading = false;
@@ -88,12 +89,18 @@ class AiChat extends Component
 
     private function buildContext(): string
     {
+        // [REVIEW-FIX] R10.1: 管理员可关闭上下文注入，防止敏感数据不经意外泄至外部 LLM
+        if (!config('services.llm.send_context', true)) {
+            return "用户未授权发送工单/任务/项目数据。";
+        }
         $user = auth()->user();
         $lines = [];
 
-        // 工单
-        $tickets = \App\Models\Ticket::where('assigned_to', $user->id)
-            ->orWhere('created_by', $user->id)
+        // 工单 — [REVIEW-FIX] I2: orWhere 包裹在嵌套 where()
+        $tickets = \App\Models\Ticket::where(function ($q) use ($user) {
+            $q->where('assigned_to', $user->id)
+              ->orWhere('created_by', $user->id);
+        })
             ->latest()->limit(10)->get();
 
         if ($tickets->isNotEmpty()) {
@@ -117,9 +124,11 @@ class AiChat extends Component
             $lines[] = "";
         }
 
-        // 项目
-        $projects = \App\Models\Project::whereHas('members', fn($q) => $q->where('user_id', $user->id))
-            ->orWhere('created_by', $user->id)
+        // 项目 — [REVIEW-FIX] I2: orWhere 包裹在嵌套 where()
+        $projects = \App\Models\Project::where(function ($q) use ($user) {
+            $q->whereHas('members', fn($q2) => $q2->where('user_id', $user->id))
+              ->orWhere('created_by', $user->id);
+        })
             ->latest()->limit(5)->get();
 
         if ($projects->isNotEmpty()) {

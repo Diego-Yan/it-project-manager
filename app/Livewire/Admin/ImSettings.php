@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\User;
 use App\Services\DingTalkService;
+use App\Services\EnvService;
 use App\Services\WechatWorkService;
 use Livewire\Component;
 
@@ -21,9 +22,9 @@ class ImSettings extends Component
     public function mount(): void
     {
         $this->wechatCorpId = (string) config('services.wechat.corp_id', '');
-        $this->wechatCorpSecret = (string) config('services.wechat.corp_secret', '');
         $this->dingtalkAppKey = (string) config('services.dingtalk.app_key', '');
-        $this->dingtalkAppSecret = (string) config('services.dingtalk.app_secret', '');
+        // [REVIEW-FIX] R4.2: 不在 mount 中加载 Secret，防止 Livewire 序列化泄露
+        // 用户需重新输入或留空保留原值；测试/sync时从 config 临时读取
         $this->wechatUserCount = User::where('source', 'wechat')->count();
         $this->dingtalkUserCount = User::where('source', 'dingtalk')->count();
     }
@@ -120,18 +121,20 @@ class ImSettings extends Component
 
     public function saveWechat(): void
     {
+        $secret = $this->wechatCorpSecret ?: config('services.wechat.corp_secret', '');
         $this->updateEnv([
             'WECHAT_CORP_ID' => $this->wechatCorpId,
-            'WECHAT_CORP_SECRET' => $this->wechatCorpSecret,
+            'WECHAT_CORP_SECRET' => $secret,
         ]);
         session()->flash('success', '企业微信配置已保存');
     }
 
     public function saveDingtalk(): void
     {
+        $secret = $this->dingtalkAppSecret ?: config('services.dingtalk.app_secret', '');
         $this->updateEnv([
             'DINGTALK_APP_KEY' => $this->dingtalkAppKey,
-            'DINGTALK_APP_SECRET' => $this->dingtalkAppSecret,
+            'DINGTALK_APP_SECRET' => $secret,
         ]);
         session()->flash('success', '钉钉配置已保存');
     }
@@ -158,35 +161,19 @@ class ImSettings extends Component
         $this->testResult = $token ? '✓ 钉钉连接成功' : '✗ 连接失败，请检查 App Key 和 Secret';
     }
 
+    // [REVIEW-FIX] C3: updateEnv() 已提取至 app/Services/EnvService.php
     private function updateEnv(array $updates): void
     {
-        $envPath = base_path('.env');
-        if (!file_exists($envPath)) return;
+        EnvService::write($updates);
+    }
 
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
-        $written = [];
-        $newLines = [];
-
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
-            if ($trimmed === '' || str_starts_with($trimmed, '#')) { $newLines[] = $line; continue; }
-            $eqPos = strpos($trimmed, '=');
-            if ($eqPos === false) { $newLines[] = $line; continue; }
-            $key = trim(substr($trimmed, 0, $eqPos));
-            if (array_key_exists($key, $updates)) {
-                if (!isset($written[$key])) {
-                    $newLines[] = $key . '=' . $updates[$key];
-                    $written[$key] = true;
-                }
-            } else {
-                $newLines[] = $line;
-            }
-        }
-        foreach ($updates as $key => $value) {
-            if (!isset($written[$key])) { $newLines[] = $key . '=' . $value; }
-        }
-        file_put_contents($envPath, implode("\n", $newLines) . "\n");
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
+    /**
+     * [REVIEW-FIX] R4.2: dehydrate 时清除敏感字段
+     */
+    public function dehydrate(): void
+    {
+        $this->wechatCorpSecret = '';
+        $this->dingtalkAppSecret = '';
     }
 
     public function render()

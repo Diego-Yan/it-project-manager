@@ -27,7 +27,9 @@ class DingTalkService
     {
         if (!$this->isConfigured()) return null;
 
-        return Cache::remember('dingtalk_access_token', 7100, function () {
+        // [REVIEW-FIX] R15.2: 缓存键添加命名空间前缀，防多实例/多租户冲突
+        $cacheKey = 'itsm:dingtalk_token:' . sha1($this->appKey . ':' . $this->appSecret);
+        return Cache::remember($cacheKey, 7100, function () {
             $resp = Http::post('https://api.dingtalk.com/v1.0/oauth2/accessToken', [
                 'appKey' => $this->appKey,
                 'appSecret' => $this->appSecret,

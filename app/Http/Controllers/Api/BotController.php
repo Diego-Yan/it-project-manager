@@ -178,9 +178,10 @@ class BotController extends Controller
             'type'        => 'request',
             'priority'    => $priority,
             'status'      => 'open',
-            'source'      => $platform === 'wechat' ? 'portal' : 'portal',
+                        'source'      => 'im_' . $platform,  // [REVIEW-FIX] R9.4: 区分 IM 平台来源
             'created_by'  => $user->id,
-            'description' => "来自{$platform}手机端: {$userName}\n{$content}",
+                        // [REVIEW-FIX] R9.4: 截断描述内容防滥用 + 区分平台来源
+            'description' => mb_substr("来自{$platform}: {$userName}\n{$content}", 0, 5000),
             'sla_deadline' => Sla::getDeadline($priority),
         ]);
 

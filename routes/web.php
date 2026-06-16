@@ -12,14 +12,16 @@ use App\Livewire\Categories\CategoryManager;
 use Illuminate\Support\Facades\Route;
 
 // ── 机器人回调（无需登录，无需 CSRF，每分钟限 60 次） ──
+// [REVIEW-FIX] C4: 收紧限流至 20/min + IP 级别，防止脚本刷票
 Route::post('/api/bot/wechat', [\App\Http\Controllers\Api\BotController::class, 'wechat'])
-    ->withoutMiddleware(['web', 'auth'])->middleware('throttle:60,1');
+    ->withoutMiddleware(['web', 'auth'])->middleware('throttle:20,1');
 Route::post('/api/bot/dingtalk', [\App\Http\Controllers\Api\BotController::class, 'dingtalk'])
-    ->withoutMiddleware(['web', 'auth'])->middleware('throttle:60,1');
+    ->withoutMiddleware(['web', 'auth'])->middleware('throttle:20,1');
 
 // ── 认证路由 ──────────────────────────────────────────
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+// [REVIEW-FIX] R7.3: 添加登录限流防暴力破解（每分钟5次/每IP）
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // ── 应用路由（需要登录） ───────────────────────────────

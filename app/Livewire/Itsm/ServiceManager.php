@@ -30,6 +30,11 @@ class ServiceManager extends Component
 
     public function save(): void
     {
+        // [REVIEW-FIX] R12.2: 服务管理操作需权限检查
+        if (!auth()->user()->can('manage assets')) {
+            session()->flash('error', '没有服务管理权限');
+            return;
+        }
         $this->validate();
         $data = [
             'name' => $this->formName,
@@ -52,6 +57,10 @@ class ServiceManager extends Component
 
     public function edit(int $id): void
     {
+        if (!auth()->user()->can('manage assets')) {
+            session()->flash('error', '没有服务管理权限');
+            return;
+        }
         $s = Service::findOrFail($id);
         $this->editingId = $id;
         $this->formName = $s->name;

@@ -11,8 +11,33 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // [REVIEW-FIX] R5.1: 添加安全响应头中间件，防止点击劫持/MIME嗅探/XSS
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // [REVIEW-FIX] R5.1: 自定义异常处理 — 生产环境不暴露敏感信息
+        $exceptions->dontReport([
+            //
+        ]);
+
+        $exceptions->render(function (Throwable $e, $request) {
+            if (app()->isProduction() && !$e instanceof \Illuminate\Auth\AuthenticationException) {
+                // 404/403 保持原有渲染；500 等内部错误返回通用页面防信息泄露
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                    return response()->view('errors.404', [], 404);
+                }
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException) {
+                    $status = $e->getStatusCode();
+                    if (view()->exists("errors.{$status}")) {
+                        return response()->view("errors.{$status}", [], $status);
+                    }
+                }
+                return response()->view('errors.500', [], 500);
+            }
+            return null;
+        });
     })->create();

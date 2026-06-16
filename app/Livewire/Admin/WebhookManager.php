@@ -18,6 +18,7 @@ class WebhookManager extends Component
     public bool $formIsActive = true;
 
     // 可选事件列表
+    // [REVIEW-FIX] R17.4: 补全 NotificationService/SendWebhookNotification 中已实现的新事件类型
     public array $availableEvents = [
         'project.created'       => '项目创建',
         'project.completed'     => '项目完成',
@@ -26,9 +27,13 @@ class WebhookManager extends Component
         'task.assigned'         => '任务分配',
         'task.confirmed'        => '任务确认',
         'task.completed'        => '任务完成',
+        'task.rejected'         => '任务被拒绝',
         'task.unassigned'       => '任务待认领',
+        'task.deadline_near'    => '任务即将到期',
         'member.joined'         => '新成员加入',
         'application.submitted' => '新的加入申请',
+        'ticket.proxy_created'  => '代填工单创建',
+        'daily.digest'          => '每日概报',
     ];
 
     protected $rules = [
@@ -39,6 +44,7 @@ class WebhookManager extends Component
 
     public function save(): void
     {
+        $this->guard(); // [REVIEW-FIX] P1.5
         $this->validate();
 
         $data = [
@@ -63,6 +69,7 @@ class WebhookManager extends Component
 
     public function edit(int $id): void
     {
+        $this->guard(); // [REVIEW-FIX] P1.5
         $webhook = WebhookConfig::findOrFail($id);
         $this->editingId       = $id;
         $this->formName        = $webhook->name;
@@ -76,12 +83,14 @@ class WebhookManager extends Component
 
     public function delete(int $id): void
     {
+        $this->guard(); // [REVIEW-FIX] P1.5
         WebhookConfig::findOrFail($id)->delete();
         session()->flash('success', 'Webhook 已删除。');
     }
 
     public function toggleActive(int $id): void
     {
+        $this->guard(); // [REVIEW-FIX] P1.5
         $webhook = WebhookConfig::findOrFail($id);
         $webhook->update(['is_active' => !$webhook->is_active]);
     }
@@ -93,6 +102,12 @@ class WebhookManager extends Component
         $this->reset(['formName','formUrl','formType','formProjectId','selectedEvents','formIsActive']);
         $this->formType   = 'custom';
         $this->formIsActive = true;
+    }
+
+    // [REVIEW-FIX] P1.5: Livewire action 绕过路由中间件，需内联权限检查
+    private function guard(): void
+    {
+        if (!auth()->user()->can('manage roles')) abort(403);
     }
 
     public function render()

@@ -46,8 +46,10 @@ class LinkManager extends Component
             return;
         }
 
+        // [REVIEW-FIX] P1.6: 转义 LIKE 通配符 % 和 _
+        $escaped = addcslashes($keyword, '%_');
         $this->searchResults = Project::where('id', '!=', $this->project->id)
-            ->where('title', 'like', "%{$keyword}%")
+            ->where('title', 'like', "%{$escaped}%")
             ->limit(10)
             ->get(['id', 'title'])
             ->toArray();
@@ -113,11 +115,11 @@ class LinkManager extends Component
         $this->resetLinkForm();
     }
 
+    // [REVIEW-FIX] P0.2: 只允许删除自己项目创建的出向链接，入向链接只读
     public function removeLink(int $linkId): void
     {
         $this->guard();
         $link = ProjectLink::where('project_id', $this->project->id)
-            ->orWhere('target_id', $this->project->id)
             ->findOrFail($linkId);
 
         $link->delete();

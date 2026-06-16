@@ -33,6 +33,15 @@ class TaskKanban extends Component
             return;
         }
 
+        // [REVIEW-FIX] P0.3: 状态白名单校验，防止非法值写入
+        $allowedStatuses = ['pending_confirmation', 'in_progress', 'completed'];
+        if (!in_array($newStatus, $allowedStatuses)) {
+            session()->flash('task_error', '无效的任务状态。');
+            return;
+        }
+
+        // [REVIEW-FIX] R13.4: 跳过无变化的状态更新
+        if ($task->status === $newStatus) return;
         $task->update(['status' => $newStatus]);
 
         if ($newStatus === 'completed') {

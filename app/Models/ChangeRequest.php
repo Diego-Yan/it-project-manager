@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChangeRequest extends Model
 {
@@ -23,10 +24,10 @@ class ChangeRequest extends Model
         ];
     }
 
-    public function project() { return $this->belongsTo(Project::class); }
-    public function service() { return $this->belongsTo(Service::class); }
-    public function requester() { return $this->belongsTo(User::class, 'requester_id'); }
-    public function approver() { return $this->belongsTo(User::class, 'approver_id'); }
+    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
+    public function service(): BelongsTo { return $this->belongsTo(Service::class); }
+    public function requester(): BelongsTo { return $this->belongsTo(User::class, 'requester_id'); }
+    public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approver_id'); }
 
     public function getTypeLabelAttribute(): string
     {

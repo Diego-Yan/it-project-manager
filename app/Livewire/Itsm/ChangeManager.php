@@ -21,6 +21,11 @@ class ChangeManager extends Component
 
     public function save(): void
     {
+        // [REVIEW-FIX] R11.3: 操作权限检查
+        if (!auth()->user()->can('approve changes') && !auth()->user()->can('view changes')) {
+            session()->flash('error', '没有变更管理权限');
+            return;
+        }
         $this->validate();
         $data = [
             'project_id' => $this->formProjectId, 'service_id' => $this->formServiceId ?: null,
@@ -36,41 +41,72 @@ class ChangeManager extends Component
 
     public function submitForApproval(int $id): void
     {
+        if (!auth()->user()->can('view changes')) {
+            session()->flash('error', '没有变更管理权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
         if (!in_array($cr->status, ['draft', 'rejected'])) return;
         $cr->update(['status' => 'pending_approval']);
     }
 
+    // [REVIEW-FIX] H2: approve/reject 加权限检查
     public function approve(int $id): void
     {
+        if (!auth()->user()->can('approve changes')) {
+            session()->flash('error', '没有审批变更的权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
         if ($cr->status !== 'pending_approval') return;
         $cr->update(['status' => 'approved', 'approver_id' => auth()->id()]);
     }
 
+    // [REVIEW-FIX] H2: approve/reject 加权限检查
     public function reject(int $id): void
     {
+        if (!auth()->user()->can('approve changes')) {
+            session()->flash('error', '没有审批变更的权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
         if ($cr->status !== 'pending_approval') return;
         $cr->update(['status' => 'rejected', 'approver_id' => auth()->id()]);
     }
 
+    // [REVIEW-FIX] H2: 实施/完成/回滚加权限检查
     public function startImplement(int $id): void
     {
+        // [REVIEW-FIX] R11.3: 已有 can('approve changes') 检查，保留
+        if (!auth()->user()->can('approve changes')) {
+            session()->flash('error', '没有实施变更的权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
         if ($cr->status !== 'approved') return;
         $cr->update(['status' => 'in_progress']);
     }
 
+    // [REVIEW-FIX] H2: 实施/完成/回滚加权限检查
     public function complete(int $id): void
     {
+        // [REVIEW-FIX] R11.3: 已有 can('approve changes') 检查，保留
+        if (!auth()->user()->can('approve changes')) {
+            session()->flash('error', '没有完成变更的权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
         if ($cr->status !== 'in_progress') return;
         $cr->update(['status' => 'completed', 'implemented_at' => now()]);
     }
 
+    // [REVIEW-FIX] H2: 实施/完成/回滚加权限检查
     public function rollback(int $id): void
     {
+        if (!auth()->user()->can('approve changes')) {
+            session()->flash('error', '没有回滚变更的权限');
+            return;
+        }
         $cr = ChangeRequest::findOrFail($id);
         if (!in_array($cr->status, ['in_progress', 'completed'])) return;
         $cr->update(['status' => 'rolled_back', 'implemented_at' => now()]);

@@ -92,6 +92,9 @@ class ProjectDetail extends Component
         $this->project->logAction(auth()->id(), 'member_added', ['user' => $user->name]);
         $this->selectedUserId = '';
         $this->showMemberModal = false;
+        $this->flushMemberCaches();
+        // [REVIEW-FIX] I6: 刷新新成员的侧边栏计数
+        \App\View\Composers\SidebarComposer::flushForUser($user->id);
         $this->loadProject(); // [FIX] #11
     }
 
@@ -102,6 +105,9 @@ class ProjectDetail extends Component
         }
         $user = User::find($userId);
         $this->project->members()->detach($userId);
+        $this->flushMemberCaches();
+        // [REVIEW-FIX] I6: 刷新被移除成员的侧边栏计数
+        \App\View\Composers\SidebarComposer::flushForUser($userId);
         $this->project->logAction(auth()->id(), 'member_removed', ['user' => $user?->name]);
         $this->loadProject(); // [FIX] #11
     }
@@ -144,11 +150,23 @@ class ProjectDetail extends Component
         return array_diff(parent::getPropertyList(), ['project']);
     }
 
+    /**
+     * [REVIEW-FIX] R14.2: 成员变更后清除 ProjectList 缓存
+     */
+    private function flushMemberCaches(): void
+    {
+        $memberIds = $this->project->members->pluck('id')->toArray();
+        foreach ($memberIds as $uid) {
+            \Illuminate\Support\Facades\Cache::forget("member_of:{$uid}");
+            \Illuminate\Support\Facades\Cache::forget("applied_ids:{$uid}");
+        }
+    }
+
     public function render()
     {
         $this->loadProject(); // [FIX] #11: render 前刷新
 
-        $memberIds = $this->project->members()->pluck('user_id')->toArray();
+        $memberIds = $this->project->members->pluck('user_id')->toArray();
         $availableUsers = User::where('is_active', true)
             ->whereNotIn('id', $memberIds)
             ->orderBy('name')

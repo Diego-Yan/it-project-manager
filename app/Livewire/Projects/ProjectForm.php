@@ -123,8 +123,20 @@ class ProjectForm extends Component
         ];
 
         if ($this->isEdit) {
+            // [REVIEW-FIX] R17.2: 格式化 Carbon 对象为字符串后再 diff，避免类型不匹配误判
+            $original = $this->project->only(array_keys($data));
+            // Carbon 日期对象需转为与表单一致的 Y-m-d 字符串
+            $dateKeys = ['start_date', 'end_date', 'actual_end_date'];
+            foreach ($dateKeys as $k) {
+                if (isset($original[$k]) && $original[$k] instanceof \Carbon\Carbon) {
+                    $original[$k] = $original[$k]->format('Y-m-d');
+                }
+            }
+            $changes = array_diff_assoc($data, $original);
             $this->project->update($data);
-            $this->project->logAction(auth()->id(), 'updated', $data);
+            if (!empty($changes)) {
+                $this->project->logAction(auth()->id(), 'updated', $changes);
+            }
             session()->flash('success', '项目已更新！');
             $this->redirect(route('projects.show', $this->project));
         } else {

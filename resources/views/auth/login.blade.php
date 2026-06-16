@@ -267,7 +267,7 @@
         </div>
     </div>
 
-    <div class="version-badge">ITSM v1.2.1</div>
+    <div class="version-badge">ITSM v1.3 // [REVIEW-FIX] P2.10: 版本号与 VERSION.md 保持一致</div>
 
     <script>
         function switchTab(mode) {

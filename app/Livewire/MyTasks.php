@@ -12,16 +12,20 @@ class MyTasks extends Component
     public function confirmTask(int $taskId): void
     {
         $task = Task::findOrFail($taskId);
-        if ($task->assigned_to == auth()->id() && $task->status === 'pending_confirmation') {
+        if ((int)$task->assigned_to === auth()->id() && $task->status === 'pending_confirmation') { // [REVIEW-FIX] R15.5
             $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
+            // [REVIEW-FIX] R15.3: 确认任务时通知创建者
+            try { \App\Services\NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
     }
 
     public function completeTask(int $taskId): void
     {
         $task = Task::findOrFail($taskId);
-        if ($task->assigned_to == auth()->id() && $task->status === 'in_progress') {
+        if ((int)$task->assigned_to === auth()->id() && $task->status === 'in_progress') { // [REVIEW-FIX] R15.5
             $task->update(['status' => 'completed', 'completed_at' => now()]);
+            // [REVIEW-FIX] R15.3: 完成任务时通知创建者
+            try { \App\Services\NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
     }
 
@@ -36,10 +40,17 @@ class MyTasks extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
+        // [REVIEW-FIX] R3.5: 3次独立 COUNT → 1次 GROUP BY
+        $countsRaw = Task::where('assigned_to', $user->id)
+            ->selectRaw("
+                SUM(CASE WHEN status = 'pending_confirmation' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+            ")->first();
         $counts = [
-            'pending' => Task::where('assigned_to', $user->id)->where('status', 'pending_confirmation')->count(),
-            'in_progress' => Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
-            'completed' => Task::where('assigned_to', $user->id)->where('status', 'completed')->count(),
+            'pending'     => (int) ($countsRaw->pending ?? 0),
+            'in_progress' => (int) ($countsRaw->in_progress ?? 0),
+            'completed'   => (int) ($countsRaw->completed ?? 0),
         ];
 
         return view('livewire.my-tasks', compact('tasks', 'counts'))

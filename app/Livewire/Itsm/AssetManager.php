@@ -51,12 +51,17 @@ class AssetManager extends Component
             'warranty_expiry' => $this->formCategory !== 'consumable' ? ($this->formWarrantyExpiry ?: null) : null,
         ];
 
-        // [FIX] #7: 使用事务 + MAX 聚合避免并发竞态（原代码: count()+1，并发会重复）
+        // [REVIEW-FIX] C3: 兼容 SQLite（不支持 lockForUpdate），用驱动判断选择策略
+        // MySQL: SELECT ... FOR UPDATE 行锁; SQLite: 事务 + 重试
         if ($this->formCategory === 'consumable') {
             $data['asset_tag'] = DB::transaction(function () {
-                $maxTag = Asset::where('category','consumable')
-                    ->where('asset_tag', 'LIKE', 'CON-%')
-                    ->lockForUpdate()->max('asset_tag');
+                $isSqlite = DB::getDriverName() === 'sqlite';
+                $query = Asset::where('category', 'consumable')
+                    ->where('asset_tag', 'LIKE', 'CON-%');
+                if (!$isSqlite) {
+                    $query->lockForUpdate();
+                }
+                $maxTag = $query->max('asset_tag');
                 $nextNum = $maxTag ? (int)substr($maxTag, 4) + 1 : 1;
                 return 'CON-' . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
             });
@@ -73,6 +78,10 @@ class AssetManager extends Component
 
     public function addCatalogItem(): void
     {
+        if (!auth()->user()->can('manage assets')) {
+            session()->flash('error', '没有资产管理权限');
+            return;
+        }
         if (empty(trim($this->catalogName))) return;
         ConsumableCatalog::create(['name'=>trim($this->catalogName), 'brand'=>$this->catalogBrand?:null, 'unit'=>$this->catalogUnit]);
         $this->catalogName = ''; $this->catalogBrand = ''; $this->catalogUnit = '个';
@@ -85,6 +94,10 @@ class AssetManager extends Component
 
     public function edit(int $id): void
     {
+        if (!auth()->user()->can('manage assets')) {
+            session()->flash('error', '没有资产管理权限');
+            return;
+        }
         $a = Asset::findOrFail($id);
         $this->editingId=$id; $this->formAssetTag=$a->asset_tag; $this->formName=$a->name; $this->formType=$a->type; $this->formCategory=$a->category??'fixed'; $this->formBrand=$a->brand??''; $this->formModel=$a->model??''; $this->formSerial=$a->serial_number??''; $this->formStatus=$a->status; $this->formAssignedTo=$a->assigned_to??''; $this->formLocation=$a->location??''; $this->formDept=$a->department??''; $this->formNotes=$a->notes??''; $this->formPurchaseDate=$a->purchase_date?->format('Y-m-d')??''; $this->formWarrantyExpiry=$a->warranty_expiry?->format('Y-m-d')??'';
         $this->formQuantity=$a->quantity??1;

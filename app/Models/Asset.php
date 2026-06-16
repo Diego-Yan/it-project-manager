@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Asset extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'asset_tag','name','type','category','brand','model','serial_number',
         'status','quantity','assigned_to','location','department',
@@ -14,8 +18,8 @@ class Asset extends Model
 
     protected function casts(): array { return ['purchase_date'=>'date','warranty_expiry'=>'date']; }
 
-    public function assignee() { return $this->belongsTo(User::class,'assigned_to'); }
-    public function tickets() { return $this->hasMany(Ticket::class); }
+    public function assignee(): BelongsTo { return $this->belongsTo(User::class,'assigned_to'); }
+    public function tickets(): HasMany { return $this->hasMany(Ticket::class); }
 
     public function getStatusLabelAttribute(): string { return match($this->status) { 'in_use'=>'使用中','available'=>'空闲','repair'=>'维修中','retired'=>'已报废', default=>$this->status }; }
     public function getStatusColorAttribute(): string { return match($this->status) { 'in_use'=>'green','available'=>'sky','repair'=>'amber','retired'=>'zinc', default=>'zinc' }; }

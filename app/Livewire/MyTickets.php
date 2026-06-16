@@ -29,6 +29,8 @@ class MyTickets extends Component
             'source' => $this->formSource,
             'region_id' => $this->formRegionId,
             'created_by' => auth()->id(),
+            // [REVIEW-FIX] I4: 仅自建工单自动确认，代填工单需被代填人确认
+            'user_confirmed_at' => now(),
             'sla_deadline' => Sla::getDeadline($this->formPriority),
         ]);
         $this->showForm = false;
@@ -41,8 +43,10 @@ class MyTickets extends Component
     public function confirmProxy(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
-        if ($ticket->reported_for == auth()->id() && !$ticket->user_confirmed_at) {
+        if ((int)$ticket->reported_for === auth()->id() && !$ticket->user_confirmed_at) { // [REVIEW-FIX] R15.5
             $ticket->update(['user_confirmed_at' => now()]);
+            // [REVIEW-FIX] I6: 刷新侧边栏代理待确认计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             session()->flash('success', '工单已确认');
         }
     }
@@ -61,10 +65,17 @@ class MyTickets extends Component
             ->latest()
             ->paginate(15);
 
+        // [REVIEW-FIX] R15.6: 3次独立 COUNT → 1次 GROUP BY（同 R3.5 优化模式）
+        $countsRaw = Ticket::where('assigned_to', $user->id)
+            ->selectRaw("
+                SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open,
+                SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+                SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved
+            ")->first();
         $counts = [
-            'open'         => Ticket::where('assigned_to', $user->id)->where('status', 'open')->count(),
-            'in_progress'  => Ticket::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
-            'resolved'     => Ticket::where('assigned_to', $user->id)->where('status', 'resolved')->count(),
+            'open'        => (int) ($countsRaw->open ?? 0),
+            'in_progress' => (int) ($countsRaw->in_progress ?? 0),
+            'resolved'    => (int) ($countsRaw->resolved ?? 0),
         ];
 
         $regions = \App\Models\Region::orderBy('sort_order')->get();

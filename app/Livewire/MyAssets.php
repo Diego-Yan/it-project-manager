@@ -16,15 +16,20 @@ class MyAssets extends Component
             ->latest()
             ->paginate(15);
 
+        // [REVIEW-FIX] R3.6: 4次独立 COUNT → 1次 GROUP BY
+        $uid = auth()->id();
+        $countsRaw = Asset::where('assigned_to', $uid)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'in_use' THEN 1 ELSE 0 END) as in_use,
+                SUM(CASE WHEN status = 'repair' THEN 1 ELSE 0 END) as repair,
+                SUM(CASE WHEN warranty_expiry IS NOT NULL AND warranty_expiry <= ? AND status != 'retired' THEN 1 ELSE 0 END) as warranty_soon
+            ", [now()->addDays(30)])->first();
         $counts = [
-            'total'      => Asset::where('assigned_to', auth()->id())->count(),
-            'in_use'     => Asset::where('assigned_to', auth()->id())->where('status', 'in_use')->count(),
-            'repair'     => Asset::where('assigned_to', auth()->id())->where('status', 'repair')->count(),
-            'warranty_soon' => Asset::where('assigned_to', auth()->id())
-                ->whereNotNull('warranty_expiry')
-                ->where('warranty_expiry', '<=', now()->addDays(30))
-                ->where('status', '!=', 'retired')
-                ->count(),
+            'total'         => (int) ($countsRaw->total ?? 0),
+            'in_use'        => (int) ($countsRaw->in_use ?? 0),
+            'repair'        => (int) ($countsRaw->repair ?? 0),
+            'warranty_soon' => (int) ($countsRaw->warranty_soon ?? 0),
         ];
 
         return view('livewire.my-assets', compact('assets', 'counts'))

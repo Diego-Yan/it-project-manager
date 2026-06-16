@@ -2,20 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class KnowledgeArticle extends Model
 {
-    protected $fillable = ['title','content','summary','category','tags','view_count','is_published','created_by','is_vectorized','vector_ids'];
+    use HasFactory;
+    protected $fillable = ['title','content','category','tags','view_count','is_published','created_by']; // [REVIEW-FIX] R4.5: 移除 summary/is_vectorized/vector_ids（DB中不存在的字段）
 
     protected function casts(): array
     {
-        return ['tags'=>'array', 'vector_ids'=>'array', 'is_published'=>'boolean', 'is_vectorized'=>'boolean'];
+        return ['tags'=>'array', 'is_published'=>'boolean']; // [REVIEW-FIX] R4.5: 移除 vector_ids/is_vectorized
     }
 
-    public function author() { return $this->belongsTo(User::class,'created_by'); }
-    public function attachments() { return $this->hasMany(KbAttachment::class, 'article_id'); }
-    public function kbTags() { return $this->belongsToMany(KbTag::class, 'kb_article_tag', 'article_id', 'tag_id'); }
+    public function author(): BelongsTo { return $this->belongsTo(User::class,'created_by'); }
+    public function attachments(): HasMany { return $this->hasMany(KbAttachment::class, 'article_id'); }
+    public function kbTags(): BelongsToMany { return $this->belongsToMany(KbTag::class, 'kb_article_tag', 'article_id', 'tag_id'); }
 
     public function getCategoryLabelAttribute(): string
     {
