@@ -55,6 +55,10 @@ class ProjectDetail extends Component
 
     public function changeProgress(string $progress): void
     {
+        // [REVIEW-FIX] C6: 变更进度需项目管理权限
+        if (!$this->canManageProject()) {
+            abort(403);
+        }
         $old = $this->project->progress;
         $this->project->update(['progress' => $progress]);
         $this->project->logAction(auth()->id(), 'status_changed', [

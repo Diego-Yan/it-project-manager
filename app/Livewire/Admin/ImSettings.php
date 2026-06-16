@@ -33,6 +33,11 @@ class ImSettings extends Component
 
     public function syncWechatUsers(): void
     {
+        // [REVIEW-FIX] I4: 同步操作需要权限检查（Livewire action 绕过路由中间件）
+        if (!auth()->user()->can('manage roles')) {
+            session()->flash('error', '没有管理权限');
+            return;
+        }
         $svc = new WechatWorkService;
         if (!$svc->isConfigured()) {
             $this->syncResult = '请先保存企业微信 API 凭证';
@@ -78,6 +83,11 @@ class ImSettings extends Component
 
     public function syncDingtalkUsers(): void
     {
+        // [REVIEW-FIX] I4: 同步操作需要权限检查
+        if (!auth()->user()->can('manage roles')) {
+            session()->flash('error', '没有管理权限');
+            return;
+        }
         $svc = new DingTalkService;
         if (!$svc->isConfigured()) {
             $this->syncResult = '请先保存钉钉 API 凭证';

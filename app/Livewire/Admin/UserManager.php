@@ -318,6 +318,23 @@ class UserManager extends Component
                 $this->showDeleteModal = false;
                 return;
             }
+            // [REVIEW-FIX] I2: 删除前检查用户是否有关联的活跃记录
+            $activeTaskCount = \App\Models\Task::where('assigned_to', $user->id)
+                ->whereIn('status', ['pending_confirmation', 'in_progress'])->count();
+            $activeTicketCount = \App\Models\Ticket::where('assigned_to', $user->id)
+                ->whereIn('status', ['open', 'in_progress'])->count();
+            $ownedProjectCount = \App\Models\Project::where('created_by', $user->id)
+                ->where('progress', '!=', 'completed')->count();
+
+            if ($activeTaskCount > 0 || $activeTicketCount > 0 || $ownedProjectCount > 0) {
+                session()->flash('error',
+                    "无法删除：该用户有 {$activeTaskCount} 个进行中任务、{$activeTicketCount} 个进行中工单、{$ownedProjectCount} 个未结项目。请先转移或完成后重试。"
+                );
+                $this->showDeleteModal = false;
+                $this->deletingUserId = null;
+                return;
+            }
+
             $user->delete();
             session()->flash('success', '用户已删除。');
         }

@@ -87,10 +87,14 @@ class TicketBoard extends Component
     // 自己接单（任何 IT 工程师都可以）
     public function assign(int $id): void
     {
-        $ticket = Ticket::findOrFail($id);
-        if ($ticket->status !== 'open') return;
-        $ticket->update(['assigned_to'=>auth()->id(),'status'=>'in_progress']);
-        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
+        // [REVIEW-FIX] C3: 原子性抢单 — 用 WHERE 条件防止竞态
+        $updated = Ticket::where('id', $id)
+            ->where('status', 'open')
+            ->update(['assigned_to' => auth()->id(), 'status' => 'in_progress']);
+
+        if ($updated) {
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+        }
     }
 
     // IT 主管分配工单给指定人员
@@ -99,9 +103,10 @@ class TicketBoard extends Component
         if (!auth()->user()->can('manage tickets')) return;
         if (empty($this->assignToUserId)) return;
 
-        $ticket = Ticket::findOrFail($id);
-        $ticket->update(['assigned_to' => $this->assignToUserId, 'status' => 'in_progress']);
-        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
+        Ticket::where('id', $id)->update(['assigned_to' => $this->assignToUserId, 'status' => 'in_progress']);
+        // [REVIEW-FIX] I1: 刷新分配人和接收人双方侧边栏
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+        \App\View\Composers\SidebarComposer::flushForUser((int) $this->assignToUserId);
         $this->assignToUserId = '';
     }
 
@@ -116,6 +121,9 @@ class TicketBoard extends Component
         $toUser = User::find($this->assignToUserId)?->name ?? '未知';
         $ticket->update(['assigned_to' => $this->assignToUserId]);
         TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>"转让工单: {$fromUser} → {$toUser}"]);
+        // [REVIEW-FIX] I1: 刷新转让方和接收方双方侧边栏
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+        \App\View\Composers\SidebarComposer::flushForUser((int) $this->assignToUserId);
         $this->assignToUserId = '';
         session()->flash('ticket_msg', "工单已转让给 {$toUser}");
     }
@@ -128,7 +136,9 @@ class TicketBoard extends Component
             return;
         }
         $ticket = Ticket::findOrFail($id);
-        if ($ticket->status !== 'in_progress' || $ticket->assigned_to != auth()->id()) return;
+        if ($ticket->status !== 'in_progress') return;
+        // [REVIEW-FIX] I14: 管理员可强制解决任何进行中工单，不仅限自己的
+        if ($ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) return;
         $ticket->update(['status'=>'resolved','resolved_by'=>auth()->id(),'resolved_at'=>now()]);
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
         TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>'标记为已解决']);
@@ -200,6 +210,8 @@ class TicketBoard extends Component
         $ticket = Ticket::findOrFail($id);
         if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) return;
         $ticket->delete();
+        // [REVIEW-FIX] I10: 删除工单后刷新侧边栏计数
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
     }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formCategoryId','formAssetId','formAssignedTo','formIsProxy','formReportedFor']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; $this->suggestedEngineers=[]; $this->formIsProxy=false; $this->formReportedFor=''; }
 

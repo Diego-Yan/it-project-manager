@@ -145,7 +145,7 @@ class EnvService
             return '';
         }
 
-        if (preg_match('/[\s#=\$!<>&|\'"`\\\\]/', $value)) {
+        if (preg_match('/[\s#=\$!<>&|\'"`\\\\{]/', $value)) {
             $value = str_replace('"', '\\"', $value);
             return '"' . $value . '"';
         }

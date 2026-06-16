@@ -89,6 +89,7 @@ class AdSettingsManager extends Component
             'adLockAfterFailed' => 'required|numeric|min:1',
             'adLockMinutes'     => 'required|numeric|min:1',
             'adSyncInterval'    => 'required|numeric|min:5',
+            'adDefaultRole'     => 'required|string|exists:roles,name', // [REVIEW-FIX] N5: 验证角色存在
         ], [
             'adServer.required'  => 'AD服务器地址不能为空',
             'adDomain.required'  => '域名不能为空',

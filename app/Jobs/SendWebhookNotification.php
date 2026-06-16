@@ -146,6 +146,25 @@ class SendWebhookNotification implements ShouldQueue
 
     public function failed(\Throwable $e): void
     {
-        Log::error("Webhook job failed: event={$this->event}, error=" . $e->getMessage());
+        // [REVIEW-FIX] I8: 失败时记录完整上下文并通知管理员，便于排障
+        Log::error("Webhook job failed after {$this->tries} retries", [
+            'event'   => $this->event,
+            'payload' => $this->payload,
+            'error'   => $e->getMessage(),
+        ]);
+
+        // 站内通知管理员 webhook 投递失败
+        try {
+            $adminIds = \App\Models\User::role('超级管理员')->pluck('id')->toArray();
+            foreach ($adminIds as $uid) {
+                \App\Models\Notification::send($uid,
+                    'Webhook 投递失败',
+                    "事件 {$this->event} 在 {$this->tries} 次重试后仍然失败：{$e->getMessage()}",
+                    'error'
+                );
+            }
+        } catch (\Throwable $_) {
+            // 静默处理 — 至少日志已经记录了
+        }
     }
 }

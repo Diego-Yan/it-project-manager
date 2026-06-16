@@ -16,9 +16,11 @@ class Dashboard extends Component
         $user = auth()->user();
         $isAdmin = $user->can('view all projects');
 
-        // 项目统计
-        $query = $isAdmin ? Project::query() : Project::whereHas('members', fn($q) => $q->where('user_id', $user->id))
-                                                       ->orWhere('created_by', $user->id);
+        // 项目统计 — [REVIEW-FIX] C1: orWhere 包裹在嵌套 where() 防止 AND/OR 分组错乱
+        $query = $isAdmin ? Project::query() : Project::where(function ($q) use ($user) {
+            $q->whereHas('members', fn($q2) => $q2->where('user_id', $user->id))
+              ->orWhere('created_by', $user->id);
+        });
 
         // [REVIEW-FIX] M4: 4次独立 COUNT → 1次 GROUP BY
         $allCounts = (clone $query)->selectRaw("

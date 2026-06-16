@@ -63,7 +63,7 @@ class AdSyncUsers extends Command
         $filter = '(&(objectClass=person)(objectCategory=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))';
         $attrs  = ['sAMAccountName', 'cn', 'mail', 'department', 'telephoneNumber', 'distinguishedName', 'objectGUID'];
 
-        $result = @ldap_search($ldapConn, $baseDn, $filter, $attrs, 0, 0, 30);
+        $result = @ldap_search($ldapConn, $baseDn, $filter, $attrs, 0, 1000, 30);
         if (!$result) {
             $this->error('LDAP 搜索失败: ' . ldap_error($ldapConn));
             ldap_close($ldapConn);
@@ -107,6 +107,7 @@ class AdSyncUsers extends Command
                 $user->department       = $department;
                 $user->phone            = $phone;
                 $user->ad_authenticated = true;
+                $user->ad_domain        = $domain;
                 $user->ad_last_sync_at  = now();
                 if ($email && !$user->email) {
                     $user->email = $email;

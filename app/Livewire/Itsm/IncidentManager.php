@@ -67,7 +67,8 @@ class IncidentManager extends Component
             return;
         }
         $inc = Incident::findOrFail($id);
-        if (!in_array($inc->status, ['resolved', 'mitigated'])) return;
+        // [REVIEW-FIX] I6: 只允许从 resolved 关闭，mitigated 需先 resolve
+        if ($inc->status !== 'resolved') return;
         $inc->update(['status'=>'closed']);
         IncidentTimeline::create(['incident_id'=>$id, 'user_id'=>auth()->id(), 'action'=>'closed', 'description'=>'关闭故障', 'created_at'=>now()]);
     }

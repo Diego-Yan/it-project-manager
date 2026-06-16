@@ -59,7 +59,7 @@ class CheckDeadlines extends Command
         // ── 2. 项目已逾期 ──────────────────────────────────
         $overdueProjects = Project::where('progress', '!=', 'completed')
             ->whereNotNull('end_date')
-            ->where('end_date', '<', $now->startOfDay())
+            ->where('end_date', '<', $now->copy()->startOfDay())
             ->with('members')
             ->get();
 

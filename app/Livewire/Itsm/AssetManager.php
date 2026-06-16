@@ -27,6 +27,11 @@ class AssetManager extends Component
 
     public function save(): void
     {
+        // [REVIEW-FIX] C4: 资产保存需要管理权限（路由 only 阻止页面访问，不阻止 Livewire action）
+        if (!auth()->user()->can('manage assets')) {
+            session()->flash('error', '没有资产管理权限');
+            return;
+        }
         $rules = ['formName'=>'required|max:100'];
         if ($this->formCategory !== 'consumable') {
             $tagRule = $this->editingId ? 'required|unique:assets,asset_tag,'.$this->editingId : 'required|unique:assets,asset_tag';

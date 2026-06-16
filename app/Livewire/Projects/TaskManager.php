@@ -152,10 +152,14 @@ class TaskManager extends Component
     // ── 认领任务 ──────────────────────────────────────────
     public function claimTask(int $taskId): void
     {
-        $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
-        if (!$task->assigned_to && $task->status !== 'completed') {
-            $task->update(['assigned_to' => auth()->id(), 'status' => 'in_progress', 'confirmed_at' => now()]);
-            // [REVIEW-FIX] I6: 刷新侧边栏计数
+        // [REVIEW-FIX] C3: 原子性认领 — 用 WHERE 条件防止竞态
+        $updated = Task::where('id', $taskId)
+            ->where('project_id', $this->project->id)
+            ->whereNull('assigned_to')
+            ->where('status', '!=', 'completed')
+            ->update(['assigned_to' => auth()->id(), 'status' => 'in_progress', 'confirmed_at' => now()]);
+
+        if ($updated) {
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
         }
     }

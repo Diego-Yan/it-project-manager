@@ -74,7 +74,18 @@ class ServiceManager extends Component
         $this->showForm = true;
     }
 
-    public function delete(int $id): void { if (!auth()->user()->can("manage assets")) { session()->flash("error", "没有删除权限"); return; } Service::findOrFail($id)->delete(); }
+    public function delete(int $id): void {
+        if (!auth()->user()->can("manage assets")) { session()->flash("error", "没有删除权限"); return; }
+        // [REVIEW-FIX] N4: 删除服务前检查依赖关系
+        $depCount = \App\Models\ServiceDependency::where('depends_on_id', $id)->count();
+        $incidentCount = \App\Models\Incident::where('service_id', $id)->whereIn('status', ['open', 'investigating'])->count();
+        $changeCount = \App\Models\ChangeRequest::where('service_id', $id)->whereNotIn('status', ['completed', 'rolled_back'])->count();
+        if ($depCount > 0 || $incidentCount > 0 || $changeCount > 0) {
+            session()->flash("error", "该服务被 {$depCount} 个服务依赖，有 {$incidentCount} 个活跃故障，{$changeCount} 个进行中变更，不能删除。");
+            return;
+        }
+        Service::findOrFail($id)->delete();
+    }
 
     public function resetForm(): void
     {

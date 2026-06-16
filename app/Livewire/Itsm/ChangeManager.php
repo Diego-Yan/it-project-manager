@@ -21,8 +21,8 @@ class ChangeManager extends Component
 
     public function save(): void
     {
-        // [REVIEW-FIX] R11.3: 操作权限检查
-        if (!auth()->user()->can('approve changes') && !auth()->user()->can('view changes')) {
+        // [REVIEW-FIX] C5: 创建/编辑变更只需要 approve changes 权限（view changes 是只读）
+        if (!auth()->user()->can('approve changes')) {
             session()->flash('error', '没有变更管理权限');
             return;
         }
@@ -59,6 +59,11 @@ class ChangeManager extends Component
         }
         $cr = ChangeRequest::findOrFail($id);
         if ($cr->status !== 'pending_approval') return;
+        // [REVIEW-FIX] I5: 不能批准自己的变更（职责分离）
+        if ((int) $cr->requester_id === auth()->id()) {
+            session()->flash('error', '不能批准自己提交的变更，请由其他审批人处理。');
+            return;
+        }
         $cr->update(['status' => 'approved', 'approver_id' => auth()->id()]);
     }
 

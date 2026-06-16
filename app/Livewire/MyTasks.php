@@ -14,6 +14,8 @@ class MyTasks extends Component
         $task = Task::findOrFail($taskId);
         if ((int)$task->assigned_to === auth()->id() && $task->status === 'pending_confirmation') { // [REVIEW-FIX] R15.5
             $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
+            // [REVIEW-FIX] C7: 刷新侧边栏待确认任务计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             // [REVIEW-FIX] R15.3: 确认任务时通知创建者
             try { \App\Services\NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }
@@ -24,6 +26,8 @@ class MyTasks extends Component
         $task = Task::findOrFail($taskId);
         if ((int)$task->assigned_to === auth()->id() && $task->status === 'in_progress') { // [REVIEW-FIX] R15.5
             $task->update(['status' => 'completed', 'completed_at' => now()]);
+            // [REVIEW-FIX] C7: 刷新侧边栏计数
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             // [REVIEW-FIX] R15.3: 完成任务时通知创建者
             try { \App\Services\NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
         }

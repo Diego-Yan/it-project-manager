@@ -101,8 +101,11 @@ class KnowledgeBase extends Component
         $articles = KnowledgeArticle::with(['author', 'attachments', 'kbTags'])
             ->when($this->search, function ($q) {
                 // [REVIEW-FIX] I1: 转义 LIKE 通配符防止 %_ 被误匹配
+                // [REVIEW-FIX] C2: orWhere 包裹在嵌套 where() 防止绕过 is_published 过滤
                 $escaped = addcslashes($this->search, '%_');
-                $q->where('title', 'like', "%{$escaped}%")->orWhere('content', 'like', "%{$escaped}%");
+                $q->where(function ($q2) use ($escaped) {
+                    $q2->where('title', 'like', "%{$escaped}%")->orWhere('content', 'like', "%{$escaped}%");
+                });
             })
             ->when($this->filterTag, fn($q)=>$q->whereHas('kbTags', fn($t)=>$t->where('kb_tags.id', $this->filterTag)))
             ->where('is_published',true)->latest()->paginate(12);
