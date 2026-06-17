@@ -145,17 +145,6 @@ class Project extends Model
             ->pluck('project');
     }
 
-    // [REVIEW-FIX] SP14.2: 此 accessor 未被任何代码调用（dead code），保留以备后用
-    public function getParentProjectAttribute()
-    {
-        $link = ProjectLink::where('project_id', $this->id)
-            ->where('link_type', 'parent')
-            ->with('target')
-            ->first();
-
-        return $link?->target;
-    }
-
     public function webhooks(): HasMany
     {
         return $this->hasMany(WebhookConfig::class);

@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 // [REVIEW-FIX] R15.4: 关系方法添加返回类型声明
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ticket extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $fillable = [
         'project_id','region_id','category_id','asset_id','title','description','type','priority',
         'status','source','assigned_to','created_by','resolved_by',
@@ -42,4 +43,48 @@ class Ticket extends Model
             'phone'=>'电话远程','email'=>'邮件沟通','portal'=>'自助报修','walk_in'=>'现场处理','im_wechat'=>'企业微信','im_dingtalk'=>'钉钉', default=>$this->source }; }
 
     public function isSlaBreached(): bool { return $this->sla_deadline && now()->gt($this->sla_deadline) && !in_array($this->status,['resolved','closed']); }
+
+    // [REVIEW-FIX] C3: 轻量状态机 — 守卫工单生命周期转换
+    public const STATUS_OPEN = 'open';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_RESOLVED = 'resolved';
+    public const STATUS_CLOSED = 'closed';
+
+    public const TRANSITIONS = [
+        self::STATUS_OPEN        => [self::STATUS_IN_PROGRESS],
+        self::STATUS_IN_PROGRESS => [self::STATUS_RESOLVED],
+        self::STATUS_RESOLVED    => [self::STATUS_CLOSED],
+    ];
+
+    /** @return string[] 当前状态允许的目标状态 */
+    public function allowedTransitions(): array
+    {
+        return self::TRANSITIONS[$this->status] ?? [];
+    }
+
+    public function canTransitionTo(string $target): bool
+    {
+        return in_array($target, $this->allowedTransitions(), true);
+    }
+
+    /** 认领工单: open → in_progress */
+    public function transitionToInProgress(int $assigneeId): bool
+    {
+        if (! $this->canTransitionTo(self::STATUS_IN_PROGRESS)) return false;
+        return $this->update(['status' => self::STATUS_IN_PROGRESS, 'assigned_to' => $assigneeId]);
+    }
+
+    /** 解决工单: in_progress → resolved */
+    public function transitionToResolved(int $resolverId): bool
+    {
+        if (! $this->canTransitionTo(self::STATUS_RESOLVED)) return false;
+        return $this->update(['status' => self::STATUS_RESOLVED, 'resolved_by' => $resolverId, 'resolved_at' => now()]);
+    }
+
+    /** 关闭工单: resolved → closed */
+    public function transitionToClosed(): bool
+    {
+        if (! $this->canTransitionTo(self::STATUS_CLOSED)) return false;
+        return $this->update(['status' => self::STATUS_CLOSED, 'closed_at' => now()]);
+    }
 }

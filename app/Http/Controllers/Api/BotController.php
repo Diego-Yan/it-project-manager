@@ -128,6 +128,23 @@ class BotController extends Controller
             $user = User::where('name', $userName)->where('source', $platform)->first();
 
             if (!$user) {
+                // [REVIEW-FIX] C1: 限制 IM 渠道创建用户速率（每 IP 每小时最多 10 个新用户）
+                $ip = request()->ip();
+                $creationKey = "bot_user_creation:{$ip}";
+                $creationCount = (int) \Illuminate\Support\Facades\Cache::get($creationKey, 0);
+                if ($creationCount >= 10) {
+                    Log::warning("Bot user creation rate limit exceeded", ['ip' => $ip, 'platform' => $platform]);
+                    abort(429, 'Too many user creations from this IP');
+                }
+                \Illuminate\Support\Facades\Cache::put($creationKey, $creationCount + 1, now()->addHour());
+
+                // 限制 IM 来源用户总数（全局最多 500）
+                $totalImUsers = User::whereIn('source', ['wechat', 'dingtalk'])->count();
+                if ($totalImUsers >= 500) {
+                    Log::warning("Bot user creation cap reached", ['total' => $totalImUsers]);
+                    abort(429, 'IM user creation limit reached');
+                }
+
                 // [FIX] #10: 使用配置中的默认角色，保持一致
                 $defaultRole = config('ad-auth.sync.default_role', '普通员工');
                 $user = User::create([

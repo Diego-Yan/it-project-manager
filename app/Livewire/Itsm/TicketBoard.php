@@ -185,6 +185,12 @@ class TicketBoard extends Component
     public function addComment(int $id): void
     {
         if (empty(trim($this->newComment))) return;
+        // [REVIEW-FIX] C2: 评论权限 — 仅工单相关人员或管理员可评论
+        $ticket = Ticket::findOrFail($id);
+        if ($ticket->created_by != auth()->id() && $ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) {
+            session()->flash('error', '只能对自己创建或负责的工单添加评论');
+            return;
+        }
         TicketComment::create(['ticket_id'=>$id,'user_id'=>auth()->id(),'content'=>trim($this->newComment)]);
         $this->newComment = '';
     }
@@ -216,10 +222,19 @@ class TicketBoard extends Component
     public function delete(int $id): void
     {
         $ticket = Ticket::findOrFail($id);
-        if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) return;
+        // [REVIEW-FIX] C2: 删除权限 — 明确反馈而非静默返回
+        if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) {
+            session()->flash('error', '只能删除自己创建的工单');
+            return;
+        }
+        // [REVIEW-FIX] C3: 使用状态机检查 — 不允许删除已关闭的工单
+        if ($ticket->status === Ticket::STATUS_CLOSED) {
+            session()->flash('error', '已关闭的工单不可删除，请归档处理');
+            return;
+        }
         $ticket->delete();
-        // [REVIEW-FIX] I10: 删除工单后刷新侧边栏计数
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+        session()->flash('success', '工单已删除');
     }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formCategoryId','formAssetId','formAssignedTo','formIsProxy','formReportedFor']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; $this->suggestedEngineers=[]; $this->formIsProxy=false; $this->formReportedFor=''; }
 
