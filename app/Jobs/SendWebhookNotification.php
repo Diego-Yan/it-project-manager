@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\Notification;
+use App\Models\User;
 use App\Models\WebhookConfig;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -159,9 +161,10 @@ class SendWebhookNotification implements ShouldQueue
 
         // 站内通知管理员 webhook 投递失败
         try {
-            $adminIds = \App\Models\User::role('超级管理员')->pluck('id')->toArray();
+            // [REVIEW-FIX] R6: 管理员角色名（应后续提取为 config/app.admin_role_name）
+            $adminIds = User::role('超级管理员')->pluck('id')->toArray();
             foreach ($adminIds as $uid) {
-                \App\Models\Notification::send($uid,
+                Notification::send($uid,
                     'Webhook 投递失败',
                     "事件 {$this->event} 在 {$this->tries} 次重试后仍然失败：{$e->getMessage()}",
                     'error'
