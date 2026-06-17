@@ -9,6 +9,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int|null $project_id
+ * @property int|null $region_id
+ * @property int|null $category_id
+ * @property int|null $asset_id
+ * @property string $title
+ * @property string $status
+ * @property string $type
+ * @property string $priority
+ * @property string $source
+ * @property int|null $assigned_to
+ * @property int $created_by
+ * @property \Illuminate\Support\Carbon|null $sla_deadline
+ * @property \Illuminate\Support\Carbon|null $resolved_at
+ * @property \Illuminate\Support\Carbon|null $closed_at
+ */
 class Ticket extends Model
 {
     use HasFactory, SoftDeletes;

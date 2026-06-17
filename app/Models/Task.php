@@ -7,9 +7,30 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $project_id
+ * @property int|null $assigned_to
+ * @property int $created_by
+ * @property string $title
+ * @property string $status
+ * @property string $priority
+ * @property \Illuminate\Support\Carbon|null $due_date
+ * @property \Illuminate\Support\Carbon|null $confirmed_at
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ */
 class Task extends Model
 {
     use HasFactory;
+
+    // [REVIEW-FIX] C2: 状态常量
+    public const STATUS_PENDING_CONFIRMATION = 'pending_confirmation';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_COMPLETED = 'completed';
+
+    public const PRIORITY_NOT_URGENT = 'not_urgent';
+    public const PRIORITY_NORMAL = 'normal';
+    public const PRIORITY_URGENT = 'urgent';
     protected $fillable = [
         'project_id', 'title', 'description', 'assigned_to',
         'created_by', 'status', 'priority', 'due_date',

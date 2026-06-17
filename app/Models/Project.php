@@ -10,9 +10,39 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $category_id
+ * @property int|null $region_id
+ * @property int $created_by
+ * @property string $title
+ * @property string $progress
+ * @property string $type
+ * @property string $urgency
+ * @property string $importance
+ * @property int $completion_percent
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $end_date
+ */
 class Project extends Model
 {
     use SoftDeletes, HasFactory;
+
+    // [REVIEW-FIX] C2: 进度/类型/紧急度常量
+    public const PROGRESS_PENDING    = 'pending';
+    public const PROGRESS_IN_PROGRESS = 'in_progress';
+    public const PROGRESS_PAUSED     = 'paused';
+    public const PROGRESS_COMPLETED  = 'completed';
+
+    public const TYPE_NEW       = 'new';
+    public const TYPE_MAINTENANCE = 'maintenance';
+    public const TYPE_UPGRADE   = 'upgrade';
+
+    public const URGENCY_NORMAL = 'normal';
+    public const URGENCY_URGENT = 'urgent';
+
+    public const IMPORTANCE_NORMAL    = 'normal';
+    public const IMPORTANCE_IMPORTANT = 'important';
 
     protected $fillable = [
         'category_id', 'region_id', 'created_by', 'owner_id',
