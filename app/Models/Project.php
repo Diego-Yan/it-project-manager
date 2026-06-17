@@ -145,6 +145,7 @@ class Project extends Model
             ->pluck('project');
     }
 
+    // [REVIEW-FIX] SP14.2: 此 accessor 未被任何代码调用（dead code），保留以备后用
     public function getParentProjectAttribute()
     {
         $link = ProjectLink::where('project_id', $this->id)

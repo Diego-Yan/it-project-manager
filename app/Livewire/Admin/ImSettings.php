@@ -131,6 +131,8 @@ class ImSettings extends Component
 
     public function saveWechat(): void
     {
+        // [REVIEW-FIX] SP4.3: Livewire action 绕过路由中间件，需内联权限检查
+        if (!auth()->user()->can('manage roles')) { session()->flash('error', '没有管理权限'); return; }
         $secret = $this->wechatCorpSecret ?: config('services.wechat.corp_secret', '');
         $this->updateEnv([
             'WECHAT_CORP_ID' => $this->wechatCorpId,
@@ -141,6 +143,8 @@ class ImSettings extends Component
 
     public function saveDingtalk(): void
     {
+        // [REVIEW-FIX] SP4.4: Livewire action 绕过路由中间件，需内联权限检查
+        if (!auth()->user()->can('manage roles')) { session()->flash('error', '没有管理权限'); return; }
         $secret = $this->dingtalkAppSecret ?: config('services.dingtalk.app_secret', '');
         $this->updateEnv([
             'DINGTALK_APP_KEY' => $this->dingtalkAppKey,
@@ -151,6 +155,8 @@ class ImSettings extends Component
 
     public function testWechat(): void
     {
+        // [REVIEW-FIX] SP4.5: 权限检查 — 防止未授权连接探测
+        if (!auth()->user()->can('manage roles')) { session()->flash('error', '没有管理权限'); return; }
         $svc = new WechatWorkService;
         if (!$svc->isConfigured()) {
             $this->testResult = '请先保存 Corp ID 和 Secret';
@@ -162,6 +168,8 @@ class ImSettings extends Component
 
     public function testDingtalk(): void
     {
+        // [REVIEW-FIX] SP4.6: 权限检查 — 防止未授权连接探测
+        if (!auth()->user()->can('manage roles')) { session()->flash('error', '没有管理权限'); return; }
         $svc = new DingTalkService;
         if (!$svc->isConfigured()) {
             $this->testResult = '请先保存 App Key 和 Secret';

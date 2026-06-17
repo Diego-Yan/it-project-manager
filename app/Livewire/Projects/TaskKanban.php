@@ -48,14 +48,18 @@ class TaskKanban extends Component
 
         // [REVIEW-FIX] R13.4: 跳过无变化的状态更新
         if ($task->status === $newStatus) return;
-        $task->update(['status' => $newStatus]);
 
-        if ($newStatus === 'completed') {
-            $task->update(['completed_at' => now()]);
-        }
-        if ($newStatus === 'in_progress' && !$task->confirmed_at) {
-            $task->update(['confirmed_at' => now()]);
-        }
+        // [REVIEW-FIX] SP13.3: 事务包裹多个 update 保证任务状态一致性
+        \DB::transaction(function () use ($task, $newStatus) {
+            $task->update(['status' => $newStatus]);
+
+            if ($newStatus === 'completed') {
+                $task->update(['completed_at' => now()]);
+            }
+            if ($newStatus === 'in_progress' && !$task->confirmed_at) {
+                $task->update(['confirmed_at' => now()]);
+            }
+        });
 
         $this->project->load('tasks.assignee');
     }

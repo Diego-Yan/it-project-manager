@@ -56,7 +56,11 @@ class DingTalkService
             'dept_id' => $parentId,
         ]);
 
-        if ($resp->failed()) return [];
+        if ($resp->failed()) {
+            // [REVIEW-FIX] SP6.3: 记录 API 失败日志，便于排查同步问题
+            Log::warning('DingTalk getSubDepartments failed', ['status' => $resp->status(), 'dept_id' => $parentId]);
+            return [];
+        }
 
         return $resp->json()['result'] ?? [];
     }
@@ -79,7 +83,11 @@ class DingTalkService
                 'size' => 100,
             ]);
 
-            if ($resp->failed()) break;
+            if ($resp->failed()) {
+                // [REVIEW-FIX] SP6.4: 记录 API 失败日志
+                Log::warning('DingTalk listUsers failed', ['status' => $resp->status(), 'dept_id' => $parentDeptId, 'cursor' => $cursor]);
+                break;
+            }
 
             $data = $resp->json();
             $list = $data['result']['list'] ?? [];

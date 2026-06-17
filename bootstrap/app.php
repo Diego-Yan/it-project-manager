@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $exceptions->render(function (Throwable $e, $request) {
-            if (app()->isProduction() && !$e instanceof \Illuminate\Auth\AuthenticationException) {
+            if (app()->isProduction() && !($e instanceof \Illuminate\Auth\AuthenticationException)) {  // [REVIEW-FIX] SP9.1: 修正操作符优先级 — ! 绑定到 $e 导致 instanceof 永远 false
                 // 404/403 保持原有渲染；500 等内部错误返回通用页面防信息泄露
                 if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
                     return response()->view('errors.404', [], 404);

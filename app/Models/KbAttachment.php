@@ -24,6 +24,8 @@ class KbAttachment extends Model
     {
         if ($value) return $value;
         // auto-detect from mime_type
+        // [REVIEW-FIX] SP6.2: null guard — PHP 8.1+ str_starts_with(null) triggers deprecation
+        if (empty($this->mime_type)) return 'download';
         return match(true) {
             str_starts_with($this->mime_type, 'image/') => 'image',
             $this->mime_type === 'application/pdf' => 'pdf',

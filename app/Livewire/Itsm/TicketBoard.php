@@ -82,7 +82,7 @@ class TicketBoard extends Component
                         'assignee_name' => $reportedForUser?->name,
                         'message'       => "{$ticket->creator->name} 代你提交了工单，请在系统中确认",
                     ]);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed: proxy ticket", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.10
             }
         }
         $this->resetForm();
@@ -134,15 +134,14 @@ class TicketBoard extends Component
 
     public function resolve(int $id): void
     {
-        // [REVIEW-FIX] R12.1: 解决工单需要管理权限
-        if (!auth()->user()->can('manage tickets')) {
-            session()->flash('error', '没有工单管理权限');
-            return;
-        }
+        // [REVIEW-FIX] SP4.1: 修正 R12.1 过度限制 — 恢复 assignee 解决自己工单的权限
+        // assignee 可解决自己的工单，管理员可解决任何进行中工单（与 transfer() 权限模型一致）
         $ticket = Ticket::findOrFail($id);
         if ($ticket->status !== 'in_progress') return;
-        // [REVIEW-FIX] I14: 管理员可强制解决任何进行中工单，不仅限自己的
-        if ($ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) return;
+        if ($ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) {
+            session()->flash('error', '只能解决自己负责的工单');
+            return;
+        }
         $ticket->update(['status'=>'resolved','resolved_by'=>auth()->id(),'resolved_at'=>now()]);
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
         TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>'标记为已解决']);
@@ -193,6 +192,11 @@ class TicketBoard extends Component
     public function edit(int $id): void
     {
         $t = Ticket::findOrFail($id);
+        // [REVIEW-FIX] SP4.2: 编辑前检查所有权 — 防止非所有者窥探他人工单数据
+        if ($t->created_by != auth()->id() && !auth()->user()->can('manage tickets')) {
+            session()->flash('error', '只能编辑自己创建的工单');
+            return;
+        }
         $this->editingId=$id; $this->formTitle=$t->title; $this->formDescription=$t->description??'';
         $this->formType=$t->type; $this->formPriority=$t->priority; $this->formSource=$t->source;
         $this->formProjectId=$t->project_id??''; $this->formRegionId=$t->region_id??''; $this->formCategoryId=$t->category_id??''; $this->formAssetId=$t->asset_id??''; $this->formAssignedTo=$t->assigned_to??'';

@@ -60,13 +60,16 @@ class ProjectDetail extends Component
             abort(403);
         }
         $old = $this->project->progress;
-        $this->project->update(['progress' => $progress]);
-        $this->project->logAction(auth()->id(), 'status_changed', [
-            'from' => $old, 'to' => $progress,
-        ], $this->progressNote);
+        // [REVIEW-FIX] SP13.6: 事务包裹 update + logAction 保证一致性
+        \DB::transaction(function () use ($progress, $old) {
+            $this->project->update(['progress' => $progress]);
+            $this->project->logAction(auth()->id(), 'status_changed', [
+                'from' => $old, 'to' => $progress,
+            ], $this->progressNote);
+        });
         $this->progressNote = '';
         $this->showProgressModal = false;
-        $this->loadProject(); // [FIX] #11: 使用 loadProject 替代 refresh
+        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
     }
 
     public function addMember(): void
@@ -92,14 +95,17 @@ class ProjectDetail extends Component
             return;
         }
 
-        $this->project->members()->attach($user->id, ['role' => 'member']);
-        $this->project->logAction(auth()->id(), 'member_added', ['user' => $user->name]);
+        // [REVIEW-FIX] SP13.4: 事务包裹 attach + logAction 保证一致性
+        \DB::transaction(function () use ($user) {
+            $this->project->members()->attach($user->id, ['role' => 'member']);
+            $this->project->logAction(auth()->id(), 'member_added', ['user' => $user->name]);
+        });
         $this->selectedUserId = '';
         $this->showMemberModal = false;
         $this->flushMemberCaches();
         // [REVIEW-FIX] I6: 刷新新成员的侧边栏计数
         \App\View\Composers\SidebarComposer::flushForUser($user->id);
-        $this->loadProject(); // [FIX] #11
+        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
     }
 
     public function removeMember(int $userId): void
@@ -107,13 +113,25 @@ class ProjectDetail extends Component
         if (!$this->canManageProject()) {
             abort(403);
         }
+        // [REVIEW-FIX] SP13.10: 不能移除自己或最后一个成员
+        if ($userId === auth()->id()) {
+            session()->flash('error', '不能将自己移出项目。');
+            return;
+        }
+        if ($this->project->members()->count() <= 1) {
+            session()->flash('error', '不能移除唯一的项目成员。');
+            return;
+        }
         $user = User::find($userId);
-        $this->project->members()->detach($userId);
+        // [REVIEW-FIX] SP13.5: 事务包裹 detach + logAction 保证一致性
+        \DB::transaction(function () use ($userId, $user) {
+            $this->project->members()->detach($userId);
+            $this->project->logAction(auth()->id(), 'member_removed', ['user' => $user?->name]);
+        });
         $this->flushMemberCaches();
         // [REVIEW-FIX] I6: 刷新被移除成员的侧边栏计数
         \App\View\Composers\SidebarComposer::flushForUser($userId);
-        $this->project->logAction(auth()->id(), 'member_removed', ['user' => $user?->name]);
-        $this->loadProject(); // [FIX] #11
+        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
     }
 
     public function promoteToLead(int $userId): void
@@ -121,10 +139,13 @@ class ProjectDetail extends Component
         if (!$this->canManageProject()) {
             abort(403);
         }
-        $this->project->members()->updateExistingPivot($userId, ['role' => 'lead']);
-        $user = User::find($userId);
-        $this->project->logAction(auth()->id(), 'member_added', ['user' => $user?->name, 'role' => 'lead']);
-        $this->loadProject(); // [FIX] #11
+        // [REVIEW-FIX] SP13.7: 事务包裹 updateExistingPivot + logAction 保证一致性
+        \DB::transaction(function () use ($userId) {
+            $this->project->members()->updateExistingPivot($userId, ['role' => 'lead']);
+            $user = User::find($userId);
+            $this->project->logAction(auth()->id(), 'member_added', ['user' => $user?->name, 'role' => 'lead']);
+        });
+        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
     }
 
     public function demoteToMember(int $userId): void
@@ -142,10 +163,13 @@ class ProjectDetail extends Component
             session()->flash('error', '不能移除唯一的负责人，请先指定其他负责人。');
             return;
         }
-        $this->project->members()->updateExistingPivot($userId, ['role' => 'member']);
-        $user = User::find($userId);
-        $this->project->logAction(auth()->id(), 'member_added', ['user' => $user?->name, 'role' => 'member']);
-        $this->loadProject(); // [FIX] #11
+        // [REVIEW-FIX] SP13.8: 事务包裹 updateExistingPivot + logAction 保证一致性
+        \DB::transaction(function () use ($userId) {
+            $this->project->members()->updateExistingPivot($userId, ['role' => 'member']);
+            $user = User::find($userId);
+            $this->project->logAction(auth()->id(), 'member_added', ['user' => $user?->name, 'role' => 'member']);
+        });
+        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
     }
 
     // [FIX] #11: 隐藏 project 从序列化中，仅保留 projectId

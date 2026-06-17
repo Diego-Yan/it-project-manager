@@ -182,6 +182,7 @@ class LdapAuthService
      */
     private function syncUser(string $username, array $userInfo): ?User
     {
+        // [REVIEW-FIX] SP5.3: 移除 orWhere username — 防止 AD 认证覆盖本地同名账号数据（与 AdSyncUsers P0.4 一致）
         $user = User::where('ad_username', $username)->first();
 
         if (!$user && $this->config['sync']['auto_create_user']) {

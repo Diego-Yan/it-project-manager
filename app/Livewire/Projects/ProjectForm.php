@@ -131,35 +131,43 @@ class ProjectForm extends Component
             // [REVIEW-FIX] R17.2: 格式化 Carbon 对象为字符串后再 diff，避免类型不匹配误判
             $original = $this->project->only(array_keys($data));
             // Carbon 日期对象需转为与表单一致的 Y-m-d 字符串
-            $dateKeys = ['start_date', 'end_date', 'actual_end_date'];
+            $dateKeys = ['start_date', 'end_date'];  // [REVIEW-FIX] SP14.1: 移除 dead code 'actual_end_date'（不在 $data 数组中，only() 不会返回此键）
             foreach ($dateKeys as $k) {
                 if (isset($original[$k]) && $original[$k] instanceof \Carbon\Carbon) {
                     $original[$k] = $original[$k]->format('Y-m-d');
                 }
             }
             $changes = array_diff_assoc($data, $original);
-            $this->project->update($data);
-            if (!empty($changes)) {
-                $this->project->logAction(auth()->id(), 'updated', $changes);
-            }
+            // [REVIEW-FIX] SP13.9: 事务包裹 update + logAction 保证一致性
+            \DB::transaction(function () use ($data, $changes) {
+                $this->project->update($data);
+                if (!empty($changes)) {
+                    $this->project->logAction(auth()->id(), 'updated', $changes);
+                }
+            });
             session()->flash('success', '项目已更新！');
             $this->redirect(route('projects.show', $this->project));
         } else {
             $data['created_by'] = auth()->id();
-            $project = Project::create($data);
-            $project->logAction(auth()->id(), 'created');
-            $project->members()->attach(auth()->id(), ['role' => 'lead']);
+            // [REVIEW-FIX] SP13.2: 事务包裹 create + logAction + attach + 内联任务保证原子性
+            $project = \DB::transaction(function () use ($data) {
+                $project = Project::create($data);
+                $project->logAction(auth()->id(), 'created');
+                $project->members()->attach(auth()->id(), ['role' => 'lead']);
 
-            // 创建内联任务
-            foreach ($this->inlineTasks as $taskData) {
-                Task::create([
-                    'project_id' => $project->id,
-                    'title'      => $taskData['title'],
-                    'priority'   => $taskData['priority'],
-                    'created_by' => auth()->id(),
-                    'status'     => 'in_progress',
-                ]);
-            }
+                // 创建内联任务
+                foreach ($this->inlineTasks as $taskData) {
+                    Task::create([
+                        'project_id' => $project->id,
+                        'title'      => $taskData['title'],
+                        'priority'   => $taskData['priority'],
+                        'created_by' => auth()->id(),
+                        'status'     => 'in_progress',
+                    ]);
+                }
+
+                return $project;
+            });
 
             session()->flash('success', '项目已创建！');
             $this->redirect(route('projects.show', $project));

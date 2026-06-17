@@ -98,6 +98,8 @@ class UserManager extends Component
             $ldap = new LdapAuthService();
             $this->adSearchResults = $ldap->searchUsers($keyword, 15);
         } catch (\Throwable $e) {
+            // [REVIEW-FIX] SP12.7: 记录 AD 搜索失败日志
+            \Illuminate\Support\Facades\Log::warning("AD search failed for keyword: {$keyword}", ['error' => $e->getMessage()]);
             $this->adSearchResults = [];
         }
 
@@ -124,7 +126,8 @@ class UserManager extends Component
                 $this->formPhone      = $info['phone'];
             }
         } catch (\Throwable $e) {
-            // 静默处理
+            // [REVIEW-FIX] SP12.6: 记录 AD 用户详情获取失败日志
+            \Illuminate\Support\Facades\Log::warning("AD user detail fetch failed for: {$username}", ['error' => $e->getMessage()]);
         }
     }
 
@@ -243,14 +246,16 @@ class UserManager extends Component
             $user = User::create([
                 'name'             => $this->formName,
                 'username'         => $this->formUsername,
-                'email'            => $this->formEmail ?: $this->formUsername . '@' . config('ad-auth.domain', 'yanmade.com'),
+                // [REVIEW-FIX] SP7.1: 移除硬编码公司域名，未配置时留空
+                'email'            => $this->formEmail ?: ($this->formUsername . '@' . config('ad-auth.domain', '')),
                 'password'         => Hash::make(\Illuminate\Support\Str::random(32)),
                 'department'       => $this->formDepartment,
                 'phone'            => $this->formPhone,
                 'is_active'        => $this->formIsActive,
                 'ad_authenticated' => true,
                 'ad_username'      => $this->formUsername,
-                'ad_domain'        => config('ad-auth.domain', 'yanmade.com'),
+                // [REVIEW-FIX] SP7.1: 移除硬编码公司域名
+                'ad_domain'        => config('ad-auth.domain', ''),
                 'ad_display_name'  => $this->formName,
                 'ad_email'         => $this->formEmail,
                 'ad_last_sync_at'  => now(),

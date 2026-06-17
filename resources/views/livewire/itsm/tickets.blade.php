@@ -123,7 +123,7 @@
                     <button wire:click="assignTo({{ $ticket->id }})" class="px-2 py-1.5 text-xs text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-lg">分配</button>
                     @endcan
                     @endif
-                    @if($ticket->status === 'in_progress' && $ticket->assigned_to === auth()->id())
+                    @if($ticket->status === 'in_progress' && ($ticket->assigned_to === auth()->id() || auth()->user()->can('manage tickets')))  {{-- [REVIEW-FIX] SP11.1: 管理员也应看到解决按钮（后端 SP4.1 已允许） --}}
                     <button wire:click="resolve({{ $ticket->id }})" class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-500 rounded-lg min-w-[44px]">解决</button>
                     <select wire:model="assignToUserId" class="text-xs border rounded-lg px-2 py-1.5 dark:bg-zinc-800 dark:border-zinc-700 min-w-[80px]">
                         <option value="">转让...</option>

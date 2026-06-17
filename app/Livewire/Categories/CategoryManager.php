@@ -28,8 +28,9 @@ class CategoryManager extends Component
 
     public function save(): void
     {
-        // [REVIEW-FIX] R12.5: 分类管理操作需权限检查
-        if (!auth()->user()->can('create categories')) {
+        // [REVIEW-FIX] SP6.1: 根据操作类型检查对应权限 — 编辑用 edit，新建用 create
+        $requiredPerm = $this->editingId ? 'edit categories' : 'create categories';
+        if (!auth()->user()->can($requiredPerm)) {
             session()->flash('error', '没有分类管理权限');
             return;
         }

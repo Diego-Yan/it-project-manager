@@ -81,7 +81,12 @@ class AiChat extends Component
             ]);
 
         if ($resp->failed()) {
-            return 'AI API 返回错误 (' . $resp->status() . '): ' . ($resp->json()['error']['message'] ?? '未知错误');
+            // [REVIEW-FIX] SP5.2: 生产环境不暴露 API 错误详情，仅记录日志
+            \Illuminate\Support\Facades\Log::error('LLM API failed', [
+                'status' => $resp->status(),
+                'body'   => $resp->body(),
+            ]);
+            return 'AI 服务暂时不可用，请稍后重试。' . (app()->isProduction() ? '' : ' (' . $resp->status() . ': ' . ($resp->json()['error']['message'] ?? '未知错误') . ')');
         }
 
         return $resp->json()['choices'][0]['message']['content'] ?? '未收到回复';
@@ -101,6 +106,7 @@ class AiChat extends Component
             $q->where('assigned_to', $user->id)
               ->orWhere('created_by', $user->id);
         })
+            ->with('assignee')  // [REVIEW-FIX] SP5.1: 预加载 assignee 消除 N+1 查询
             ->latest()->limit(10)->get();
 
         if ($tickets->isNotEmpty()) {
@@ -119,7 +125,7 @@ class AiChat extends Component
         if ($tasks->isNotEmpty()) {
             $lines[] = "## 进行中的任务";
             foreach ($tasks as $t) {
-                $lines[] = "- {$t->title} [{$t->statusLabel}] → 项目: {$t->project->title}";
+                $lines[] = "- {$t->title} [{$t->statusLabel}] → 项目: " . ($t->project?->title ?? '未知项目') . "  // [REVIEW-FIX] SP12.5: null-safe project access";
             }
             $lines[] = "";
         }

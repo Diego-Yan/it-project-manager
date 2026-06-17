@@ -60,4 +60,7 @@ return [
     'fallback_to_local' => env('AD_FALLBACK_TO_LOCAL', true),
     'lock_after_failed_attempts' => env('AD_LOCK_AFTER_FAILED', 5),
     'lock_minutes' => env('AD_LOCK_MINUTES', 30),
+
+    // [REVIEW-FIX] SP10.1: 补全缺失的 sync_interval 配置键 — routes/console.php 调度器依赖此键读取同步间隔
+    'sync_interval' => env('AD_SYNC_INTERVAL', 60),
 ];

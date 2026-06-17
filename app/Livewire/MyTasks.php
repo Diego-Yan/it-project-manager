@@ -17,7 +17,8 @@ class MyTasks extends Component
             // [REVIEW-FIX] C7: 刷新侧边栏待确认任务计数
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             // [REVIEW-FIX] R15.3: 确认任务时通知创建者
-            try { \App\Services\NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
+            // [REVIEW-FIX] SP12.2: 通知失败时记录日志，不吞没异常
+            try { \App\Services\NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning('Notification failed in confirmTask', ['error' => $e->getMessage(), 'task_id' => $taskId]); }
         }
     }
 
@@ -29,7 +30,7 @@ class MyTasks extends Component
             // [REVIEW-FIX] C7: 刷新侧边栏计数
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             // [REVIEW-FIX] R15.3: 完成任务时通知创建者
-            try { \App\Services\NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
+            try { \App\Services\NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning('Notification failed in completeTask', ['error' => $e->getMessage(), 'task_id' => $taskId]); }
         }
     }
 

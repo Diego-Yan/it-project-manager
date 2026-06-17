@@ -31,14 +31,18 @@ class ApplicationManager extends Component
         abort(403);
     }
 
+    // [REVIEW-FIX] SP13.1: 事务包裹保证申请审批 + 成员添加原子性
     public function approve(int $appId): void
     {
         $this->guard();
-        $app = ProjectApplication::where('project_id', $this->project->id)->findOrFail($appId);
-        $app->update(['status' => 'approved']);
-        $this->project->members()->syncWithoutDetaching([$app->user_id => ['role' => 'member']]);
-        $this->project->logAction(auth()->id(), 'member_added', ['user' => $app->user->name, 'via' => 'application']);
-        session()->flash('app_success', "{$app->user->name} 已加入项目。");
+        \DB::transaction(function () use ($appId) {
+            $app = ProjectApplication::where('project_id', $this->project->id)->findOrFail($appId);
+            $app->update(['status' => 'approved']);
+            $this->project->members()->syncWithoutDetaching([$app->user_id => ['role' => 'member']]);
+            // [REVIEW-FIX] SP12.9: null-safe user access
+            $this->project->logAction(auth()->id(), 'member_added', ['user' => $app->user?->name ?? '未知用户', 'via' => 'application']);
+            session()->flash('app_success', ($app->user?->name ?? '未知用户') . ' 已加入项目。');  // [REVIEW-FIX] SP12.9: null-safe user access
+        });
     }
 
     public function reject(int $appId): void

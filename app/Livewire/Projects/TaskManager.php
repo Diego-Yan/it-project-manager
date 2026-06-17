@@ -118,7 +118,7 @@ class TaskManager extends Component
             }
             // 通知被分配人
             if ($task->assigned_to && $task->assigned_to != auth()->id()) {
-                try { NotificationService::taskAssigned($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) {}
+                try { NotificationService::taskAssigned($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.6-SP8.9
             }
             session()->flash('task_success', '任务已创建。');
         }
@@ -134,7 +134,7 @@ class TaskManager extends Component
             $task->update(['status' => 'in_progress', 'confirmed_at' => now()]);
             // [REVIEW-FIX] I6: 刷新侧边栏待确认任务计数
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
-            try { NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
+            try { NotificationService::taskConfirmed($task->load(['assignee', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.6-SP8.9
         }
     }
 
@@ -150,7 +150,7 @@ class TaskManager extends Component
             // [REVIEW-FIX] I6: 刷新侧边栏计数
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
             // [REVIEW-FIX] R15.1: 通知任务创建者任务已被拒绝
-            try { \App\Services\NotificationService::taskRejected($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) {}
+            try { \App\Services\NotificationService::taskRejected($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.6-SP8.9
         }
     }
 
@@ -177,7 +177,7 @@ class TaskManager extends Component
             $task->update(['status' => 'completed', 'completed_at' => now()]);
             // [REVIEW-FIX] I6: 刷新侧边栏计数
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
-            try { NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) {}
+            try { NotificationService::taskCompleted($task->load(['assignee', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.6-SP8.9
         }
     }
 

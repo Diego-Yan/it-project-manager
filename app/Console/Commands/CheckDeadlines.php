@@ -105,10 +105,12 @@ class CheckDeadlines extends Command
             if (!$dryRun) {
                 NotificationService::send('task.deadline_near', [
                     'project_id'    => $task->project_id,
-                    'project_title' => $task->project->title,
+                    // [REVIEW-FIX] SP12.4: null-safe project access (consistent with SP12.1)
+                    'project_title' => $task->project?->title ?? '',
                     'task_title'    => $task->title,
-                    'assignee_name' => $task->assignee->name,
-                    'message'       => "任务「{$task->title}」即将到期，分配给 {$task->assignee->name}",
+                // [REVIEW-FIX] SP12.1: null-safe assignee access (consistency with line 103)
+                    'assignee_name' => $task->assignee?->name ?? '未分配',
+                    'message'       => "任务「{$task->title}」即将到期，分配给 " . ($task->assignee?->name ?? '未分配'),
                 ]);
 
                 // [REVIEW-FIX] R6.3: 站内铃铛通知（仅通知负责人）

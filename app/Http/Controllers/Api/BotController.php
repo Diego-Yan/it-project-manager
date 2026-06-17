@@ -156,7 +156,7 @@ class BotController extends Controller
 
         // ── 命令：查工单状态 ──────────────────────────────
         if (preg_match('/^(状态|查询|status)\s*#?(\d+)$/i', $content, $m)) {
-            $ticket = Ticket::find($m[2]);
+            $ticket = Ticket::with('assignee')->find($m[2]);  // [REVIEW-FIX] SP12.8: eager load assignee + null-safe
             if (!$ticket) {
                 return $this->reply("未找到工单 #{$m[2]}", $platform);
             }
@@ -165,7 +165,7 @@ class BotController extends Controller
                 "标题: {$ticket->title}\n" .
                 "类型: {$ticket->typeLabel} | 优先级: {$ticket->priorityLabel}\n" .
                 "状态: {$ticket->statusLabel}\n" .
-                "处理人: " . ($ticket->assignee->name ?? '未分配') . "\n" .
+                "处理人: " . ($ticket->assignee?->name ?? '未分配') . "\n" .
                 "创建: {$ticket->created_at->format('m/d H:i')}",
                 $platform
             );

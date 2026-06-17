@@ -20,7 +20,8 @@ class NotificationService
     {
         self::send('task.assigned', [
             'project_id'    => $task->project_id,
-            'project_title' => $task->project->title,
+            // [REVIEW-FIX] SP12.3: null-safe project access (project could be deleted)
+            'project_title' => $task->project?->title ?? '',
             'task_title'    => $task->title,
             'assignee_name' => $task->assignee?->name,
             'user_name'     => $task->creator?->name,
@@ -31,7 +32,8 @@ class NotificationService
     {
         self::send('task.confirmed', [
             'project_id'    => $task->project_id,
-            'project_title' => $task->project->title,
+            // [REVIEW-FIX] SP12.3: null-safe project access (project could be deleted)
+            'project_title' => $task->project?->title ?? '',
             'task_title'    => $task->title,
             'user_name'     => $task->assignee?->name,
         ]);
@@ -42,7 +44,8 @@ class NotificationService
     {
         self::send('task.rejected', [
             'project_id'    => $task->project_id,
-            'project_title' => $task->project->title,
+            // [REVIEW-FIX] SP12.3: null-safe project access (project could be deleted)
+            'project_title' => $task->project?->title ?? '',
             'task_title'    => $task->title,
             'rejector_name' => $task->assignee?->name,
             'creator_name'  => $task->creator?->name,
@@ -53,7 +56,8 @@ class NotificationService
     {
         self::send('task.completed', [
             'project_id'    => $task->project_id,
-            'project_title' => $task->project->title,
+            // [REVIEW-FIX] SP12.3: null-safe project access (project could be deleted)
+            'project_title' => $task->project?->title ?? '',
             'task_title'    => $task->title,
             'user_name'     => $task->assignee?->name,
         ]);
@@ -63,8 +67,8 @@ class NotificationService
     {
         self::send('application.submitted', [
             'project_id'    => $application->project_id,
-            'project_title' => $application->project->title,
-            'user_name'     => $application->user->name,
+            'project_title' => $application->project?->title ?? '',
+            'user_name'     => $application->user?->name ?? '',
             'message'       => $application->message,
         ]);
     }
