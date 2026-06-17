@@ -69,7 +69,26 @@ class ProjectDetail extends Component
         });
         $this->progressNote = '';
         $this->showProgressModal = false;
-        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
+
+        // [REVIEW-FIX] CRIT-2: 项目完成时发送 webhook + 刷新缓存
+        if ($progress === 'completed') {
+            $this->project->load('members');
+            foreach ($this->project->members as $member) {
+                \App\View\Composers\SidebarComposer::flushForUser($member->id);
+            }
+            try {
+                \App\Services\NotificationService::send('project.completed', [
+                    'project_id' => $this->project->id,
+                    'project_title' => $this->project->title,
+                    'user_name' => auth()->user()->name,
+                    'message' => "项目已完成: {$this->project->title}",
+                    'status_from' => $old,
+                    'status_to' => 'completed',
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Webhook failed: project completed", ["error" => $e->getMessage()]);
+            }
+        }
     }
 
     public function addMember(): void
@@ -103,9 +122,19 @@ class ProjectDetail extends Component
         $this->selectedUserId = '';
         $this->showMemberModal = false;
         $this->flushMemberCaches();
-        // [REVIEW-FIX] I6: 刷新新成员的侧边栏计数
         \App\View\Composers\SidebarComposer::flushForUser($user->id);
-        // [REVIEW-FIX] SP7.2: render() 中已调用 loadProject()，此处冗余
+
+        // [REVIEW-FIX] CRIT-3: 成员加入 webhook 通知
+        try {
+            \App\Services\NotificationService::send('member.joined', [
+                'project_id' => $this->project->id,
+                'project_title' => $this->project->title,
+                'user_name' => $user->name,
+                'message' => "{$user->name} 加入了项目 {$this->project->title}",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Webhook failed: member joined", ["error" => $e->getMessage()]);
+        }
     }
 
     public function removeMember(int $userId): void

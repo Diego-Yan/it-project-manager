@@ -38,6 +38,7 @@ class TicketBoard extends Component
         'formAssignedTo'  => 'nullable|exists:users,id',
         // [REVIEW-FIX] I3: 补全缺失的字段验证
         'formPriority'    => 'required|in:low,medium,high,urgent',
+        'formSource'      => 'required|in:portal,email,phone,walk_in,im_wechat,im_dingtalk',
         'formDescription' => 'nullable|string|max:5000',
         'formReportedFor' => 'nullable|exists:users,id',
     ];
@@ -66,6 +67,22 @@ class TicketBoard extends Component
         }
         else {
             $ticket = Ticket::create($data);
+            // [REVIEW-FIX] CRIT-4: 新建工单刷新侧边栏
+            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+
+            // [REVIEW-FIX] CRIT-1: 工单创建 webhook 通知
+            try {
+                NotificationService::send('ticket.created', [
+                    'project_id'    => $ticket->project_id,
+                    'project_title' => $ticket->title,
+                    'task_title'    => $ticket->title,
+                    'user_name'     => auth()->user()->name,
+                    'message'       => "工单已创建: {$ticket->title}",
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket created", ["error" => $e->getMessage()]);
+            }
+
             // 代填工单 → 通知被代填人
             if ($ticket->reported_for && $ticket->reported_for != auth()->id()) {
                 $creatorName = auth()->user()->name;
@@ -82,7 +99,7 @@ class TicketBoard extends Component
                         'assignee_name' => $reportedForUser?->name,
                         'message'       => "{$ticket->creator->name} 代你提交了工单，请在系统中确认",
                     ]);
-                } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed: proxy ticket", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.10
+                } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed: proxy ticket", ["error" => $e->getMessage()]); }
             }
         }
         $this->resetForm();
@@ -91,26 +108,59 @@ class TicketBoard extends Component
     // 自己接单（任何 IT 工程师都可以）
     public function assign(int $id): void
     {
-        // [REVIEW-FIX] C3: 原子性抢单 — 用 WHERE 条件防止竞态
-        $updated = Ticket::where('id', $id)
-            ->where('status', 'open')
-            ->update(['assigned_to' => auth()->id(), 'status' => 'in_progress']);
+        // [REVIEW-FIX] CONSIST-1: 使用状态机方法替代裸 update
+        $ticket = Ticket::findOrFail($id);
+        if (! $ticket->transitionToInProgress(auth()->id())) return;
 
-        if ($updated) {
-            \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+        // [REVIEW-FIX] SIDE-EFFECT-1: 记录认领评论
+        TicketComment::create(['ticket_id' => $id, 'user_id' => auth()->id(), 'content' => '认领工单']);
+
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
+
+        // [REVIEW-FIX] CRIT-7: 站内通知 + CRIT-1: webhook 通知
+        \App\Models\Notification::send(auth()->id(), '工单已认领', "工单 #{$id}: {$ticket->title}", 'info');
+        try {
+            NotificationService::send('ticket.assigned', [
+                'project_id' => $ticket->project_id,
+                'project_title' => $ticket->title,
+                'task_title' => $ticket->title,
+                'user_name' => auth()->user()->name,
+                'assignee_name' => auth()->user()->name,
+                'message' => "工单已认领: {$ticket->title}",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket assigned", ["error" => $e->getMessage()]);
         }
     }
 
     // IT 主管分配工单给指定人员
     public function assignTo(int $id): void
     {
-        if (!auth()->user()->can('manage tickets')) return;
+        if (!auth()->user()->can('manage tickets')) { session()->flash('error', '没有分配权限'); return; }
         if (empty($this->assignToUserId)) return;
 
-        Ticket::where('id', $id)->update(['assigned_to' => $this->assignToUserId, 'status' => 'in_progress']);
-        // [REVIEW-FIX] I1: 刷新分配人和接收人双方侧边栏
+        $ticket = Ticket::findOrFail($id);
+        $assigneeId = (int) $this->assignToUserId;
+        $ticket->update(['assigned_to' => $assigneeId, 'status' => 'in_progress']);
+        TicketComment::create(['ticket_id' => $id, 'user_id' => auth()->id(), 'content' => '分配工单给 ' . (User::find($assigneeId)?->name ?? '未知')]);
+
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
-        \App\View\Composers\SidebarComposer::flushForUser((int) $this->assignToUserId);
+        \App\View\Composers\SidebarComposer::flushForUser($assigneeId);
+
+        // [REVIEW-FIX] CRIT-7: 站内通知被分配人
+        \App\Models\Notification::send($assigneeId, '新工单分配', "工单 #{$id}: {$ticket->title} 已分配给你", 'info');
+        try {
+            NotificationService::send('ticket.assigned', [
+                'project_id' => $ticket->project_id,
+                'project_title' => $ticket->title,
+                'task_title' => $ticket->title,
+                'user_name' => auth()->user()->name,
+                'assignee_name' => User::find($assigneeId)?->name,
+                'message' => "工单已分配给 " . (User::find($assigneeId)?->name ?? '未知'),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket assigned", ["error" => $e->getMessage()]);
+        }
         $this->assignToUserId = '';
     }
 
@@ -142,9 +192,26 @@ class TicketBoard extends Component
             session()->flash('error', '只能解决自己负责的工单');
             return;
         }
-        $ticket->update(['status'=>'resolved','resolved_by'=>auth()->id(),'resolved_at'=>now()]);
-        \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
+        // [REVIEW-FIX] CONSIST-1: 使用状态机方法
+        if (! $ticket->transitionToResolved(auth()->id())) {
+            session()->flash('error', '无法解决此工单');
+            return;
+        }
+        \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
         TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>'标记为已解决']);
+
+        // [REVIEW-FIX] CRIT-1: webhook 通知
+        try {
+            NotificationService::send('ticket.resolved', [
+                'project_id' => $ticket->project_id,
+                'project_title' => $ticket->title,
+                'task_title' => $ticket->title,
+                'user_name' => auth()->user()->name,
+                'message' => "工单已解决: {$ticket->title}",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket resolved", ["error" => $e->getMessage()]);
+        }
     }
 
     public string $closeNote = '';
@@ -174,7 +241,21 @@ class TicketBoard extends Component
         }
 
         TicketComment::create(['ticket_id'=>$this->closingTicketId, 'user_id'=>auth()->id(), 'content'=>'关闭工单: '.trim($this->closeNote)]);
-        $ticket->update(['status'=>'closed','closed_at'=>now()]);
+        // [REVIEW-FIX] CONSIST-1: 使用状态机方法
+        $ticket->transitionToClosed();
+
+        // [REVIEW-FIX] CRIT-1: webhook 通知
+        try {
+            NotificationService::send('ticket.closed', [
+                'project_id' => $ticket->project_id,
+                'project_title' => $ticket->title,
+                'task_title' => $ticket->title,
+                'user_name' => auth()->user()->name,
+                'message' => "工单已关闭 #{$this->closingTicketId}: {$ticket->title}",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket closed", ["error" => $e->getMessage()]);
+        }
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id()); // [REVIEW-FIX] P0.1
         $this->showCloseConfirm = false;
         $this->closingTicketId = null;
