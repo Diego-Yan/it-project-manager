@@ -112,7 +112,7 @@
                         </div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
+                            <button wire:loading.attr="disabled" wire:loading.class="opacity-70" type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
                                 退出登录
                             </button>
                         </form>

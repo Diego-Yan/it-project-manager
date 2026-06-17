@@ -15,7 +15,7 @@
             <select wire:model="formOwnerId" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"><option value="">负责人</option>@foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</select>
             <input wire:model="formHealthUrl" placeholder="健康检查 URL" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
         </div>
-        <textarea wire:model="formDescription" rows="2" placeholder="描述" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formDescription" rows="2" placeholder="描述" class="w-full mt-3 px-3 min-h-[5rem] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formName')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <input wire:model="formTags" placeholder="标签，逗号分隔: production, k8s, beijing" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700">
         <div class="flex gap-2 justify-end mt-3">

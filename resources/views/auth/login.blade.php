@@ -261,7 +261,7 @@
                     @endif
                 </div>
 
-                <button type="submit" class="login-btn">
+                <button wire:loading.attr="disabled" wire:loading.class="opacity-70" type="submit" class="login-btn">
                     {{ $loginMode === 'ad' ? 'AD 域登录' : '登录' }}
                 </button>
             </form>

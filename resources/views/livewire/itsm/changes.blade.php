@@ -16,9 +16,9 @@
             <input type="datetime-local" wire:model="formWindowStart" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" placeholder="变更窗口开始">
             <input type="datetime-local" wire:model="formWindowEnd" class="px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700" placeholder="变更窗口结束">
         </div>
-        <textarea wire:model="formDescription" rows="2" placeholder="变更描述" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formDescription" rows="2" placeholder="变更描述" class="w-full mt-3 px-3 min-h-[5rem] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
-        <textarea wire:model="formRollbackPlan" rows="2" placeholder="回滚方案" class="w-full mt-3 px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+        <textarea wire:model="formRollbackPlan" rows="2" placeholder="回滚方案" class="w-full mt-3 px-3 min-h-[5rem] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         @error('formTitle')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         <div class="flex gap-2 justify-end mt-3">
             <button wire:click="resetForm" class="px-4 py-2 text-sm text-zinc-500">取消</button>

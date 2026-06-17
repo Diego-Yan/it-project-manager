@@ -43,7 +43,7 @@
                 @error('uploadFile')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
         </div>
-        <textarea wire:model="formContent" rows="6" placeholder="文章内容* (支持 Markdown)" class="w-full px-3 h-10 text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-3"></textarea>
+        <textarea wire:model="formContent" rows="6" placeholder="文章内容* (支持 Markdown)" class="w-full px-3 min-h-[5rem] text-sm border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 mb-3"></textarea>
         {{-- 标签选择 --}}
         <div class="mb-3">
             <label class="block text-xs font-medium text-zinc-500 mb-2">标签</label>
