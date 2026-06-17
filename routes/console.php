@@ -37,3 +37,9 @@ Schedule::command('zabbix:poll')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/zabbix-poll.log'));
+
+// [REVIEW-FIX] C4: 每日自动备份 SQLite 数据库
+Schedule::command('db:backup')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/db-backup.log'));

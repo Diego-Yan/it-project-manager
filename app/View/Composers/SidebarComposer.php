@@ -14,7 +14,18 @@ class SidebarComposer
     public function compose(View $view): void
     {
         $user = auth()->user();
-        if (!$user) return;
+        if (!$user) {
+            // [REVIEW-FIX] C2: 未认证时提供默认值，防止 blade 中 undefined variable 错误
+            $view->with([
+                'sidebarPendingTasks'     => 0,
+                'sidebarOpenTickets'      => 0,
+                'sidebarProxyPending'     => 0,
+                'sidebarWarrantySoon'     => 0,
+                'sidebarOpenIncidents'    => 0,
+                'sidebarTotalOpenTickets' => 0,
+            ]);
+            return;
+        }
 
         // [REVIEW-FIX] P0.1: 6次独立COUNT合并为1次缓存查询，TTL=5分钟
         $cacheKey = "sidebar_counts:{$user->id}";
