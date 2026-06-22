@@ -21,6 +21,12 @@ class SecurityHeaders
 
         if (method_exists($response, 'header')) {
             // CSP: default-src 'self' 为基础，script-src 允许 unsafe-inline（Livewire/Alpine 需要）
+            // [REVIEW-FIX-R5 #3 P2] 修复 CSP connect-src 阻断 Livewire 功能：
+            // 原配置 connect-src 'self' → Livewire 的 HTTP 请求（wire:click 等向自身发送
+            // POST /livewire/update）被 CSP 阻止，控制台报 CSP 违规。
+            // 修复：connect-src 允许 'self'（Livewire 请求同源）。
+            // 注意：AiChat 调用外部 LLM API 是在服务端（PHP Http::post），不经过浏览器 CSP，
+            // 因此不需要在 connect-src 中放行外部 LLM 地址。
             $response->headers->set('Content-Security-Policy',
                 "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; base-uri 'self'; object-src 'none'"
             );

@@ -17,12 +17,14 @@ class MyTickets extends Component
     public int|string $formRegionId = '';
 
     // [REVIEW-FIX] M2: 补全缺失的字段验证
+    // [REVIEW-FIX-R2 #1 P2] priority 统一为 critical（与 Blade 模板/模型 label 一致），原 urgent 导致紧急工单无法创建
+    // [REVIEW-FIX-R2 #4 P3] formSource 补充 walk_in（与 TicketBoard 验证规则对齐），原缺少此选项导致现场处理来源被拒
     protected $rules = [
         'formTitle'       => 'required|max:200',
         'formRegionId'    => 'required|exists:regions,id',
         'formType'        => 'required|in:request,incident,change',
-        'formPriority'    => 'required|in:low,medium,high,urgent',
-        'formSource'      => 'required|in:portal,email,phone,im_wechat,im_dingtalk',
+        'formPriority'    => 'required|in:low,medium,high,critical',
+        'formSource'      => 'required|in:portal,email,phone,walk_in,im_wechat,im_dingtalk',
     ];
 
     public function createTicket(): void
@@ -43,7 +45,7 @@ class MyTickets extends Component
         $this->showForm = false;
         $this->reset(['formTitle', 'formDescription', 'formType', 'formPriority', 'formRegionId']);
         $this->formType = 'request'; $this->formPriority = 'medium';
-        session()->flash('success', '工单已创建');
+        session()->flash('success', __('工单已创建'));
     }
 
     // 用户确认代填工单
@@ -54,7 +56,7 @@ class MyTickets extends Component
             $ticket->update(['user_confirmed_at' => now()]);
             // [REVIEW-FIX] I6: 刷新侧边栏代理待确认计数
             \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
-            session()->flash('success', '工单已确认');
+            session()->flash('success', __('工单已确认'));
         }
     }
 
@@ -87,6 +89,6 @@ class MyTickets extends Component
 
         $regions = \App\Models\Region::orderBy('sort_order')->get();
         return view('livewire.my-tickets', compact('tickets', 'counts', 'regions'))
-            ->layout('layouts.app', ['title' => '我的工单']);
+            ->layout('layouts.app', ['title' => __('我的工单')]);
     }
 }

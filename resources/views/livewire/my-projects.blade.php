@@ -1,8 +1,8 @@
 <div class="space-y-5">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-zinc-900 dark:text-white">我的项目</h1>
-            <p class="text-sm text-zinc-500 mt-1">我创建或参与的项目</p>
+            <h1 class="text-xl font-bold text-zinc-900 dark:text-white">{{ __('我的项目') }}</h1>
+            <p class="text-sm text-zinc-500 mt-1">{{ __('我创建或参与的项目') }}</p>
         </div>
         @can('create projects')
         <a href="{{ route('projects.create') }}"
@@ -10,14 +10,14 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
             </svg>
-            新建项目
+            {{ __('新建项目') }}
         </a>
         @endcan
     </div>
 
     {{-- 统计 --}}
     <div class="grid grid-cols-3 gap-4">
-        @php $statCards = [['key'=>'','label'=>'全部','count'=>$counts['total'],'color'=>'zinc'],['key'=>'in_progress','label'=>'进行中','count'=>$counts['in_progress'],'color'=>'sky'],['key'=>'completed','label'=>'已完成','count'=>$counts['completed'],'color'=>'green']]; @endphp
+        @php $statCards = [['key'=>'','label'=>__('全部'),'count'=>$counts['total'],'color'=>'zinc'],['key'=>'in_progress','label'=>__('进行中'),'count'=>$counts['in_progress'],'color'=>'sky'],['key'=>'completed','label'=>__('已完成'),'count'=>$counts['completed'],'color'=>'green']]; @endphp
         @foreach($statCards as $card)
         <button wire:click="$set('filterProgress', '{{ $card['key'] }}')"
             class="bg-white dark:bg-zinc-900 rounded-xl border p-4 text-left transition-colors
@@ -41,13 +41,13 @@
                         @if($project->region)<span class="text-xs text-zinc-500">📍{{ $project->region->name }}</span>@endif
                         <span class="text-xs text-zinc-400">{{ $project->typeLabel }}</span>
                         @if($project->isOverdue())
-                        <span class="text-xs text-red-500 font-medium">已逾期</span>
+                        <span class="text-xs text-red-500 font-medium">{{ __('已逾期') }}</span>
                         @endif
                     </div>
                     <h3 class="text-base font-semibold text-zinc-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">{{ $project->title }}</h3>
                     <p class="text-xs text-zinc-500 mt-1">
                         {{ $project->progressLabel }} · {{ $project->completion_percent }}% ·
-                        @if($project->end_date) {{ $project->end_date->format('Y/m/d') }} 截止 @else 无截止日期 @endif
+                        @if($project->end_date) {{ $project->end_date->format('Y/m/d') }} {{ __('截止') }} @else {{ __('无截止日期') }} @endif
                     </p>
                 </div>
                 <div class="shrink-0 flex flex-col items-end gap-1.5">
@@ -56,8 +56,8 @@
                         {{ $project->progressLabel }}
                     </span>
                     <span class="text-xs text-zinc-400">
-                        @if($project->tasks_count ?? false) {{ $project->tasks_count }} 个任务 · @endif
-                        {{ $project->members_count ?? $project->members->count() }} 人
+                        @if($project->tasks_count ?? false) {{ $project->tasks_count }} {{ __('个任务') }} · @endif
+                        {{ $project->members_count ?? $project->members->count() }} {{ __('人') }}
                     </span>
                 </div>
             </div>
@@ -68,9 +68,9 @@
         </a>
         @empty
         <div class="text-center py-16 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-            <p class="text-zinc-500 text-sm">暂无项目</p>
+            <p class="text-zinc-500 text-sm">{{ __('暂无项目') }}</p>
             @can('create projects')
-            <a href="{{ route('projects.create') }}" class="mt-2 inline-block text-sky-600 text-sm hover:underline">创建第一个项目</a>
+            <a href="{{ route('projects.create') }}" class="mt-2 inline-block text-sky-600 text-sm hover:underline">{{ __('创建第一个项目') }}</a>
             @endcan
         </div>
         @endforelse

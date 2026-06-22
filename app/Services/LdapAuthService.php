@@ -24,7 +24,7 @@ class LdapAuthService
     public function connect(): bool
     {
         if (!$this->config['enabled']) {
-            Log::warning('AD 认证未启用');
+            Log::warning(__('AD 认证未启用'));
             return false;
         }
 
@@ -40,7 +40,7 @@ class LdapAuthService
         $this->connection = @ldap_connect($host, $port);
 
         if (!$this->connection) {
-            Log::error('无法连接到 AD 服务器', ['host' => $host, 'port' => $port]);
+            Log::error(__('无法连接到 AD 服务器'), ['host' => $host, 'port' => $port]);
             return false;
         }
 
@@ -51,7 +51,7 @@ class LdapAuthService
         // 启用 TLS
         if ($this->config['use_tls']) {
             if (!@ldap_start_tls($this->connection)) {
-                Log::error('无法启动 TLS');
+                Log::error(__('无法启动 TLS'));
                 return false;
             }
         }
@@ -60,13 +60,13 @@ class LdapAuthService
         if (!empty($this->config['admin_username']) && !empty($this->config['admin_password'])) {
             $bindDn = $this->config['admin_username'] . '@' . $this->config['domain'];
             if (!@ldap_bind($this->connection, $bindDn, $this->config['admin_password'])) {
-                Log::error('AD 管理员绑定失败', ['error' => ldap_error($this->connection)]);
+                Log::error(__('AD 管理员绑定失败'), ['error' => ldap_error($this->connection)]);
                 return false;
             }
         }
 
         $this->bound = true;
-        Log::info('AD 连接成功', ['host' => $host, 'port' => $port]);
+        Log::info(__('AD 连接成功'), ['host' => $host, 'port' => $port]);
         return true;
     }
 
@@ -78,7 +78,7 @@ class LdapAuthService
         // 缓存检查：失败次数过多则锁定
         $lockKey = 'ad_auth_lock:' . $username;
         if (Cache::has($lockKey)) {
-            Log::warning('AD 认证被锁定', ['username' => $username]);
+            Log::warning(__('AD 认证被锁定'), ['username' => $username]);
             return null;
         }
 
@@ -92,7 +92,7 @@ class LdapAuthService
         $userDn = $this->findUserDn($username);
         if (!$userDn) {
             $this->recordFailedAttempt($username);
-            Log::warning('AD 用户不存在', ['username' => $username]);
+            Log::warning(__('AD 用户不存在'), ['username' => $username]);
             return null;
         }
 
@@ -100,7 +100,7 @@ class LdapAuthService
         $bindResult = @ldap_bind($this->connection, $userDn, $password);
         if (!$bindResult) {
             $this->recordFailedAttempt($username);
-            Log::warning('AD 认证失败', ['username' => $username, 'error' => ldap_error($this->connection)]);
+            Log::warning(__('AD 认证失败'), ['username' => $username, 'error' => ldap_error($this->connection)]);
             return null;
         }
 
@@ -116,7 +116,7 @@ class LdapAuthService
         // 同步或更新本地用户
         $user = $this->syncUser($username, $userInfo);
         if ($user) {
-            Log::info('AD 认证成功', ['username' => $username, 'local_id' => $user->id]);
+            Log::info(__('AD 认证成功'), ['username' => $username, 'local_id' => $user->id]);
         }
 
         return $user;
@@ -208,7 +208,7 @@ class LdapAuthService
                 $user->assignRole($defaultRole);
             }
 
-            Log::info('AD 用户已创建', ['username' => $username, 'user_id' => $user->id]);
+            Log::info(__('AD 用户已创建'), ['username' => $username, 'user_id' => $user->id]);
         } elseif ($user) {
             // 更新现有用户
             $user->update([
@@ -257,7 +257,7 @@ class LdapAuthService
         );
 
         if (!$search) {
-            Log::error('AD searchUsers 搜索失败', ['keyword' => $keyword, 'error' => ldap_error($this->connection)]);
+            Log::error(__('AD searchUsers 搜索失败'), ['keyword' => $keyword, 'error' => ldap_error($this->connection)]);
             return [];
         }
 

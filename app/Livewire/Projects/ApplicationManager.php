@@ -40,8 +40,8 @@ class ApplicationManager extends Component
             $app->update(['status' => 'approved']);
             $this->project->members()->syncWithoutDetaching([$app->user_id => ['role' => 'member']]);
             // [REVIEW-FIX] SP12.9: null-safe user access
-            $this->project->logAction(auth()->id(), 'member_added', ['user' => $app->user?->name ?? '未知用户', 'via' => 'application']);
-            session()->flash('app_success', ($app->user?->name ?? '未知用户') . ' 已加入项目。');  // [REVIEW-FIX] SP12.9: null-safe user access
+            $this->project->logAction(auth()->id(), 'member_added', ['user' => $app->user?->name ?? __('未知用户'), 'via' => 'application']);
+            session()->flash('app_success', ($app->user?->name ?? __('未知用户')) . __(' 已加入项目。'));  // [REVIEW-FIX] SP12.9: null-safe user access
         });
     }
 
@@ -50,7 +50,7 @@ class ApplicationManager extends Component
         $this->guard();
         $app = ProjectApplication::where('project_id', $this->project->id)->findOrFail($appId);
         $app->update(['status' => 'rejected']);
-        session()->flash('app_success', '已拒绝该申请。');
+        session()->flash('app_success', __('已拒绝该申请。'));
     }
 
     public function render()

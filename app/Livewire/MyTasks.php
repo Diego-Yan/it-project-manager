@@ -59,6 +59,6 @@ class MyTasks extends Component
         ];
 
         return view('livewire.my-tasks', compact('tasks', 'counts'))
-            ->layout('layouts.app', ['title' => '我的任务']);
+            ->layout('layouts.app', ['title' => __('我的任务')]);
     }
 }

@@ -26,7 +26,7 @@ class KnowledgeArticle extends Model
     public function getCategoryLabelAttribute(): string
     {
         return match($this->category) {
-            'network'=>'网络','hardware'=>'硬件','software'=>'软件','account'=>'账号','printer'=>'打印','general'=>'通用',
+            'network'=>__('网络'),'hardware'=>__('硬件'),'software'=>__('软件'),'account'=>__('账号'),'printer'=>__('打印'),'general'=>__('通用'),
             default=>$this->category
         };
     }

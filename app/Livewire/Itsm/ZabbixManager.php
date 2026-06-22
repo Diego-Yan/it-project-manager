@@ -30,10 +30,32 @@ class ZabbixManager extends Component
     {
         // [REVIEW-FIX] R12.3: Zabbix 配置管理需权限检查
         if (!auth()->user()->can('manage incidents')) {
-            session()->flash('error', '没有 Zabbix 管理权限');
+            session()->flash('error', __('没有 Zabbix 管理权限'));
             return;
         }
         $this->validate();
+
+        // [REVIEW-FIX-R5 #2 P2] SSRF 防护：Zabbix 服务器地址需校验，但允许内网地址
+        // （Zabbix 通常部署在内网，与 AiChat/Webhook 不同，这里仅阻止云元数据等高危地址）。
+        // 注意：Zabbix 内网场景允许，用 SsrfGuard::isIpSafe 逐个检查而非全量阻止。
+        // 对于 Zabbix，管理员应能配置内网地址，所以此处仅阻止 169.254.x.x 等保留段。
+        $parsed = parse_url($this->formUrl);
+        if (!empty($parsed['host'])) {
+            $ips = gethostbynamel($parsed['host']);
+            if ($ips === false && filter_var($parsed['host'], FILTER_VALIDATE_IP)) {
+                $ips = [$parsed['host']];
+            }
+            if ($ips !== false) {
+                foreach ($ips as $ip) {
+                    // 仅阻止 link-local（含云元数据 169.254.169.254）和 0.0.0.0
+                    if (str_starts_with($ip, '169.254.') || $ip === '0.0.0.0') {
+                        $this->addError('formUrl', __('不允许的 Zabbix 地址：不能指向 link-local 或保留地址段。'));
+                        return;
+                    }
+                }
+            }
+        }
+
         $data = [
             'name' => $this->formName, 'url' => $this->formUrl,
             'min_severity' => $this->formMinSeverity, 'poll_interval' => $this->formPollInterval,
@@ -51,15 +73,15 @@ class ZabbixManager extends Component
     public function test(int $id): void
     {
         if (!auth()->user()->can('manage incidents')) {
-            session()->flash('error', '没有 Zabbix 管理权限');
+            session()->flash('error', __('没有 Zabbix 管理权限'));
             return;
         }
         $config = ZabbixConfig::findOrFail($id);
         $svc = new ZabbixService($config);
         $this->testConfigId = $id;
         $this->testResult = $svc->testConnection()
-            ? "✓ {$config->name} 连接成功"
-            : "✗ {$config->name} 连接失败，请检查 URL 和 Token";
+            ? __("✓ :name 连接成功", ['name' => $config->name])
+            : __("✗ :name 连接失败，请检查 URL 和 Token", ['name' => $config->name]);
     }
 
     // [FIX] #2: 编辑时不暴露真实 token，用占位符代替
@@ -67,7 +89,7 @@ class ZabbixManager extends Component
     public function edit(int $id): void
     {
         if (!auth()->user()->can('manage incidents')) {
-            session()->flash('error', '没有 Zabbix 管理权限');
+            session()->flash('error', __('没有 Zabbix 管理权限'));
             return;
         }
         $z = ZabbixConfig::findOrFail($id);
@@ -82,7 +104,7 @@ class ZabbixManager extends Component
     // [FIX] #4: 添加权限检查
     public function delete(int $id): void {
         if (!auth()->user()->can('manage incidents')) {
-            session()->flash('error', '没有删除权限');
+            session()->flash('error', __('没有删除权限'));
             return;
         }
         ZabbixConfig::findOrFail($id)->delete();
@@ -94,6 +116,6 @@ class ZabbixManager extends Component
     {
         $configs = ZabbixConfig::latest()->get();
         return view('livewire.itsm.zabbix', compact('configs'))
-            ->layout('layouts.app', ['title' => 'Zabbix 集成']);
+            ->layout('layouts.app', ['title' => __('Zabbix 集成')]);
     }
 }

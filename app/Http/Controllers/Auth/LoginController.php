@@ -54,12 +54,12 @@ class LoginController extends Controller
             if (!$user) {
                 Log::warning('AD 登录失败', ['username' => $username]);
                 return back()
-                    ->with('error', '域账号或密码错误，请确认后重试。')
+                    ->with('error', __('域账号或密码错误，请确认后重试。'))
                     ->withInput(['username' => $username]);
             }
 
             if (!$user->is_active) {
-                return back()->with('error', '您的账号已被禁用，请联系管理员。');
+                return back()->with('error', __('您的账号已被禁用，请联系管理员。'));
             }
 
             Auth::login($user, $request->boolean('remember'));
@@ -71,7 +71,7 @@ class LoginController extends Controller
         } catch (\Exception $e) {
             Log::error('AD 登录异常', ['username' => $username, 'error' => $e->getMessage()]);
             return back()
-                ->with('error', 'AD 认证服务暂时不可用，请使用本地账号登录或联系管理员。')
+                ->with('error', __('AD 认证服务暂时不可用，请使用本地账号登录或联系管理员。'))
                 ->withInput(['username' => $username]);
         }
     }
@@ -88,15 +88,22 @@ class LoginController extends Controller
         })->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
-            return back()->with('error', '用户名或密码错误，请重试。')->withInput(['username' => $username]);
+            // [REVIEW-FIX-R1 #5 P2] 补充本地登录失败审计日志，与 AD 登录保持一致，
+            // 便于安全事件追溯（暴力破解探测、撞库尝试等）。仅记录用户名，不记录密码。
+            Log::warning('本地登录失败', ['username' => $username, 'ip' => $request->ip()]);
+            return back()->with('error', __('用户名或密码错误，请重试。'))->withInput(['username' => $username]);
         }
 
         if (!$user->is_active) {
-            return back()->with('error', '您的账号已被禁用，请联系管理员。');
+            Log::warning('本地登录被拒：账号已禁用', ['username' => $username, 'user_id' => $user->id]);
+            return back()->with('error', __('您的账号已被禁用，请联系管理员。'));
         }
 
         Auth::login($user, $request->boolean('remember'));
         $user->update(['last_login_at' => now()]);
+
+        // [REVIEW-FIX-R1 #5 P2] 补充本地登录成功审计日志，与 AD 登录保持一致
+        Log::info('本地登录成功', ['username' => $username, 'user_id' => $user->id, 'ip' => $request->ip()]);
 
         return redirect()->intended(route('dashboard'));
     }

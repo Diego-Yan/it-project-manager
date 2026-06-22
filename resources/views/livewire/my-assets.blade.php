@@ -1,13 +1,13 @@
 <div class="space-y-5">
-    <div><h1 class="text-xl font-bold text-zinc-900 dark:text-white">我的资产</h1><p class="text-sm text-zinc-500 mt-1">分配给我的 IT 设备和软件</p></div>
+    <div><h1 class="text-xl font-bold text-zinc-900 dark:text-white">{{ __('我的资产') }}</h1><p class="text-sm text-zinc-500 mt-1">{{ __('分配给我的 IT 设备和软件') }}</p></div>
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         @php
         $cards = [
-            ['label'=>'全部资产','value'=>$counts['total'],'color'=>'sky'],
-            ['label'=>'使用中','value'=>$counts['in_use'],'color'=>'green'],
-            ['label'=>'维修中','value'=>$counts['repair'],'color'=>'amber'],
-            ['label'=>'即将过保','value'=>$counts['warranty_soon'],'color'=>'red'],
+            ['label'=>__('全部资产'),'value'=>$counts['total'],'color'=>'sky'],
+            ['label'=>__('使用中'),'value'=>$counts['in_use'],'color'=>'green'],
+            ['label'=>__('维修中'),'value'=>$counts['repair'],'color'=>'amber'],
+            ['label'=>__('即将过保'),'value'=>$counts['warranty_soon'],'color'=>'red'],
         ];
         @endphp
         @foreach($cards as $c)
@@ -20,7 +20,7 @@
 
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border overflow-hidden">
         @if($assets->isEmpty())
-        <div class="text-center py-16 text-zinc-400 text-sm">暂无资产分配给你</div>
+        <div class="text-center py-16 text-zinc-400 text-sm">{{ __('暂无资产分配给你') }}</div>
         @else
         <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
             @foreach($assets as $a)
@@ -38,7 +38,7 @@
                         @if($a->location)<span>· {{ $a->location }}</span>@endif
                         @if($a->warranty_expiry)
                         <span class="{{ $a->warranty_expiry->isPast() ? 'text-red-500 font-medium' : ($a->warranty_expiry->lt(now()->addDays(30)) ? 'text-amber-500' : 'text-zinc-400') }}">
-                            · 保修至 {{ $a->warranty_expiry->format('Y-m-d') }}
+                            · {{ __('保修至') }} {{ $a->warranty_expiry->format('Y-m-d') }}
                         </span>
                         @endif
                     </div>

@@ -31,13 +31,13 @@ class ProjectLog extends Model
     public function getActionLabelAttribute(): string
     {
         return match($this->action) {
-            'created'        => '创建了项目',
-            'updated'        => '更新了项目',
-            'status_changed' => '变更了进度',
-            'member_added'   => '添加了成员',
-            'member_removed' => '移除了成员',
-            'file_uploaded'  => '上传了附件',
-            'file_deleted'   => '删除了附件',
+            'created'        => __('创建了项目'),
+            'updated'        => __('更新了项目'),
+            'status_changed' => __('变更了进度'),
+            'member_added'   => __('添加了成员'),
+            'member_removed' => __('移除了成员'),
+            'file_uploaded'  => __('上传了附件'),
+            'file_deleted'   => __('删除了附件'),
             default          => $this->action,
         };
     }

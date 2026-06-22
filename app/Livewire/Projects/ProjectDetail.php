@@ -27,6 +27,17 @@ class ProjectDetail extends Component
 
     public function mount(Project $project): void
     {
+        // [REVIEW-FIX-R6 #3 P2] IDOR 防护：原 mount() 无任何访问控制，任意已认证用户可通过
+        // 修改 URL 中的 project ID 查看非成员项目的详情、成员列表、操作日志、附件。
+        // 修复：非 view all projects 权限用户只能查看自己创建或作为成员参与的项目。
+        $user = auth()->user();
+        if (!$user->can('view all projects')) {
+            $isMember = $project->members()->where('user_id', $user->id)->exists()
+                || (int) $project->created_by === $user->id;
+            if (!$isMember) {
+                abort(403, __('无权访问此项目。'));
+            }
+        }
         $this->projectId = $project->id;
         $this->loadProject();
     }
@@ -81,7 +92,7 @@ class ProjectDetail extends Component
                     'project_id' => $this->project->id,
                     'project_title' => $this->project->title,
                     'user_name' => auth()->user()->name,
-                    'message' => "项目已完成: {$this->project->title}",
+                    'message' => __('项目已完成: :title', ['title' => $this->project->title]),
                     'status_from' => $old,
                     'status_to' => 'completed',
                 ]);
@@ -98,19 +109,19 @@ class ProjectDetail extends Component
         }
 
         if (empty($this->selectedUserId)) {
-            $this->addError('selectedUserId', '请选择一个用户');
+            $this->addError('selectedUserId', __('请选择一个用户'));
             return;
         }
 
         $user = User::find($this->selectedUserId);
 
         if (!$user) {
-            $this->addError('selectedUserId', '未找到该用户');
+            $this->addError('selectedUserId', __('未找到该用户'));
             return;
         }
 
         if ($this->project->members()->where('user_id', $user->id)->exists()) {
-            $this->addError('selectedUserId', '该用户已在项目中');
+            $this->addError('selectedUserId', __('该用户已在项目中'));
             return;
         }
 
@@ -130,7 +141,7 @@ class ProjectDetail extends Component
                 'project_id' => $this->project->id,
                 'project_title' => $this->project->title,
                 'user_name' => $user->name,
-                'message' => "{$user->name} 加入了项目 {$this->project->title}",
+                'message' => __(':name 加入了项目 :title', ['name' => $user->name, 'title' => $this->project->title]),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Webhook failed: member joined", ["error" => $e->getMessage()]);
@@ -144,11 +155,11 @@ class ProjectDetail extends Component
         }
         // [REVIEW-FIX] SP13.10: 不能移除自己或最后一个成员
         if ($userId === auth()->id()) {
-            session()->flash('error', '不能将自己移出项目。');
+            session()->flash('error', __('不能将自己移出项目。'));
             return;
         }
         if ($this->project->members()->count() <= 1) {
-            session()->flash('error', '不能移除唯一的项目成员。');
+            session()->flash('error', __('不能移除唯一的项目成员。'));
             return;
         }
         $user = User::find($userId);
@@ -184,12 +195,12 @@ class ProjectDetail extends Component
         }
         // 不能降级自己
         if ($userId === auth()->id()) {
-            session()->flash('error', '不能降级自己。');
+            session()->flash('error', __('不能降级自己。'));
             return;
         }
         // 不能降级唯一负责人，会导致项目无人管理
         if ($this->project->leads()->count() <= 1) {
-            session()->flash('error', '不能移除唯一的负责人，请先指定其他负责人。');
+            session()->flash('error', __('不能移除唯一的负责人，请先指定其他负责人。'));
             return;
         }
         // [REVIEW-FIX] SP13.8: 事务包裹 updateExistingPivot + logAction 保证一致性
@@ -223,7 +234,11 @@ class ProjectDetail extends Component
     {
         $this->loadProject(); // [FIX] #11: render 前刷新
 
-        $memberIds = $this->project->members->pluck('user_id')->toArray();
+        // [REVIEW-FIX-R2 #3 P2] 修复 pluck 字段名错误：$project->members 是 BelongsToMany 关系，
+        // 返回 User 模型集合，主键为 'id' 而非 'user_id'（user_id 是 pivot 表外键，不在 User 模型上）。
+        // 原代码 pluck('user_id') 返回全 null 数组，导致 whereNotIn('id', [null,null,...]) 不生效，
+        // 已加入项目的成员仍出现在"添加成员"可选列表中，可重复添加（attach 会报唯一约束错误或产生脏数据）。
+        $memberIds = $this->project->members->pluck('id')->toArray();
         $availableUsers = User::where('is_active', true)
             ->whereNotIn('id', $memberIds)
             ->orderBy('name')

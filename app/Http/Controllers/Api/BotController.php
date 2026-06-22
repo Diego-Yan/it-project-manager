@@ -20,14 +20,14 @@ class BotController extends Controller
         // [FIX] #5: 验证企业微信签名（如果配置了 token/aes_key）
         if (!$this->verifyWechatSignature($request)) {
             Log::warning('WeChat bot signature verification failed', ['ip' => $request->ip()]);
-            return response()->json(['errcode' => 403, 'errmsg' => '签名验证失败'], 403);
+            return response()->json(['errcode' => 403, 'errmsg' => __('签名验证失败')], 403);
         }
 
         $data = $request->all();
         Log::info('WeChat bot message', $data);
 
         $content = $data['text']['content'] ?? $data['msg'] ?? '';
-        $userName = $data['from']['name'] ?? '企微用户';
+        $userName = $data['from']['name'] ?? __('企微用户');
         $userId = $data['from']['userid'] ?? null;
 
         return $this->handleMessage($content, $userName, $userId, 'wechat');
@@ -42,14 +42,14 @@ class BotController extends Controller
         // [FIX] #5: 验证钉钉签名
         if (!$this->verifyDingTalkSignature($request)) {
             Log::warning('DingTalk bot signature verification failed', ['ip' => $request->ip()]);
-            return response()->json(['errcode' => 403, 'errmsg' => '签名验证失败'], 403);
+            return response()->json(['errcode' => 403, 'errmsg' => __('签名验证失败')], 403);
         }
 
         $data = $request->all();
         Log::info('DingTalk bot message', $data);
 
         $content = $data['text']['content'] ?? '';
-        $userName = $data['senderNick'] ?? '钉钉用户';
+        $userName = $data['senderNick'] ?? __('钉钉用户');
         $userId = $data['senderId'] ?? null;
 
         return $this->handleMessage($content, $userName, $userId, 'dingtalk');
@@ -168,30 +168,33 @@ class BotController extends Controller
     {
         $content = trim($content);
         if (empty($content)) {
-            return $this->reply('请输入报修内容，例如："3楼打印机没墨了"', $platform);
+            return $this->reply(__('请输入报修内容，例如："3楼打印机没墨了"'), $platform);
         }
 
         // ── 命令：查工单状态 ──────────────────────────────
         if (preg_match('/^(状态|查询|status)\s*#?(\d+)$/i', $content, $m)) {
             $ticket = Ticket::with('assignee')->find($m[2]);  // [REVIEW-FIX] SP12.8: eager load assignee + null-safe
             if (!$ticket) {
-                return $this->reply("未找到工单 #{$m[2]}", $platform);
+                return $this->reply(__('未找到工单 #:id', ['id' => $m[2]]), $platform);
             }
             return $this->reply(
-                "📋 工单 #{$ticket->id}\n" .
-                "标题: {$ticket->title}\n" .
-                "类型: {$ticket->typeLabel} | 优先级: {$ticket->priorityLabel}\n" .
-                "状态: {$ticket->statusLabel}\n" .
-                "处理人: " . ($ticket->assignee?->name ?? '未分配') . "\n" .
-                "创建: {$ticket->created_at->format('m/d H:i')}",
+                __('📋 工单 #:id', ['id' => $ticket->id]) . "\n" .
+                __('标题') . ": {$ticket->title}\n" .
+                __('类型') . ": {$ticket->typeLabel} | " . __('优先级') . ": {$ticket->priorityLabel}\n" .
+                __('状态') . ": {$ticket->statusLabel}\n" .
+                __('处理人') . ": " . ($ticket->assignee?->name ?? __('未分配')) . "\n" .
+                __('创建') . ": {$ticket->created_at->format('m/d H:i')}",
                 $platform
             );
         }
 
         // ── 普通消息 → 创建工单 ────────────────────────────
         $priority = 'medium';
+        // [REVIEW-FIX-R2 #6 P3] 紧急内容映射到 critical 而非 high：
+        // 原代码将"紧急/urgent/急"映射为 high，但 high 和 critical 是不同优先级。
+        // 紧急内容应映射到最高优先级 critical，使 SLA 能正确匹配对应级别。
         if (preg_match('/(紧急|urgent|急)/i', $content)) {
-            $priority = 'high';
+            $priority = 'critical';
         }
 
         // 匹配或创建系统用户
@@ -205,17 +208,17 @@ class BotController extends Controller
                         'source'      => 'im_' . $platform,  // [REVIEW-FIX] R9.4: 区分 IM 平台来源
             'created_by'  => $user->id,
                         // [REVIEW-FIX] R9.4: 截断描述内容防滥用 + 区分平台来源
-            'description' => mb_substr("来自{$platform}: {$userName}\n{$content}", 0, 5000),
+            'description' => mb_substr(__('来自:platform: :userName', ['platform' => $platform, 'userName' => $userName]) . "\n{$content}", 0, 5000),
             'sla_deadline' => Sla::getDeadline($priority),
         ]);
 
         $ticketId = $ticket->id;
         return $this->reply(
-            "✅ 工单已创建\n" .
-            "工单号: #{$ticketId}\n" .
-            "标题: {$ticket->title}\n" .
-            "优先级: {$ticket->priorityLabel}\n" .
-            "输入「状态 {$ticketId}」查看进度",
+            __('✅ 工单已创建') . "\n" .
+            __('工单号') . ": #{$ticketId}\n" .
+            __('标题') . ": {$ticket->title}\n" .
+            __('优先级') . ": {$ticket->priorityLabel}\n" .
+            __('输入「状态 :id」查看进度', ['id' => $ticketId]),
             $platform
         );
     }
@@ -229,7 +232,7 @@ class BotController extends Controller
             return [
                 'msgtype' => 'markdown',
                 'markdown' => [
-                    'title' => 'ITSM 工单系统',
+                    'title' => __('ITSM 工单系统'),
                     'text'  => $text,
                 ],
             ];

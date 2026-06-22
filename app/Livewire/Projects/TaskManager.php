@@ -36,7 +36,7 @@ class TaskManager extends Component
         if (empty(trim($this->newComment))) return;
         // [REVIEW-FIX] R13.2: 限制评论长度防滥用
         if (mb_strlen($this->newComment) > 5000) {
-            session()->flash('task_error', '评论内容不能超过5000字');
+            session()->flash('task_error', __('评论内容不能超过5000字'));
             return;
         }
 
@@ -79,6 +79,16 @@ class TaskManager extends Component
 
     public function mount(Project $project): void
     {
+        // [REVIEW-FIX-R6 #3 P2] IDOR 防护：与 ProjectDetail/TaskKanban 一致，
+        // 非管理员只能访问自己创建或作为成员参与的项目任务管理。
+        $user = auth()->user();
+        if (!$user->can('view all projects')) {
+            $isMember = $project->members()->where('user_id', $user->id)->exists()
+                || (int) $project->created_by === $user->id;
+            if (!$isMember) {
+                abort(403, __('无权访问此项目。'));
+            }
+        }
         $this->project = $project;
     }
 
@@ -107,9 +117,19 @@ class TaskManager extends Component
         ];
 
         if ($this->editingTask && $this->editingTaskId) {
-            $task = Task::findOrFail($this->editingTaskId);
+            // [REVIEW-FIX-R3 #2 P2] 编辑任务时重新验证权限：
+            // editTask() 虽检查了 canManageTask()，但 Livewire 的 editingTaskId/editingTask
+            // 属性可被客户端篡改。若不在此处重新校验，用户可：
+            // 1. 调用 editTask() 通过权限检查并设置 editingTaskId
+            // 2. 篡改 editingTaskId 指向无权管理的任务
+            // 3. 调用 saveTask() 绕过权限修改该任务
+            $task = Task::where('project_id', $this->project->id)->findOrFail($this->editingTaskId);
+            if (!$this->canManageTask($task)) {
+                session()->flash('task_error', __('只有任务创建人和项目负责人才能编辑任务。'));
+                return;
+            }
             $task->update($data);
-            session()->flash('task_success', '任务已更新。');
+            session()->flash('task_success', __('任务已更新。'));
         } else {
             $task = Task::create($data);
             // 如果创建时分配给了自己，自动确认
@@ -120,7 +140,7 @@ class TaskManager extends Component
             if ($task->assigned_to && $task->assigned_to != auth()->id()) {
                 try { NotificationService::taskAssigned($task->load(['assignee', 'creator', 'project'])); } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed", ["error" => $e->getMessage()]); }  // [REVIEW-FIX] SP8.6-SP8.9
             }
-            session()->flash('task_success', '任务已创建。');
+            session()->flash('task_success', __('任务已创建。'));
         }
 
         $this->resetTaskForm();
@@ -186,7 +206,7 @@ class TaskManager extends Component
     {
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
         if (!$this->canManageTask($task)) {
-            session()->flash('task_error', '只有任务创建人和项目负责人才能删除任务。');
+            session()->flash('task_error', __('只有任务创建人和项目负责人才能删除任务。'));
             return;
         }
         $task->delete();
@@ -197,7 +217,7 @@ class TaskManager extends Component
     {
         $task = Task::where('project_id', $this->project->id)->findOrFail($taskId);
         if (!$this->canManageTask($task)) {
-            session()->flash('task_error', '只有任务创建人和项目负责人才能编辑任务。');
+            session()->flash('task_error', __('只有任务创建人和项目负责人才能编辑任务。'));
             return;
         }
         $this->editingTask    = true;

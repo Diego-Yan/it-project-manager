@@ -78,11 +78,18 @@ class ProjectForm extends Component
         ];
     }
 
-    protected $messages = [
-        'title.required'     => '项目标题不能为空',
-        'category_id.required' => '请选择项目分类',
-        'end_date.after_or_equal' => '结束日期不能早于开始日期',
-    ];
+    // [REVIEW-FIX-R1 #7 P1] 修复 fatal error：原工作区将 $messages 属性的值从纯字符串
+    // 改为 __() 函数调用，但 PHP 不允许函数调用作为属性默认值（常量表达式），
+    // 会导致 "Constant expression contains invalid operations" fatal error，
+    // 创建/编辑项目页面直接崩溃。改为 Livewire 支持的 messages() 方法形式，方法内可调用 __()。
+    protected function messages(): array
+    {
+        return [
+            'title.required'         => __('项目标题不能为空'),
+            'category_id.required'   => __('请选择项目分类'),
+            'end_date.after_or_equal' => __('结束日期不能早于开始日期'),
+        ];
+    }
 
     public function mount(?Project $project = null): void
     {
@@ -109,6 +116,18 @@ class ProjectForm extends Component
 
     public function save(): void
     {
+        // [REVIEW-FIX-R1 #6 P3] 纵深防御：路由层 can:create/edit projects 中间件虽已保护页面加载，
+        // 但在组件内部显式校验，防止任何绕过场景。创建需 create projects，编辑需 edit projects。
+        if ($this->isEdit) {
+            if (!auth()->user()->can('edit projects')) {
+                abort(403);
+            }
+        } else {
+            if (!auth()->user()->can('create projects')) {
+                abort(403);
+            }
+        }
+
         $this->validate();
 
         $data = [
@@ -145,7 +164,7 @@ class ProjectForm extends Component
                     $this->project->logAction(auth()->id(), 'updated', $changes);
                 }
             });
-            session()->flash('success', '项目已更新！');
+            session()->flash('success', __('项目已更新！'));
             $this->redirect(route('projects.show', $this->project));
         } else {
             $data['created_by'] = auth()->id();
@@ -169,7 +188,7 @@ class ProjectForm extends Component
                 return $project;
             });
 
-            session()->flash('success', '项目已创建！');
+            session()->flash('success', __('项目已创建！'));
             $this->redirect(route('projects.show', $project));
         }
     }
@@ -179,7 +198,7 @@ class ProjectForm extends Component
         $categories = ProjectCategory::where('is_active', true)->orderBy('sort_order')->get();
         $regions = \App\Models\Region::orderBy('sort_order')->get();
         $users = User::where('is_active', true)->orderBy('name')->get();
-        $title = $this->isEdit ? '编辑项目' : '创建项目';
+        $title = $this->isEdit ? __('编辑项目') : __('创建项目');
 
         return view('livewire.projects.project-form', compact('categories', 'users', 'regions'))
             ->layout('layouts.app', ['title' => $title]);

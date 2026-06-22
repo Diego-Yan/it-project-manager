@@ -2,13 +2,13 @@
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900 dark:text-white">角色管理</h1>
-            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">管理系统角色及其权限划分</p>
+            <h1 class="text-2xl font-bold text-zinc-900 dark:text-white">{{ __('角色管理') }}</h1>
+            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('管理系统角色及其权限划分') }}</p>
         </div>
         <button wire:click="openCreateModal"
             class="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-xl transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            新建角色
+            {{ __('新建角色') }}
         </button>
     </div>
 
@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <h3 class="font-semibold text-zinc-900 dark:text-white">{{ $role->name }}</h3>
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ $role->users_count }} 名用户</p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __(':count 名用户', ['count' => $role->users_count]) }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
@@ -66,13 +66,13 @@
                 </span>
                 @endforeach
                 @if($role->permissions->isEmpty())
-                <span class="text-xs text-zinc-400 dark:text-zinc-500 italic">暂无权限</span>
+                <span class="text-xs text-zinc-400 dark:text-zinc-500 italic">{{ __('暂无权限') }}</span>
                 @endif
             </div>
         </div>
         @empty
         <div class="col-span-3 py-12 text-center text-zinc-400">
-            <p>暂无角色</p>
+            <p>{{ __('暂无角色') }}</p>
         </div>
         @endforelse
     </div>
@@ -83,7 +83,7 @@
     <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] overflow-y-auto">
         <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between sticky top-0 bg-white dark:bg-zinc-800 z-10">
             <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                {{ $isEditing ? '编辑角色' : '新建角色' }}
+                {{ $isEditing ? __('编辑角色') : __('新建角色') }}
             </h2>
             <button wire:click="$set('showRoleModal', false)" class="p-2 text-zinc-400 hover:text-zinc-600 rounded-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -93,22 +93,22 @@
         <div class="p-6 space-y-5">
             {{-- 角色名称 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">角色名称 <span class="text-red-500">*</span></label>
-                <input wire:model="formName" type="text" placeholder="如：项目经理、运维工程师..."
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('角色名称') }} <span class="text-red-500">*</span></label>
+                <input wire:model="formName" type="text" placeholder="{{ __('如：项目经理、运维工程师...') }}"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
                 @error('formName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
             </div>
 
             {{-- 描述 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">角色描述</label>
-                <input wire:model="formDescription" type="text" placeholder="简短描述该角色的职责..."
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('角色描述') }}</label>
+                <input wire:model="formDescription" type="text" placeholder="{{ __('简短描述该角色的职责...') }}"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
             </div>
 
             {{-- 权限分组 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">权限配置</label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">{{ __('权限配置') }}</label>
                 <div class="space-y-4">
                     @foreach($permGroups as $groupName => $groupPerms)
                     @php
@@ -125,7 +125,7 @@
                                 <span class="text-xs text-zinc-400">{{ $groupSelected }}/{{ $groupTotal }}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-sky-600 dark:text-sky-400">{{ $allGroupSelected ? '取消全选' : '全选' }}</span>
+                                <span class="text-xs text-sky-600 dark:text-sky-400">{{ $allGroupSelected ? __('取消全选') : __('全选') }}</span>
                                 <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors
                                     {{ $allGroupSelected ? 'bg-sky-600 border-sky-600' : ($groupSelected > 0 ? 'bg-sky-200 border-sky-400' : 'border-zinc-300 dark:border-zinc-600') }}">
                                     @if($allGroupSelected)
@@ -155,11 +155,11 @@
         <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-zinc-800">
             <button wire:click="$set('showRoleModal', false)"
                 class="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors">
-                取消
+                {{ __('取消') }}
             </button>
             <button wire:click="saveRole"
                 class="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-xl transition-colors">
-                {{ $isEditing ? '保存修改' : '创建角色' }}
+                {{ $isEditing ? __('保存修改') : __('创建角色') }}
             </button>
         </div>
     </div>
@@ -175,18 +175,18 @@
                 <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
             <div>
-                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">确认删除角色</h3>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">删除后该角色的用户将失去对应权限。</p>
+                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">{{ __('确认删除角色') }}</h3>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('删除后该角色的用户将失去对应权限。') }}</p>
             </div>
         </div>
         <div class="flex gap-3 justify-end">
             <button wire:click="$set('showDeleteModal', false)"
                 class="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors">
-                取消
+                {{ __('取消') }}
             </button>
             <button wire:click="deleteRole"
                 class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors">
-                确认删除
+                {{ __('确认删除') }}
             </button>
         </div>
     </div>

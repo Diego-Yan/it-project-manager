@@ -36,8 +36,10 @@ class TicketBoard extends Component
         'formProjectId'   => 'nullable|exists:projects,id',
         'formAssetId'     => 'nullable|exists:assets,id',
         'formAssignedTo'  => 'nullable|exists:users,id',
-        // [REVIEW-FIX] I3: 补全缺失的字段验证
-        'formPriority'    => 'required|in:low,medium,high,urgent',
+        // [REVIEW-FIX-R2 #1 P2] 修复 priority 枚举不一致：Blade 模板下拉框和 Ticket 模型 label/color
+        // 均使用 'critical' 表示紧急，但验证规则误写为 'urgent'，导致用户选择"紧急"优先级时
+        // 提交 'critical' 值被验证拒绝 → 紧急工单无法创建。统一为 'critical'。
+        'formPriority'    => 'required|in:low,medium,high,critical',
         'formSource'      => 'required|in:portal,email,phone,walk_in,im_wechat,im_dingtalk',
         'formDescription' => 'nullable|string|max:5000',
         'formReportedFor' => 'nullable|exists:users,id',
@@ -60,7 +62,7 @@ class TicketBoard extends Component
             // [REVIEW-FIX] R12.1: 编辑工单需检查所有权或管理权限
             $ticket = Ticket::findOrFail($this->editingId);
             if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) {
-                session()->flash('error', '只能编辑自己创建的工单');
+                session()->flash('error', __('只能编辑自己创建的工单'));
                 return;
             }
             $ticket->update($data);
@@ -77,7 +79,7 @@ class TicketBoard extends Component
                     'project_title' => $ticket->title,
                     'task_title'    => $ticket->title,
                     'user_name'     => auth()->user()->name,
-                    'message'       => "工单已创建: {$ticket->title}",
+                    'message'       => __('工单已创建: :title', ['title' => $ticket->title]),
                 ]);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket created", ["error" => $e->getMessage()]);
@@ -88,16 +90,16 @@ class TicketBoard extends Component
                 $creatorName = auth()->user()->name;
                 $reportedForUser = User::find($ticket->reported_for);
                 \App\Models\Notification::send($ticket->reported_for,
-                    "{$creatorName} 代你提交了工单",
-                    "工单: {$ticket->title}", 'info');
+                    __(':name 代你提交了工单', ['name' => $creatorName]),
+                    __('工单: :title', ['title' => $ticket->title]), 'info');
                 try {
                     NotificationService::send('ticket.proxy_created', [
                         'project_id'    => $ticket->project_id,
-                        'project_title' => '工单系统',
+                        'project_title' => __('工单系统'),
                         'task_title'    => $ticket->title,
                         'user_name'     => $creatorName,
                         'assignee_name' => $reportedForUser?->name,
-                        'message'       => "{$ticket->creator->name} 代你提交了工单，请在系统中确认",
+                        'message'       => __(':name 代你提交了工单，请在系统中确认', ['name' => $ticket->creator->name]),
                     ]);
                 } catch (\Throwable $e) { \Illuminate\Support\Facades\Log::warning("Notification failed: proxy ticket", ["error" => $e->getMessage()]); }
             }
@@ -113,12 +115,12 @@ class TicketBoard extends Component
         if (! $ticket->transitionToInProgress(auth()->id())) return;
 
         // [REVIEW-FIX] SIDE-EFFECT-1: 记录认领评论
-        TicketComment::create(['ticket_id' => $id, 'user_id' => auth()->id(), 'content' => '认领工单']);
+        TicketComment::create(['ticket_id' => $id, 'user_id' => auth()->id(), 'content' => __('认领工单')]);
 
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
 
         // [REVIEW-FIX] CRIT-7: 站内通知 + CRIT-1: webhook 通知
-        \App\Models\Notification::send(auth()->id(), '工单已认领', "工单 #{$id}: {$ticket->title}", 'info');
+        \App\Models\Notification::send(auth()->id(), __('工单已认领'), __('工单 #:id: :title', ['id' => $id, 'title' => $ticket->title]), 'info');
         try {
             NotificationService::send('ticket.assigned', [
                 'project_id' => $ticket->project_id,
@@ -126,7 +128,7 @@ class TicketBoard extends Component
                 'task_title' => $ticket->title,
                 'user_name' => auth()->user()->name,
                 'assignee_name' => auth()->user()->name,
-                'message' => "工单已认领: {$ticket->title}",
+                'message' => __('工单已认领: :title', ['title' => $ticket->title]),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket assigned", ["error" => $e->getMessage()]);
@@ -136,19 +138,19 @@ class TicketBoard extends Component
     // IT 主管分配工单给指定人员
     public function assignTo(int $id): void
     {
-        if (!auth()->user()->can('manage tickets')) { session()->flash('error', '没有分配权限'); return; }
+        if (!auth()->user()->can('manage tickets')) { session()->flash('error', __('没有分配权限')); return; }
         if (empty($this->assignToUserId)) return;
 
         $ticket = Ticket::findOrFail($id);
         $assigneeId = (int) $this->assignToUserId;
         $ticket->update(['assigned_to' => $assigneeId, 'status' => 'in_progress']);
-        TicketComment::create(['ticket_id' => $id, 'user_id' => auth()->id(), 'content' => '分配工单给 ' . (User::find($assigneeId)?->name ?? '未知')]);
+        TicketComment::create(['ticket_id' => $id, 'user_id' => auth()->id(), 'content' => __('分配工单给 :name', ['name' => User::find($assigneeId)?->name ?? __('未知')])]);
 
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
         \App\View\Composers\SidebarComposer::flushForUser($assigneeId);
 
         // [REVIEW-FIX] CRIT-7: 站内通知被分配人
-        \App\Models\Notification::send($assigneeId, '新工单分配', "工单 #{$id}: {$ticket->title} 已分配给你", 'info');
+        \App\Models\Notification::send($assigneeId, __('新工单分配'), __('工单 #:id: :title 已分配给你', ['id' => $id, 'title' => $ticket->title]), 'info');
         try {
             NotificationService::send('ticket.assigned', [
                 'project_id' => $ticket->project_id,
@@ -156,7 +158,7 @@ class TicketBoard extends Component
                 'task_title' => $ticket->title,
                 'user_name' => auth()->user()->name,
                 'assignee_name' => User::find($assigneeId)?->name,
-                'message' => "工单已分配给 " . (User::find($assigneeId)?->name ?? '未知'),
+                'message' => __('工单已分配给 :name', ['name' => User::find($assigneeId)?->name ?? __('未知')]),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket assigned", ["error" => $e->getMessage()]);
@@ -171,15 +173,15 @@ class TicketBoard extends Component
         $ticket = Ticket::findOrFail($id);
         // 只有当前处理人或 IT 主管可以转让
         if ($ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) return;
-        $fromUser = $ticket->assignee?->name ?? '未分配';
-        $toUser = User::find($this->assignToUserId)?->name ?? '未知';
+        $fromUser = $ticket->assignee?->name ?? __('未分配');
+        $toUser = User::find($this->assignToUserId)?->name ?? __('未知');
         $ticket->update(['assigned_to' => $this->assignToUserId]);
-        TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>"转让工单: {$fromUser} → {$toUser}"]);
+        TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>__('转让工单: :from → :to', ['from' => $fromUser, 'to' => $toUser])]);
         // [REVIEW-FIX] I1: 刷新转让方和接收方双方侧边栏
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
         \App\View\Composers\SidebarComposer::flushForUser((int) $this->assignToUserId);
         $this->assignToUserId = '';
-        session()->flash('ticket_msg', "工单已转让给 {$toUser}");
+        session()->flash('ticket_msg', __('工单已转让给 :name', ['name' => $toUser]));
     }
 
     public function resolve(int $id): void
@@ -189,16 +191,16 @@ class TicketBoard extends Component
         $ticket = Ticket::findOrFail($id);
         if ($ticket->status !== 'in_progress') return;
         if ($ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) {
-            session()->flash('error', '只能解决自己负责的工单');
+            session()->flash('error', __('只能解决自己负责的工单'));
             return;
         }
         // [REVIEW-FIX] CONSIST-1: 使用状态机方法
         if (! $ticket->transitionToResolved(auth()->id())) {
-            session()->flash('error', '无法解决此工单');
+            session()->flash('error', __('无法解决此工单'));
             return;
         }
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
-        TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>'标记为已解决']);
+        TicketComment::create(['ticket_id'=>$id, 'user_id'=>auth()->id(), 'content'=>__('标记为已解决')]);
 
         // [REVIEW-FIX] CRIT-1: webhook 通知
         try {
@@ -207,7 +209,7 @@ class TicketBoard extends Component
                 'project_title' => $ticket->title,
                 'task_title' => $ticket->title,
                 'user_name' => auth()->user()->name,
-                'message' => "工单已解决: {$ticket->title}",
+                'message' => __('工单已解决: :title', ['title' => $ticket->title]),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket resolved", ["error" => $e->getMessage()]);
@@ -228,7 +230,7 @@ class TicketBoard extends Component
     public function close(): void // [REVIEW-FIX] M3: 空值防御
     {
         if (!auth()->user()->can('manage tickets')) {
-            session()->flash('error', '没有工单管理权限');
+            session()->flash('error', __('没有工单管理权限'));
             return;
         }
         if (!$this->closingTicketId) return;
@@ -236,11 +238,11 @@ class TicketBoard extends Component
         if ($ticket->status !== 'resolved') return;
 
         if (empty(trim($this->closeNote))) {
-            session()->flash('ticket_error', '请填写处理过程总结再关闭工单');
+            session()->flash('ticket_error', __('请填写处理过程总结再关闭工单'));
             return;
         }
 
-        TicketComment::create(['ticket_id'=>$this->closingTicketId, 'user_id'=>auth()->id(), 'content'=>'关闭工单: '.trim($this->closeNote)]);
+        TicketComment::create(['ticket_id'=>$this->closingTicketId, 'user_id'=>auth()->id(), 'content'=>__('关闭工单: :note', ['note' => trim($this->closeNote)])]);
         // [REVIEW-FIX] CONSIST-1: 使用状态机方法
         $ticket->transitionToClosed();
 
@@ -251,7 +253,7 @@ class TicketBoard extends Component
                 'project_title' => $ticket->title,
                 'task_title' => $ticket->title,
                 'user_name' => auth()->user()->name,
-                'message' => "工单已关闭 #{$this->closingTicketId}: {$ticket->title}",
+                'message' => __('工单已关闭 #:id: :title', ['id' => $this->closingTicketId, 'title' => $ticket->title]),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Webhook failed: ticket closed", ["error" => $e->getMessage()]);
@@ -260,7 +262,7 @@ class TicketBoard extends Component
         $this->showCloseConfirm = false;
         $this->closingTicketId = null;
         $this->closeNote = '';
-        session()->flash('ticket_msg', '工单已关闭');
+        session()->flash('ticket_msg', __('工单已关闭'));
     }
 
     public function addComment(int $id): void
@@ -269,7 +271,7 @@ class TicketBoard extends Component
         // [REVIEW-FIX] C2: 评论权限 — 仅工单相关人员或管理员可评论
         $ticket = Ticket::findOrFail($id);
         if ($ticket->created_by != auth()->id() && $ticket->assigned_to != auth()->id() && !auth()->user()->can('manage tickets')) {
-            session()->flash('error', '只能对自己创建或负责的工单添加评论');
+            session()->flash('error', __('只能对自己创建或负责的工单添加评论'));
             return;
         }
         TicketComment::create(['ticket_id'=>$id,'user_id'=>auth()->id(),'content'=>trim($this->newComment)]);
@@ -281,7 +283,7 @@ class TicketBoard extends Component
         $t = Ticket::findOrFail($id);
         // [REVIEW-FIX] SP4.2: 编辑前检查所有权 — 防止非所有者窥探他人工单数据
         if ($t->created_by != auth()->id() && !auth()->user()->can('manage tickets')) {
-            session()->flash('error', '只能编辑自己创建的工单');
+            session()->flash('error', __('只能编辑自己创建的工单'));
             return;
         }
         $this->editingId=$id; $this->formTitle=$t->title; $this->formDescription=$t->description??'';
@@ -305,17 +307,17 @@ class TicketBoard extends Component
         $ticket = Ticket::findOrFail($id);
         // [REVIEW-FIX] C2: 删除权限 — 明确反馈而非静默返回
         if ($ticket->created_by != auth()->id() && !auth()->user()->can('manage tickets')) {
-            session()->flash('error', '只能删除自己创建的工单');
+            session()->flash('error', __('只能删除自己创建的工单'));
             return;
         }
         // [REVIEW-FIX] C3: 使用状态机检查 — 不允许删除已关闭的工单
         if ($ticket->status === Ticket::STATUS_CLOSED) {
-            session()->flash('error', '已关闭的工单不可删除，请归档处理');
+            session()->flash('error', __('已关闭的工单不可删除，请归档处理'));
             return;
         }
         $ticket->delete();
         \App\View\Composers\SidebarComposer::flushForUser(auth()->id());
-        session()->flash('success', '工单已删除');
+        session()->flash('success', __('工单已删除'));
     }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formDescription','formType','formPriority','formSource','formProjectId','formRegionId','formCategoryId','formAssetId','formAssignedTo','formIsProxy','formReportedFor']); $this->formType='request'; $this->formPriority='medium'; $this->formSource='portal'; $this->suggestedEngineers=[]; $this->formIsProxy=false; $this->formReportedFor=''; }
 
@@ -330,6 +332,6 @@ class TicketBoard extends Component
         $viewTicket = $this->viewTicketId ? Ticket::with('comments.user')->find($this->viewTicketId) : null;
         $openCount = Ticket::whereIn('status',['open','in_progress'])->count();
         return view('livewire.itsm.tickets', compact('tickets','projects','assets','users','regions','categories','viewTicket','openCount'))
-            ->layout('layouts.app', ['title' => '工单管理']);
+            ->layout('layouts.app', ['title' => __('工单管理')]);
     }
 }

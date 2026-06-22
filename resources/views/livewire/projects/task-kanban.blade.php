@@ -1,7 +1,7 @@
 <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
     <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">任务看板</h3>
-        <a href="{{ route('projects.show', $project) }}" class="text-xs text-zinc-400 hover:text-sky-500">列表视图</a>
+        <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('任务看板') }}</h3>
+        <a href="{{ route('projects.show', $project) }}" class="text-xs text-zinc-400 hover:text-sky-500">{{ __('列表视图') }}</a>
     </div>
 
     @if(session('task_error'))
@@ -40,7 +40,7 @@
                         @if($task->assignee)
                         <span class="text-xs text-zinc-500">{{ $task->assignee->name }}</span>
                         @else
-                        <span class="text-xs text-zinc-400">待认领</span>
+                        <span class="text-xs text-zinc-400">{{ __('待认领') }}</span>
                         @endif
                     </div>
 
@@ -50,7 +50,7 @@
 
                     @if($task->due_date)
                     <p class="text-xs {{ $task->due_date->isPast() && $task->status !== 'completed' ? 'text-red-500' : 'text-zinc-400' }} mb-2">
-                        {{ $task->due_date->format('m/d') }} 截止
+                        {{ $task->due_date->format('m/d') }} {{ __('截止') }}
                     </p>
                     @endif
 
@@ -59,32 +59,32 @@
                         @if($col['key'] === 'pending_confirmation')
                         <button wire:click="moveTask({{ $task->id }}, 'in_progress')"
                             class="flex-1 px-2 py-1 text-xs text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded transition-colors">
-                            → 进行中
+                            {{ __('→ 进行中') }}
                         </button>
                         <button wire:click="moveTask({{ $task->id }}, 'completed')"
                             class="flex-1 px-2 py-1 text-xs text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded transition-colors">
-                            → 完成
+                            {{ __('→ 完成') }}
                         </button>
                         @elseif($col['key'] === 'in_progress')
                         <button wire:click="moveTask({{ $task->id }}, 'pending_confirmation')"
                             class="flex-1 px-2 py-1 text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded transition-colors">
-                            ← 退回
+                            {{ __('← 退回') }}
                         </button>
                         <button wire:click="moveTask({{ $task->id }}, 'completed')"
                             class="flex-1 px-2 py-1 text-xs text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded transition-colors">
-                            → 完成
+                            {{ __('→ 完成') }}
                         </button>
                         @else
                         <button wire:click="moveTask({{ $task->id }}, 'in_progress')"
                             class="flex-1 px-2 py-1 text-xs text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded transition-colors">
-                            ← 重开
+                            {{ __('← 重开') }}
                         </button>
                         @endif
                     </div>
                 </div>
                 @empty
                 <div class="text-center py-6 text-xs text-zinc-400">
-                    暂无
+                    {{ __('暂无') }}
                 </div>
                 @endforelse
             </div>

@@ -4,10 +4,10 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         @php
         $cards = [
-            ['label'=>'项目总数','value'=>$stats['total'],'color'=>'sky','icon'=>'M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z'],
-            ['label'=>'进行中','value'=>$stats['in_progress'],'color'=>'violet','icon'=>'M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z'],
-            ['label'=>'已完成','value'=>$stats['completed'],'color'=>'green','icon'=>'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-            ['label'=>'已逾期','value'=>$stats['overdue'],'color'=>'red','icon'=>'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z'],
+            ['label'=>__('项目总数'),'value'=>$stats['total'],'color'=>'sky','icon'=>'M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z'],
+            ['label'=>__('进行中'),'value'=>$stats['in_progress'],'color'=>'violet','icon'=>'M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z'],
+            ['label'=>__('已完成'),'value'=>$stats['completed'],'color'=>'green','icon'=>'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+            ['label'=>__('已逾期'),'value'=>$stats['overdue'],'color'=>'red','icon'=>'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z'],
         ];
         @endphp
 
@@ -32,9 +32,9 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         @php
         $taskCards = [
-            ['label'=>'我的任务','value'=>$taskStats['my_total'],'color'=>'sky','sub'=>'已完成 '.$taskStats['my_completed']],
-            ['label'=>'待确认','value'=>$taskStats['my_pending'],'color'=>'amber','sub'=>'需要我确认的任务'],
-            ['label'=>'待审批','value'=>$taskStats['app_pending'],'color'=>'violet','sub'=>'加入申请'],
+            ['label'=>__('我的任务'),'value'=>$taskStats['my_total'],'color'=>'sky','sub'=>__('已完成').' '.$taskStats['my_completed']],
+            ['label'=>__('待确认'),'value'=>$taskStats['my_pending'],'color'=>'amber','sub'=>__('需要我确认的任务')],
+            ['label'=>__('待审批'),'value'=>$taskStats['app_pending'],'color'=>'violet','sub'=>__('加入申请')],
         ];
         @endphp
         @foreach($taskCards as $card)
@@ -51,13 +51,13 @@
         {{-- 待确认任务 --}}
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
             <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">
-                待确认的任务
+                {{ __('待确认的任务') }}
                 @if($pendingTasks->isNotEmpty())
                 <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-xs">{{ $pendingTasks->count() }}</span>
                 @endif
             </h2>
             @if($pendingTasks->isEmpty())
-            <p class="text-xs text-zinc-400 text-center py-4">暂无待确认任务 ✓</p>
+            <p class="text-xs text-zinc-400 text-center py-4">{{ __('暂无待确认任务') }} ✓</p>
             @else
             <div class="space-y-2">
                 @foreach($pendingTasks as $task)
@@ -75,9 +75,9 @@
 
         {{-- 我的进行中任务 --}}
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">我的任务 (进行中)</h2>
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">{{ __('我的任务 (进行中)') }}</h2>
             @if($myTasks->isEmpty())
-            <p class="text-xs text-zinc-400 text-center py-4">暂无进行中任务</p>
+            <p class="text-xs text-zinc-400 text-center py-4">{{ __('暂无进行中任务') }}</p>
             @else
             <div class="space-y-2">
                 @foreach($myTasks as $task)
@@ -96,13 +96,13 @@
         {{-- 待审批申请 --}}
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
             <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">
-                待审批的加入申请
+                {{ __('待审批的加入申请') }}
                 @if($pendingApplications->isNotEmpty())
                 <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-500 text-white text-xs">{{ $pendingApplications->count() }}</span>
                 @endif
             </h2>
             @if($pendingApplications->isEmpty())
-            <p class="text-xs text-zinc-400 text-center py-4">暂无待审批申请</p>
+            <p class="text-xs text-zinc-400 text-center py-4">{{ __('暂无待审批申请') }}</p>
             @else
             <div class="space-y-2">
                 @foreach($pendingApplications as $app)
@@ -114,7 +114,7 @@
                         <p class="text-sm text-zinc-800 dark:text-zinc-200 truncate">{{ $app->user->name }}</p>
                         <p class="text-xs text-zinc-500">{{ $app->project->title }}</p>
                     </div>
-                    <a href="{{ route('projects.show', $app->project) }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline shrink-0">去处理</a>
+                    <a href="{{ route('projects.show', $app->project) }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline shrink-0">{{ __('去处理') }}</a>
                 </div>
                 @endforeach
             </div>
@@ -127,12 +127,12 @@
         {{-- 即将到期 --}}
         <div class="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">即将到期（7天内）</h2>
-                <a href="{{ route('projects.index') }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline">查看全部</a>
+                <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('即将到期（7天内）') }}</h2>
+                <a href="{{ route('projects.index') }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline">{{ __('查看全部') }}</a>
             </div>
 
             @if($upcomingDeadlines->isEmpty())
-            <div class="text-center py-8 text-zinc-400 text-sm">暂无即将到期的项目 ✓</div>
+            <div class="text-center py-8 text-zinc-400 text-sm">{{ __('暂无即将到期的项目') }} ✓</div>
             @else
             <div class="space-y-2">
                 @foreach($upcomingDeadlines as $p)
@@ -151,7 +151,7 @@
 
         {{-- 分类分布 --}}
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">分类分布</h2>
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">{{ __('分类分布') }}</h2>
             <div class="space-y-3">
                 @foreach($byCategory->where('count','>',0) as $cat)
                 <div>
@@ -166,7 +166,7 @@
                 </div>
                 @endforeach
                 @if($byCategory->where('count','>',0)->isEmpty())
-                <p class="text-xs text-zinc-400 text-center py-4">暂无数据</p>
+                <p class="text-xs text-zinc-400 text-center py-4">{{ __('暂无数据') }}</p>
                 @endif
             </div>
         </div>
@@ -174,9 +174,9 @@
 
     {{-- 最近动态 --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-        <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">最近操作动态</h2>
+        <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">{{ __('最近操作动态') }}</h2>
         @if($recentLogs->isEmpty())
-        <p class="text-center text-sm text-zinc-400 py-6">暂无操作记录</p>
+        <p class="text-center text-sm text-zinc-400 py-6">{{ __('暂无操作记录') }}</p>
         @else
         <div class="space-y-3">
             @foreach($recentLogs as $log)
@@ -186,7 +186,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm text-zinc-800 dark:text-zinc-200">
-                        <span class="font-medium">{{ $log->user?->name ?? '未知用户' }}</span>
+                        <span class="font-medium">{{ $log->user?->name ?? __('未知用户') }}</span>
                         <span class="text-zinc-500">{{ $log->actionLabel }}</span>
                         <a href="{{ route('projects.show', $log->project_id) }}" class="font-medium text-sky-600 dark:text-sky-400 hover:underline">
                             {{ $log->project?->title ?? '#' . $log->project_id }}

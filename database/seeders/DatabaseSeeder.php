@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\ProjectCategory;
+use App\Models\Region;
+use App\Models\Sla;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -140,6 +142,34 @@ class DatabaseSeeder extends Seeder
                 ['name' => $cat['name']],
                 array_merge($cat, ['sort_order' => $i + 1])
             );
+        }
+
+        // ── 6. 创建地区 ──────────────────────────────────────
+        // [REVIEW-FIX-R4 #2 P2] 补充缺失的 Region Seeder：
+        // 原 Seeder 未创建地区数据，但 TicketBoard/MyTickets 的 formRegionId 验证规则为
+        // 'required|exists:regions,id' → 新部署的系统工单表单无法提交（无地区可选）。
+        // 补充杭州/深圳双地区，与 yanmade.com 实际两地办公一致。
+        $regions = [
+            ['name' => '杭州', 'sort_order' => 1],
+            ['name' => '深圳', 'sort_order' => 2],
+        ];
+        foreach ($regions as $region) {
+            Region::firstOrCreate(['name' => $region['name']], $region);
+        }
+
+        // ── 7. 创建 SLA 初始数据 ─────────────────────────────
+        // [REVIEW-FIX-R4 #3 P1] 补充缺失的 SLA Seeder：
+        // 原 Seeder 未创建 SLA 数据，Sla::getDeadline() 查询无匹配记录时返回 null，
+        // 导致所有工单的 sla_deadline 为 null → SLA 违约检测 (isSlaBreached) 永远为 false，
+        // 工单超时监控完全失效。补充 4 个优先级的默认 SLA 配置。
+        $slas = [
+            ['name' => '低优先级 SLA', 'priority' => 'low',      'response_minutes' => 480,  'resolution_minutes' => 2880, 'is_active' => true],  // 响应8h, 解决2天
+            ['name' => '中优先级 SLA', 'priority' => 'medium',   'response_minutes' => 240,  'resolution_minutes' => 1440, 'is_active' => true],  // 响应4h, 解决1天
+            ['name' => '高优先级 SLA', 'priority' => 'high',     'response_minutes' => 60,   'resolution_minutes' => 480,  'is_active' => true],  // 响应1h, 解决8h
+            ['name' => '紧急 SLA',     'priority' => 'critical', 'response_minutes' => 15,   'resolution_minutes' => 120,  'is_active' => true],  // 响应15min, 解决2h
+        ];
+        foreach ($slas as $sla) {
+            Sla::firstOrCreate(['priority' => $sla['priority']], $sla);
         }
 
         $this->command->info('✅ 初始数据创建完成！');

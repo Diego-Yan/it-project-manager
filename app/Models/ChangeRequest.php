@@ -31,12 +31,12 @@ class ChangeRequest extends Model
 
     public function getTypeLabelAttribute(): string
     {
-        return match($this->type) { 'release'=>'发布','config'=>'配置变更','rollback'=>'回滚','hotfix'=>'紧急修复', default=>'未知' };
+        return match($this->type) { 'release'=>__('发布'),'config'=>__('配置变更'),'rollback'=>__('回滚'),'hotfix'=>__('紧急修复'), default=>__('未知') };
     }
 
     public function getRiskLabelAttribute(): string
     {
-        return match($this->risk) { 'low'=>'低','medium'=>'中','high'=>'高','critical'=>'严重', default=>'未知' };
+        return match($this->risk) { 'low'=>__('低'),'medium'=>__('中'),'high'=>__('高'),'critical'=>__('严重'), default=>__('未知') };
     }
 
     public function getRiskColorAttribute(): string
@@ -47,8 +47,8 @@ class ChangeRequest extends Model
     public function getStatusLabelAttribute(): string
     {
         return match($this->status) {
-            'draft'=>'草稿','pending_approval'=>'待审批','approved'=>'已批准','rejected'=>'已拒绝',
-            'in_progress'=>'执行中','completed'=>'已完成','rolled_back'=>'已回滚', default=>'未知'
+            'draft'=>__('草稿'),'pending_approval'=>__('待审批'),'approved'=>__('已批准'),'rejected'=>__('已拒绝'),
+            'in_progress'=>__('执行中'),'completed'=>__('已完成'),'rolled_back'=>__('已回滚'), default=>__('未知')
         };
     }
 }

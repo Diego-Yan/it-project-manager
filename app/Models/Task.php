@@ -71,10 +71,10 @@ class Task extends Model
     public function getStatusLabelAttribute(): string
     {
         return match($this->status) {
-            'pending_confirmation' => '待确认',
-            'in_progress'          => '进行中',
-            'completed'            => '已完成',
-            default                => '未知',
+            'pending_confirmation' => __('待确认'),
+            'in_progress'          => __('进行中'),
+            'completed'            => __('已完成'),
+            default                => __('未知'),
         };
     }
 
@@ -91,10 +91,10 @@ class Task extends Model
     public function getPriorityLabelAttribute(): string
     {
         return match($this->priority) {
-            'not_urgent' => '不紧急',
-            'normal'     => '一般',
-            'urgent'     => '紧急',
-            default      => '未知',
+            'not_urgent' => __('不紧急'),
+            'normal'     => __('一般'),
+            'urgent'     => __('紧急'),
+            default      => __('未知'),
         };
     }
 

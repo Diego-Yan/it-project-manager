@@ -34,9 +34,13 @@ class Project extends Model
     public const PROGRESS_PAUSED     = 'paused';
     public const PROGRESS_COMPLETED  = 'completed';
 
-    public const TYPE_NEW       = 'new';
-    public const TYPE_MAINTENANCE = 'maintenance';
-    public const TYPE_UPGRADE   = 'upgrade';
+    // [REVIEW-FIX-R2 #5 P3] 修正 type 常量与实际使用值一致：
+    // 原常量定义为 TYPE_MAINTENANCE='maintenance'/TYPE_UPGRADE='upgrade'，但验证规则
+    // (ProjectForm rules)、getTypeLabelAttribute、getTypeColorAttribute 实际使用 'new/improved/issue'。
+    // 误导性死代码可能导致开发者误用。现修正为与实际一致的值。
+    public const TYPE_NEW      = 'new';
+    public const TYPE_IMPROVED = 'improved';
+    public const TYPE_ISSUE    = 'issue';
 
     public const URGENCY_NORMAL = 'normal';
     public const URGENCY_URGENT = 'urgent';
@@ -189,11 +193,11 @@ class Project extends Model
     public function getProgressLabelAttribute(): string
     {
         return match($this->progress) {
-            'pending'     => '未开始',
-            'in_progress' => '进行中',
-            'paused'      => '已暂停',
-            'completed'   => '已完成',
-            default       => '未知',
+            'pending'     => __('未开始'),
+            'in_progress' => __('进行中'),
+            'paused'      => __('已暂停'),
+            'completed'   => __('已完成'),
+            default       => __('未知'),
         };
     }
 
@@ -211,10 +215,10 @@ class Project extends Model
     public function getTypeLabelAttribute(): string
     {
         return match($this->type) {
-            'new'      => '新增',
-            'improved' => '改善',
-            'issue'    => '异常',
-            default    => '未知',
+            'new'      => __('新增'),
+            'improved' => __('改善'),
+            'issue'    => __('异常'),
+            default    => __('未知'),
         };
     }
 
@@ -231,10 +235,10 @@ class Project extends Model
     public function getUrgencyLabelAttribute(): string
     {
         return match($this->urgency) {
-            'not_urgent' => '不紧急',
-            'normal'     => '一般',
-            'urgent'     => '紧急',
-            default      => '未知',
+            'not_urgent' => __('不紧急'),
+            'normal'     => __('一般'),
+            'urgent'     => __('紧急'),
+            default      => __('未知'),
         };
     }
 
@@ -251,10 +255,10 @@ class Project extends Model
     public function getImportanceLabelAttribute(): string
     {
         return match($this->importance) {
-            'normal'        => '一般',
-            'important'     => '重要',
-            'very_important'=> '非常重要',
-            default         => '未知',
+            'normal'        => __('一般'),
+            'important'     => __('重要'),
+            'very_important'=> __('非常重要'),
+            default         => __('未知'),
         };
     }
 

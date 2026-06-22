@@ -46,7 +46,17 @@ class SendWebhookNotification implements ShouldQueue
             })
             ->get();
 
+        // [REVIEW-FIX-R3 #4 P3] 修复 webhook 失败无法触发重试/管理员通知：
+        // 原 handle() 中单个 webhook 失败被 try/catch 吞掉且只记 warning 日志，
+        // 导致 Job 永远"成功"完成 → failed() 方法（管理员通知）永远不会被触发，
+        // $tries=3 重试机制也形同虚设。
+        // 修复：用 $failures 计数器收集失败，若全部失败则抛出异常触发重试和 failed() 回调。
+        $failures = [];
+        $successCount = 0;
+
         foreach ($webhooks as $webhook) {
+            if ($webhooks->isEmpty()) break;
+
             $body = match ($webhook->type) {
                 'wechat'   => $this->formatWechat($payload),
                 'dingtalk' => $this->formatDingTalk($payload),
@@ -55,11 +65,26 @@ class SendWebhookNotification implements ShouldQueue
 
             // [REVIEW-FIX] R16.4: 单个 webhook 失败不阻塞其余投递
             try {
-                Http::timeout(10)->post($webhook->url, $body);
-                Log::info("Webhook sent: {$webhook->name} event={$this->event}");
+                $resp = Http::timeout(10)->post($webhook->url, $body);
+                if ($resp->successful()) {
+                    $successCount++;
+                    Log::info("Webhook sent: {$webhook->name} event={$this->event}");
+                } else {
+                    $failures[] = "{$webhook->name} (HTTP {$resp->status()})";
+                    Log::warning("Webhook HTTP error: {$webhook->name} event={$this->event}, status={$resp->status()}");
+                }
             } catch (\Throwable $e) {
+                $failures[] = "{$webhook->name} ({$e->getMessage()})";
                 Log::warning("Webhook failed: {$webhook->name} event={$this->event}, error=" . $e->getMessage());
             }
+        }
+
+        // [REVIEW-FIX-R3 #4 P3] 全部 webhook 投递失败时抛出异常，触发 $tries 重试 + failed() 管理员通知。
+        // 部分成功时不抛出（已投递成功的 webhook 不应重复投递）。
+        if (!empty($failures) && $successCount === 0) {
+            throw new \RuntimeException(
+                "All webhook deliveries failed for event={$this->event}: " . implode('; ', $failures)
+            );
         }
     }
 
@@ -95,23 +120,23 @@ class SendWebhookNotification implements ShouldQueue
         $lines[] = '';
 
         if (!empty($p['project_title'])) {
-            $lines[] = "**项目**: {$p['project_title']}";
+            $lines[] = "**" . __('项目') . "**: {$p['project_title']}";
         }
         if (!empty($p['task_title'])) {
-            $lines[] = "**任务**: {$p['task_title']}";
+            $lines[] = "**" . __('任务') . "**: {$p['task_title']}";
         }
         if (!empty($p['user_name'])) {
-            $lines[] = "**操作人**: {$p['user_name']}";
+            $lines[] = "**" . __('操作人') . "**: {$p['user_name']}";
         }
         if (!empty($p['assignee_name'])) {
-            $lines[] = "**分配给**: {$p['assignee_name']}";
+            $lines[] = "**" . __('分配给') . "**: {$p['assignee_name']}";
         }
         if (!empty($p['message'])) {
             $lines[] = '';
             $lines[] = $p['message'];
         }
         if (!empty($p['status_from']) && !empty($p['status_to'])) {
-            $lines[] = "**状态**: {$p['status_from']} → {$p['status_to']}";
+            $lines[] = "**" . __('状态') . "**: {$p['status_from']} → {$p['status_to']}";
         }
         if (!empty($p['comment'])) {
             $lines[] = "> {$p['comment']}";
@@ -120,7 +145,7 @@ class SendWebhookNotification implements ShouldQueue
         $lines[] = '';
         $lines[] = '---';
         $lines[] = '📅 ' . ($p['timestamp'] ?? now()->toDateTimeString());
-        $lines[] = '🤖 IT服务管理系统';
+        $lines[] = '🤖 ' . config('app.name', 'IT 服务管理');
 
         return implode("\n", $lines);
     }
@@ -128,24 +153,24 @@ class SendWebhookNotification implements ShouldQueue
     private function eventTitle(string $event): string
     {
         return match ($event) {
-            'project.created'        => '📁 项目已创建',
-            'project.updated'        => '📝 项目已更新',
-            'project.completed'      => '✅ 项目已完成',
-            'project.deadline_near'  => '⏰ 项目即将到期',
-            'project.overdue'        => '🚨 项目已逾期',
-            'task.assigned'          => '📋 新任务已分配',
-            'task.confirmed'         => '✔️ 任务已确认',
-            'task.completed'         => '✅ 任务已完成',
-            'task.unassigned'        => '🔄 任务待认领',
-            'task.deadline_near'     => '⏰ 任务即将到期',
-            'member.joined'          => '👤 新成员加入',
-            'application.submitted'  => '📨 新的加入申请',
-            'ticket.created'         => '🎫 工单已创建',
-            'ticket.assigned'        => '👤 工单已分配',
-            'ticket.resolved'        => '✅ 工单已解决',
-            'ticket.closed'          => '🔒 工单已关闭',
-            'ticket.proxy_created'   => '📋 代填工单已创建',
-            'daily.digest'           => '📊 每日项目概报',
+            'project.created'        => __('📁 项目已创建'),
+            'project.updated'        => __('📝 项目已更新'),
+            'project.completed'      => __('✅ 项目已完成'),
+            'project.deadline_near'  => __('⏰ 项目即将到期'),
+            'project.overdue'        => __('🚨 项目已逾期'),
+            'task.assigned'          => __('📋 新任务已分配'),
+            'task.confirmed'         => __('✔️ 任务已确认'),
+            'task.completed'         => __('✅ 任务已完成'),
+            'task.unassigned'        => __('🔄 任务待认领'),
+            'task.deadline_near'     => __('⏰ 任务即将到期'),
+            'member.joined'          => __('👤 新成员加入'),
+            'application.submitted'  => __('📨 新的加入申请'),
+            'ticket.created'         => __('🎫 工单已创建'),
+            'ticket.assigned'        => __('👤 工单已分配'),
+            'ticket.resolved'        => __('✅ 工单已解决'),
+            'ticket.closed'          => __('🔒 工单已关闭'),
+            'ticket.proxy_created'   => __('📋 代填工单已创建'),
+            'daily.digest'           => __('📊 每日项目概报'),
             default                  => "🔔 {$event}",
         };
     }
@@ -165,8 +190,12 @@ class SendWebhookNotification implements ShouldQueue
             $adminIds = User::role('超级管理员')->pluck('id')->toArray();
             foreach ($adminIds as $uid) {
                 Notification::send($uid,
-                    'Webhook 投递失败',
-                    "事件 {$this->event} 在 {$this->tries} 次重试后仍然失败：{$e->getMessage()}",
+                    __('Webhook 投递失败'),
+                    __('事件 :event 在 :tries 次重试后仍然失败：:error', [
+                        'event' => $this->event,
+                        'tries' => $this->tries,
+                        'error' => $e->getMessage(),
+                    ]),
                     'error'
                 );
             }

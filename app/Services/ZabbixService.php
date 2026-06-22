@@ -81,13 +81,13 @@ class ZabbixService
     public static function severityLabel(int $severity): string
     {
         return match ($severity) {
-            0 => '未分类',
-            1 => '信息',
-            2 => '警告',
-            3 => '一般严重',
-            4 => '严重',
-            5 => '灾难',
-            default => '未知',
+            0 => __('未分类'),
+            1 => __('信息'),
+            2 => __('警告'),
+            3 => __('一般严重'),
+            4 => __('严重'),
+            5 => __('灾难'),
+            default => __('未知'),
         };
     }
 

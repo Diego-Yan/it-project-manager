@@ -23,16 +23,26 @@ class ServiceManager extends Component
     public string $formHealthUrl = '';
     public string $formTags = '';
 
+    // [REVIEW-FIX-R6 #1 equivalent] 补全 ServiceManager 缺失的验证规则：
+    // 原 rules 仅验证 formName/formType，但 save() 写入 DB 的字段包括
+    // formProjectId/formStatus/formDescription/formOwnerId/formHealthUrl/formTags。
+    // [REVIEW-FIX-R7 #1 P2] 补全剩余字段验证：
     protected $rules = [
-        'formName' => 'required|string|max:100',
-        'formType' => 'required|string',
+        'formName'        => 'required|string|max:100',
+        'formType'        => 'required|string|max:50',
+        'formProjectId'   => 'nullable|exists:projects,id',
+        'formStatus'      => 'required|in:healthy,degraded,down,maintenance,unknown',
+        'formDescription' => 'nullable|string|max:2000',
+        'formOwnerId'     => 'nullable|exists:users,id',
+        'formHealthUrl'   => 'nullable|url|max:500',
+        'formTags'        => 'nullable|string|max:500',
     ];
 
     public function save(): void
     {
         // [REVIEW-FIX] R12.2: 服务管理操作需权限检查
         if (!auth()->user()->can('manage assets')) {
-            session()->flash('error', '没有服务管理权限');
+            session()->flash('error', __('没有服务管理权限'));
             return;
         }
         $this->validate();
@@ -58,7 +68,7 @@ class ServiceManager extends Component
     public function edit(int $id): void
     {
         if (!auth()->user()->can('manage assets')) {
-            session()->flash('error', '没有服务管理权限');
+            session()->flash('error', __('没有服务管理权限'));
             return;
         }
         $s = Service::findOrFail($id);
@@ -75,13 +85,13 @@ class ServiceManager extends Component
     }
 
     public function delete(int $id): void {
-        if (!auth()->user()->can("manage assets")) { session()->flash("error", "没有删除权限"); return; }
+        if (!auth()->user()->can("manage assets")) { session()->flash("error", __("没有删除权限")); return; }
         // [REVIEW-FIX] N4: 删除服务前检查依赖关系
         $depCount = \App\Models\ServiceDependency::where('depends_on_id', $id)->count();
         $incidentCount = \App\Models\Incident::where('service_id', $id)->whereIn('status', ['open', 'investigating'])->count();
         $changeCount = \App\Models\ChangeRequest::where('service_id', $id)->whereNotIn('status', ['completed', 'rolled_back'])->count();
         if ($depCount > 0 || $incidentCount > 0 || $changeCount > 0) {
-            session()->flash("error", "该服务被 {$depCount} 个服务依赖，有 {$incidentCount} 个活跃故障，{$changeCount} 个进行中变更，不能删除。");
+            session()->flash("error", __("该服务被 :depCount 个服务依赖，有 :incidentCount 个活跃故障，:changeCount 个进行中变更，不能删除。", ['depCount' => $depCount, 'incidentCount' => $incidentCount, 'changeCount' => $changeCount]));
             return;
         }
         Service::findOrFail($id)->delete();
@@ -100,6 +110,6 @@ class ServiceManager extends Component
         $projects = Project::orderBy('title')->get(['id','title']);
         $users = User::where('is_active', true)->orderBy('name')->get(['id','name']);
         return view('livewire.itsm.services', compact('services','projects','users'))
-            ->layout('layouts.app', ['title' => '服务目录']);
+            ->layout('layouts.app', ['title' => __('服务目录')]);
     }
 }

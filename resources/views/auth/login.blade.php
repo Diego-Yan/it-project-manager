@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - IT服务管理</title>
+    <title>{{ __('登录 - IT服务管理') }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -190,8 +190,8 @@
             @if($logoUrl)
             <div style="margin-bottom:12px"><img src="{{ $logoUrl }}" style="height:48px;max-width:100%"></div>
             @endif
-            <h1>IT服务管理</h1>
-            <p>V1.3 - 企业IT服务管理平台</p>
+            <h1>{{ __('IT服务管理') }}</h1>
+            <p>{{ __('V1.3 - 企业IT服务管理平台') }}</p>
         </div>
 
         <div class="login-body">
@@ -199,10 +199,10 @@
             <div class="login-tab">
                 <button id="tab-local"
                     class="{{ $loginMode === 'ad' ? '' : 'active' }}"
-                    onclick="switchTab('local')">本地账号</button>
+                    onclick="switchTab('local')">{{ __('本地账号') }}</button>
                 <button id="tab-ad"
                     class="{{ $loginMode === 'ad' ? 'active' : '' }}"
-                    onclick="switchTab('ad')">AD 域账号</button>
+                    onclick="switchTab('ad')">{{ __('AD 域账号') }}</button>
             </div>
 
             {{-- 错误提示 --}}
@@ -223,32 +223,32 @@
                 <input type="hidden" name="ad_login" id="ad_login" value="{{ $loginMode === 'ad' ? '1' : '0' }}">
 
                 <div class="form-group">
-                    <label for="username">{{ $loginMode === 'ad' ? 'AD 用户名' : '用户名 / 邮箱' }}</label>
+                    <label for="username">{{ $loginMode === 'ad' ? __('AD 用户名') : __('用户名 / 邮箱') }}</label>
                     <input
                         type="text"
                         id="username"
                         name="username"
                         value="{{ old('username') }}"
-                        placeholder="{{ $loginMode === 'ad' ? '例如: zhangsan' : '输入用户名或邮箱' }}"
+                        placeholder="{{ $loginMode === 'ad' ? __('例如: zhangsan') : __('输入用户名或邮箱') }}"
                         required
                         autofocus>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">密码</label>
+                    <label for="password">{{ __('密码') }}</label>
                     <input
                         type="password"
                         id="password"
                         name="password"
                         autocomplete="current-password"
-                        placeholder="{{ $loginMode === 'ad' ? 'AD 域密码' : '输入登录密码' }}"
+                        placeholder="{{ $loginMode === 'ad' ? __('AD 域密码') : __('输入登录密码') }}"
                         required>
                 </div>
 
                 <div class="login-options">
                     <label class="remember-me">
                         <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                        记住我
+                        {{ __('记住我') }}
                     </label>
 
                     @if($loginMode === 'ad')
@@ -256,27 +256,27 @@
                             <svg style="width:14px;height:14px;margin-right:4px;" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            AD 域认证
+                            {{ __('AD 域认证') }}
                         </div>
                     @endif
                 </div>
 
                 <button wire:loading.attr="disabled" wire:loading.class="opacity-70" type="submit" class="login-btn">
-                    {{ $loginMode === 'ad' ? 'AD 域登录' : '登录' }}
+                    {{ $loginMode === 'ad' ? __('AD 域登录') : __('登录') }}
                 </button>
             </form>
         </div>
     </div>
 
-    <div class="version-badge">ITSM v1.3 // [REVIEW-FIX] P2.10: 版本号与 VERSION.md 保持一致</div>
+    <div class="version-badge">{{ __('ITSM v1.3 // [REVIEW-FIX] P2.10: 版本号与 VERSION.md 保持一致') }}</div>
 
     <script>
         function switchTab(mode) {
             document.getElementById('tab-local').classList.toggle('active', mode === 'local');
             document.getElementById('tab-ad').classList.toggle('active', mode === 'ad');
             document.getElementById('ad_login').value = mode === 'ad' ? 1 : 0;
-            document.getElementById('username').placeholder = mode === 'ad' ? '例如: zhangsan' : '输入用户名或邮箱';
-            document.getElementById('password').placeholder = mode === 'ad' ? 'AD 域密码' : '输入登录密码';
+            document.getElementById('username').placeholder = mode === 'ad' ? '{{ __('例如: zhangsan') }}' : '{{ __('输入用户名或邮箱') }}';
+            document.getElementById('password').placeholder = mode === 'ad' ? '{{ __('AD 域密码') }}' : '{{ __('输入登录密码') }}';
             window.location.href = '{{ route('login') }}?mode=' + mode;
         }
     </script>

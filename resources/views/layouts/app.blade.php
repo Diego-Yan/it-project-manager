@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     x-data="{ sidebarOpen: false, theme: 'system' }"
     x-init="
         const el = $el;
@@ -74,13 +74,16 @@
                 @endisset
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 {{-- 通知中心 --}}
                 @livewire(\App\Livewire\NotificationBell::class)
 
+                {{-- 语言切换 --}}
+                @livewire(\App\Livewire\LanguageSwitcher::class)
+
                 {{-- 主题切换: light → dark → system --}}
                 <button @click="theme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'"
-                    :title="{ light: '浅色', dark: '深色', system: '跟随系统' }[theme]"
+                    :title="{ light: '{{ __('浅色') }}', dark: '{{ __('深色') }}', system: '{{ __('跟随系统') }}' }[theme]"
                     class="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                     <svg x-show="theme === 'light'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/>
@@ -113,7 +116,7 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button wire:loading.attr="disabled" wire:loading.class="opacity-70" type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
-                                退出登录
+                                {{ __('退出登录') }}
                             </button>
                         </form>
                     </div>

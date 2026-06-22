@@ -2,7 +2,7 @@
 
     {{-- 顶部面包屑 --}}
     <div class="flex items-center gap-2 text-sm text-zinc-500">
-        <a href="{{ route('projects.index') }}" class="hover:text-sky-600 transition-colors">项目管理</a>
+        <a href="{{ route('projects.index') }}" class="hover:text-sky-600 transition-colors">{{ __('项目管理') }}</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
         <span class="text-zinc-900 dark:text-white truncate">{{ $project->title }}</span>
     </div>
@@ -29,10 +29,10 @@
                                 {{ $project->typeLabel }}
                             </span>
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-{{ $project->urgencyColor }}-100 dark:bg-{{ $project->urgencyColor }}-950/40 text-{{ $project->urgencyColor }}-700 dark:text-{{ $project->urgencyColor }}-400">
-                                紧急度: {{ $project->urgencyLabel }}
+                                {{ __('紧急度:') }} {{ $project->urgencyLabel }}
                             </span>
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-{{ $project->importanceColor }}-100 dark:bg-{{ $project->importanceColor }}-950/40 text-{{ $project->importanceColor }}-700 dark:text-{{ $project->importanceColor }}-400">
-                                重要性: {{ $project->importanceLabel }}
+                                {{ __('重要性:') }} {{ $project->importanceLabel }}
                             </span>
                         </div>
                         <h1 class="text-xl font-bold text-zinc-900 dark:text-white">{{ $project->title }}</h1>
@@ -44,7 +44,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                             </svg>
-                            看板
+                            {{ __('看板') }}
                         </a>
                         @if($this->canManageProject())
                         <a href="{{ route('projects.edit', $project) }}"
@@ -52,7 +52,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
                             </svg>
-                            编辑
+                            {{ __('编辑') }}
                         </a>
                         @endif
                     </div>
@@ -78,20 +78,20 @@
                 @if($project->description)
                 <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{{ $project->description }}</p>
                 @else
-                <p class="text-sm text-zinc-400 italic">暂无描述</p>
+                <p class="text-sm text-zinc-400 italic">{{ __('暂无描述') }}</p>
                 @endif
 
                 {{-- 快捷进度切换 --}}
                 <div class="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                    <p class="text-xs font-medium text-zinc-500 mb-2">快速切换进度</p>
+                    <p class="text-xs font-medium text-zinc-500 mb-2">{{ __('快速切换进度') }}</p>
                     <div class="flex flex-wrap gap-2">
-                        @foreach(['pending'=>'未开始','in_progress'=>'进行中','paused'=>'已暂停','completed'=>'已完成'] as $key => $label)
+                        @foreach(['pending'=>__('未开始'),'in_progress'=>__('进行中'),'paused'=>__('已暂停'),'completed'=>__('已完成')] as $key => $label)
                         <button wire:click="changeProgress('{{ $key }}')"
                             class="px-3 py-1.5 text-xs rounded-lg border transition-all
                                 {{ $project->progress === $key
                                     ? 'bg-sky-600 border-sky-600 text-white'
                                     : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-sky-400 dark:hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400' }}">
-                            {{ $label }}
+                            {{ __($label) }}
                         </button>
                         @endforeach
                     </div>
@@ -106,9 +106,9 @@
 
             {{-- 操作日志 --}}
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-                <h3 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">操作记录</h3>
+                <h3 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">{{ __('操作记录') }}</h3>
                 @if($project->logs->isEmpty())
-                <p class="text-center text-sm text-zinc-400 py-4">暂无操作记录</p>
+                <p class="text-center text-sm text-zinc-400 py-4">{{ __('暂无操作记录') }}</p>
                 @else
                 <div class="space-y-3">
                     @foreach($project->logs as $log)
@@ -138,30 +138,30 @@
 
             {{-- 项目信息 --}}
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-                <h3 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">项目信息</h3>
+                <h3 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">{{ __('项目信息') }}</h3>
                 <dl class="space-y-3">
                     <div>
-                        <dt class="text-xs text-zinc-500">创建人</dt>
+                        <dt class="text-xs text-zinc-500">{{ __('创建人') }}</dt>
                         <dd class="text-sm font-medium text-zinc-900 dark:text-white mt-0.5">{{ $project->creator?->name ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-zinc-500">负责人</dt>
-                        <dd class="text-sm font-medium text-zinc-900 dark:text-white mt-0.5">{{ $project->owner?->name ?? '未指定' }}</dd>
+                        <dt class="text-xs text-zinc-500">{{ __('负责人') }}</dt>
+                        <dd class="text-sm font-medium text-zinc-900 dark:text-white mt-0.5">{{ $project->owner?->name ?? __('未指定') }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-zinc-500">开始日期</dt>
-                        <dd class="text-sm font-medium text-zinc-900 dark:text-white mt-0.5">{{ $project->start_date?->format('Y-m-d') ?? '未设置' }}</dd>
+                        <dt class="text-xs text-zinc-500">{{ __('开始日期') }}</dt>
+                        <dd class="text-sm font-medium text-zinc-900 dark:text-white mt-0.5">{{ $project->start_date?->format('Y-m-d') ?? __('未设置') }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-zinc-500">计划完成</dt>
+                        <dt class="text-xs text-zinc-500">{{ __('计划完成') }}</dt>
                         <dd class="text-sm font-medium mt-0.5 {{ $project->isOverdue() ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-white' }}">
-                            {{ $project->end_date?->format('Y-m-d') ?? '未设置' }}
-                            @if($project->isOverdue()) <span class="text-xs">(已逾期)</span> @endif
+                            {{ $project->end_date?->format('Y-m-d') ?? __('未设置') }}
+                            @if($project->isOverdue()) <span class="text-xs">{{ __('(已逾期)') }}</span> @endif
                         </dd>
                     </div>
                     @if($project->remark)
                     <div>
-                        <dt class="text-xs text-zinc-500">备注</dt>
+                        <dt class="text-xs text-zinc-500">{{ __('备注') }}</dt>
                         <dd class="text-sm text-zinc-700 dark:text-zinc-300 mt-0.5">{{ $project->remark }}</dd>
                     </div>
                     @endif
@@ -176,10 +176,10 @@
             {{-- 项目成员 --}}
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">项目成员</h3>
+                    <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('项目成员') }}</h3>
                     @if($this->canManageProject())
                     <button type="button" wire:click="$set('showMemberModal', true)"
-                        class="px-3 py-1.5 text-xs font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/60 rounded-lg transition-colors">+ 添加</button>
+                        class="px-3 py-1.5 text-xs font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/60 rounded-lg transition-colors">{{ __('+ 添加') }}</button>
                     @endif
                 </div>
 
@@ -194,18 +194,18 @@
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ $member->name }}</p>
                             <p class="text-xs {{ $isLead ? 'text-sky-600 dark:text-sky-400 font-medium' : 'text-zinc-500' }}">
-                                {{ $isLead ? '负责人' : '成员' }}
+                                {{ $isLead ? __('负责人') : __('成员') }}
                             </p>
                         </div>
                         @if($canManage)
                         <div class="flex items-center gap-0.5 shrink-0">
                             @if($isLead)
-                            <button wire:click="demoteToMember({{ $member->id }})" wire:confirm="确定将 {{ $member->name }} 降级为成员？"
-                                class="text-xs text-zinc-400 hover:text-amber-500 p-1" title="降级为成员">↓</button>
+                            <button wire:click="demoteToMember({{ $member->id }})" wire:confirm="{{ __('确定将 :name 降级为成员？', ['name' => $member->name]) }}"
+                                class="text-xs text-zinc-400 hover:text-amber-500 p-1" title="{{ __('降级为成员') }}">↓</button>
                             @else
                             <button wire:click="promoteToLead({{ $member->id }})"
-                                class="text-xs text-zinc-400 hover:text-sky-500 p-1" title="提升为负责人">↑</button>
-                            <button wire:click="removeMember({{ $member->id }})" wire:confirm="确定将 {{ $member->name }} 移出项目？"
+                                class="text-xs text-zinc-400 hover:text-sky-500 p-1" title="{{ __('提升为负责人') }}">↑</button>
+                            <button wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('确定将 :name 移出项目？', ['name' => $member->name]) }}"
                                 class="text-zinc-400 hover:text-red-500 transition-colors p-1">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -216,7 +216,7 @@
                         @endif
                     </div>
                     @empty
-                    <p class="text-xs text-zinc-400">暂无成员</p>
+                    <p class="text-xs text-zinc-400">{{ __('暂无成员') }}</p>
                     @endforelse
                 </div>
             </div>
@@ -230,12 +230,12 @@
         wire:click="$set('showMemberModal', false)">
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 w-full max-w-sm shadow-2xl"
             wire:click.stop="">
-            <h3 class="text-base font-semibold text-zinc-900 dark:text-white mb-4">添加项目成员</h3>
+            <h3 class="text-base font-semibold text-zinc-900 dark:text-white mb-4">{{ __('添加项目成员') }}</h3>
             <div class="mb-3">
-                <label class="block text-xs font-medium text-zinc-500 mb-1.5">选择用户</label>
+                <label class="block text-xs font-medium text-zinc-500 mb-1.5">{{ __('选择用户') }}</label>
                 <select wire:model="selectedUserId"
                     class="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-sky-500 transition-colors">
-                    <option value="">— 请选择用户 —</option>
+                    <option value="">{{ __('— 请选择用户 —') }}</option>
                     @foreach($availableUsers as $u)
                     <option value="{{ $u->id }}">{{ $u->name }} @if($u->department) ({{ $u->department }}) @endif — {{ $u->username }}</option>
                     @endforeach
@@ -243,13 +243,13 @@
                 @error('selectedUserId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
             </div>
             @if($availableUsers->isEmpty())
-            <p class="text-xs text-zinc-400 mb-3">所有活跃用户已在此项目中。</p>
+            <p class="text-xs text-zinc-400 mb-3">{{ __('所有活跃用户已在此项目中。') }}</p>
             @endif
             <div class="flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showMemberModal', false)"
-                    class="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">取消</button>
+                    class="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">{{ __('取消') }}</button>
                 <button type="button" wire:click="addMember"
-                    class="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-500 rounded-xl transition-colors">确认添加</button>
+                    class="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-500 rounded-xl transition-colors">{{ __('确认添加') }}</button>
             </div>
         </div>
     </div>

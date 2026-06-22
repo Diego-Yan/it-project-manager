@@ -20,6 +20,17 @@ class TaskKanban extends Component
 
     public function mount(Project $project): void
     {
+        // [REVIEW-FIX-R6 #3 P2] IDOR 防护：与 ProjectDetail 一致，非管理员只能查看
+        // 自己创建或作为成员参与的项目看板。原 mount() 无访问控制，任意用户可通过
+        // 修改 URL 查看非成员项目的所有任务。
+        $user = auth()->user();
+        if (!$user->can('view all projects')) {
+            $isMember = $project->members()->where('user_id', $user->id)->exists()
+                || (int) $project->created_by === $user->id;
+            if (!$isMember) {
+                abort(403, __('无权访问此项目。'));
+            }
+        }
         $this->project = $project;
     }
 
@@ -35,14 +46,14 @@ class TaskKanban extends Component
             || $this->project->isLead($user->id);
 
         if (!$isAssignee && !$canManage) {
-            session()->flash('task_error', '只有任务分配人和项目负责人可以移动任务。');
+            session()->flash('task_error', __('只有任务分配人和项目负责人可以移动任务。'));
             return;
         }
 
         // [REVIEW-FIX] P0.3: 状态白名单校验，防止非法值写入
         $allowedStatuses = ['pending_confirmation', 'in_progress', 'completed'];
         if (!in_array($newStatus, $allowedStatuses)) {
-            session()->flash('task_error', '无效的任务状态。');
+            session()->flash('task_error', __('无效的任务状态。'));
             return;
         }
 
@@ -69,12 +80,12 @@ class TaskKanban extends Component
         $tasks = $this->project->tasks()->with('assignee')->get();
 
         $columns = [
-            ['key' => 'pending_confirmation', 'label' => '待确认', 'color' => 'amber'],
-            ['key' => 'in_progress',          'label' => '进行中', 'color' => 'sky'],
-            ['key' => 'completed',            'label' => '已完成', 'color' => 'green'],
+            ['key' => 'pending_confirmation', 'label' => __('待确认'), 'color' => 'amber'],
+            ['key' => 'in_progress',          'label' => __('进行中'), 'color' => 'sky'],
+            ['key' => 'completed',            'label' => __('已完成'), 'color' => 'green'],
         ];
 
         return view('livewire.projects.task-kanban', compact('tasks', 'columns'))
-            ->layout('layouts.app', ['title' => $this->project->title . ' - 看板']);
+            ->layout('layouts.app', ['title' => $this->project->title . ' - ' . __('看板')]);
     }
 }

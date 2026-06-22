@@ -21,17 +21,20 @@ class CategoryManager extends Component
         'color'       => 'required|in:red,orange,amber,yellow,green,cyan,sky,blue,indigo,violet,purple' // [REVIEW-FIX] R3.3: 颜色对齐 Seeder,
     ];
 
-    protected $messages = [
-        'name.required' => '请填写分类名称',
-        'type.required' => '请选择所属项目类型',
-    ];
+    protected function messages(): array
+    {
+        return [
+            'name.required' => __('请填写分类名称'),
+            'type.required' => __('请选择所属项目类型'),
+        ];
+    }
 
     public function save(): void
     {
         // [REVIEW-FIX] SP6.1: 根据操作类型检查对应权限 — 编辑用 edit，新建用 create
         $requiredPerm = $this->editingId ? 'edit categories' : 'create categories';
         if (!auth()->user()->can($requiredPerm)) {
-            session()->flash('error', '没有分类管理权限');
+            session()->flash('error', __('没有分类管理权限'));
             return;
         }
         $this->validate();
@@ -59,7 +62,7 @@ class CategoryManager extends Component
     public function edit(int $id): void
     {
         if (!auth()->user()->can('edit categories')) {
-            session()->flash('error', '没有分类编辑权限');
+            session()->flash('error', __('没有分类编辑权限'));
             return;
         }
         $cat = ProjectCategory::findOrFail($id);
@@ -77,7 +80,7 @@ class CategoryManager extends Component
 
         $cat = ProjectCategory::findOrFail($id);
         if ($cat->projects()->count() > 0) {
-            session()->flash('error', "分类「{$cat->name}」下有 {$cat->projects()->count()} 个项目，请先移走项目再删除分类。");
+            session()->flash('error', __('分类「:name」下有 :count 个项目，请先移走项目再删除分类。', ['name' => $cat->name, 'count' => $cat->projects()->count()]));
             return;
         }
         $cat->delete();
@@ -97,6 +100,6 @@ class CategoryManager extends Component
             ->get();
 
         return view('livewire.categories.category-manager', compact('opsCategories', 'devCategories'))
-            ->layout('layouts.app', ['title' => '项目分类']);
+            ->layout('layouts.app', ['title' => __('项目分类')]);
     }
 }

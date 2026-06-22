@@ -38,7 +38,12 @@ class Ticket extends Model
 
     protected function casts(): array
     {
-        return ['user_confirmed_at' => 'datetime', 'sla_deadline'=>'datetime','resolved_at'=>'datetime','closed_at'=>'datetime']; // [REVIEW-FIX] M2
+        return [
+            'user_confirmed_at' => 'datetime', 'sla_deadline'=>'datetime','resolved_at'=>'datetime','closed_at'=>'datetime',
+            // [REVIEW-FIX-R5 #1 P3] 使用 PHP 8.1 enum cast，集中管理优先级/状态枚举
+            'priority' => \App\Enums\TicketPriority::class,
+            'status'   => \App\Enums\TicketStatus::class,
+        ];
     }
 
     public function project(): BelongsTo { return $this->belongsTo(Project::class); }
@@ -51,13 +56,13 @@ class Ticket extends Model
     public function reportedFor(): BelongsTo { return $this->belongsTo(User::class,'reported_for'); }
     public function comments(): HasMany { return $this->hasMany(TicketComment::class)->latest(); }
 
-    public function getTypeLabelAttribute(): string { return match($this->type) { 'incident'=>'故障','request'=>'请求','change'=>'变更','problem'=>'问题', default=>$this->type }; }
+    public function getTypeLabelAttribute(): string { return match($this->type) { 'incident'=>__('故障'),'request'=>__('请求'),'change'=>__('变更'),'problem'=>__('问题'), default=>$this->type }; }
     public function getTypeColorAttribute(): string { return match($this->type) { 'incident'=>'red','request'=>'sky','change'=>'amber','problem'=>'violet', default=>'zinc' }; }
-    public function getPriorityLabelAttribute(): string { return match($this->priority) { 'low'=>'低','medium'=>'中','high'=>'高','critical'=>'紧急', default=>$this->priority }; }
+    public function getPriorityLabelAttribute(): string { return match($this->priority) { 'low'=>__('低'),'medium'=>__('中'),'high'=>__('高'),'critical'=>__('紧急'), default=>$this->priority }; }
     public function getPriorityColorAttribute(): string { return match($this->priority) { 'low'=>'zinc','medium'=>'sky','high'=>'amber','critical'=>'red', default=>'zinc' }; }
-    public function getStatusLabelAttribute(): string { return match($this->status) { 'open'=>'未处理','in_progress'=>'处理中','resolved'=>'已解决','closed'=>'已关闭', default=>$this->status }; }
+    public function getStatusLabelAttribute(): string { return match($this->status) { 'open'=>__('未处理'),'in_progress'=>__('处理中'),'resolved'=>__('已解决'),'closed'=>__('已关闭'), default=>$this->status }; }
     public function getSourceLabelAttribute(): string { return match($this->source) { // [REVIEW-FIX] R14.1: 补充 IM 平台来源标签
-            'phone'=>'电话远程','email'=>'邮件沟通','portal'=>'自助报修','walk_in'=>'现场处理','im_wechat'=>'企业微信','im_dingtalk'=>'钉钉', default=>$this->source }; }
+            'phone'=>__('电话远程'),'email'=>__('邮件沟通'),'portal'=>__('自助报修'),'walk_in'=>__('现场处理'),'im_wechat'=>__('企业微信'),'im_dingtalk'=>__('钉钉'), default=>$this->source }; }
 
     public function isSlaBreached(): bool { return $this->sla_deadline && now()->gt($this->sla_deadline) && !in_array($this->status,['resolved','closed']); }
 

@@ -29,7 +29,7 @@ class Service extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) { 'healthy'=>'健康','degraded'=>'降级','down'=>'宕机','maintenance'=>'维护中', default=>'未知' };
+        return match($this->status) { 'healthy'=>__('健康'),'degraded'=>__('降级'),'down'=>__('宕机'),'maintenance'=>__('维护中'), default=>__('未知') };
     }
 
     public function getStatusColorAttribute(): string

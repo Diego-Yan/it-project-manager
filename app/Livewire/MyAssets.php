@@ -33,6 +33,6 @@ class MyAssets extends Component
         ];
 
         return view('livewire.my-assets', compact('assets', 'counts'))
-            ->layout('layouts.app', ['title' => '我的资产']);
+            ->layout('layouts.app', ['title' => __('我的资产')]);
     }
 }

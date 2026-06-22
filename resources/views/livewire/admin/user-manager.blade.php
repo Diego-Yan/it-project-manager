@@ -2,15 +2,15 @@
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900 dark:text-white">用户管理</h1>
-            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">管理本地用户和 AD 域账号</p>
+            <h1 class="text-2xl font-bold text-zinc-900 dark:text-white">{{ __('用户管理') }}</h1>
+            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('管理本地用户和 AD 域账号') }}</p>
         </div>
         <button wire:click="openCreateModal"
             class="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-xl transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            新建用户
+            {{ __('新建用户') }}
         </button>
     </div>
 
@@ -34,20 +34,20 @@
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input wire:model.live.debounce.300ms="search" type="text" placeholder="搜索姓名、用户名、邮箱、部门..."
+            <input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('搜索姓名、用户名、邮箱、部门...') }}"
                 class="w-full pl-9 pr-4 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
         </div>
 
         <select wire:model.live="filterSource"
             class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-            <option value="">全部来源</option>
-            <option value="local">本地用户</option>
-            <option value="ad">域账号</option>
+            <option value="">{{ __('全部来源') }}</option>
+            <option value="local">{{ __('本地用户') }}</option>
+            <option value="ad">{{ __('域账号') }}</option>
         </select>
 
         <select wire:model.live="filterRole"
             class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-            <option value="">全部角色</option>
+            <option value="">{{ __('全部角色') }}</option>
             @foreach($roles as $role)
             <option value="{{ $role->name }}">{{ $role->name }}</option>
             @endforeach
@@ -59,13 +59,13 @@
         <table class="w-full text-sm min-w-[700px]">
             <thead>
                 <tr class="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
-                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">用户</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">来源</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">部门</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">角色</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">状态</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">最后登录</th>
-                    <th class="px-4 py-3 text-right font-medium text-zinc-500 dark:text-zinc-400">操作</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">{{ __('用户') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">{{ __('来源') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">{{ __('部门') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">{{ __('角色') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">{{ __('状态') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">{{ __('最后登录') }}</th>
+                    <th class="px-4 py-3 text-right font-medium text-zinc-500 dark:text-zinc-400">{{ __('操作') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700/50">
@@ -84,13 +84,13 @@
                     </td>
                     <td class="px-4 py-3">
                         @if($user->source === 'wechat')
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">企微</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">{{ __('企微') }}</span>
                         @elseif($user->source === 'dingtalk')
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">钉钉</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">{{ __('钉钉') }}</span>
                         @elseif($user->ad_authenticated)
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">域账号</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">{{ __('域账号') }}</span>
                         @else
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400">本地</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400">{{ __('本地') }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">{{ $user->department ?: '-' }}</td>
@@ -108,11 +108,11 @@
                                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                     : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' }}">
                             <span class="w-1.5 h-1.5 rounded-full {{ $user->is_active ? 'bg-green-500' : 'bg-red-500' }}"></span>
-                            {{ $user->is_active ? '启用' : '禁用' }}
+                            {{ $user->is_active ? __('启用') : __('禁用') }}
                         </button>
                     </td>
                     <td class="px-4 py-3 text-xs text-zinc-400">
-                        {{ $user->last_login_at ? $user->last_login_at->format('m-d H:i') : '从未' }}
+                        {{ $user->last_login_at ? $user->last_login_at->format('m-d H:i') : __('从未') }}
                     </td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
@@ -133,7 +133,7 @@
                 <tr>
                     <td colspan="7" class="px-4 py-12 text-center text-zinc-400 dark:text-zinc-500">
                         <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                        <p>没有找到符合条件的用户</p>
+                        <p>{{ __('没有找到符合条件的用户') }}</p>
                     </td>
                 </tr>
                 @endforelse
@@ -157,12 +157,12 @@
                 @if($isAdUser)
                     <span class="flex items-center gap-2">
                         <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
-                        编辑域账号
+                        {{ __('编辑域账号') }}
                     </span>
                 @elseif($isEditing)
-                    编辑本地用户
+                    {{ __('编辑本地用户') }}
                 @else
-                    新建用户
+                    {{ __('新建用户') }}
                 @endif
             </h2>
             <button wire:click="$set('showUserModal', false)" class="p-2 text-zinc-400 hover:text-zinc-600 rounded-lg">
@@ -183,7 +183,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    本地用户
+                    {{ __('本地用户') }}
                 </button>
                 <button wire:click="switchCreateType('ad')" type="button"
                     class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium rounded-lg transition-all
@@ -193,7 +193,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
                     </svg>
-                    AD 域账号
+                    {{ __('AD 域账号') }}
                 </button>
             </div>
             @endif
@@ -203,8 +203,8 @@
             <div class="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl text-sm text-purple-700 dark:text-purple-400">
                 <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <div>
-                    <p class="font-medium">域账号只读保护</p>
-                    <p class="mt-0.5 opacity-80">AD 域账号的基本信息由域控服务器管理，此处仅可修改角色、部门和账号状态。</p>
+                    <p class="font-medium">{{ __('域账号只读保护') }}</p>
+                    <p class="mt-0.5 opacity-80">{{ __('AD 域账号的基本信息由域控服务器管理，此处仅可修改角色、部门和账号状态。') }}</p>
                 </div>
             </div>
             @endif
@@ -213,8 +213,8 @@
             @if(!$isEditing && $createType === 'ad')
             <div>
                 <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                    搜索 AD 账号 <span class="text-red-500">*</span>
-                    <span class="ml-1 text-xs font-normal text-zinc-400">（输入姓名、用户名或邮箱，至少2个字符）</span>
+                    {{ __('搜索 AD 账号') }} <span class="text-red-500">*</span>
+                    <span class="ml-1 text-xs font-normal text-zinc-400">{{ __('（输入姓名、用户名或邮箱，至少2个字符）') }}</span>
                 </label>
                 <div class="relative">
                     <div class="relative">
@@ -223,7 +223,7 @@
                         </svg>
                         <input wire:model.live.debounce.400ms="adSearchKeyword"
                             type="text"
-                            placeholder="输入姓名、用户名或邮箱搜索..."
+                            placeholder="{{ __('输入姓名、用户名或邮箱搜索...') }}"
                             autocomplete="off"
                             class="w-full pl-9 pr-10 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-sky-500
                                 {{ $adSelectedUser ? 'border-green-400 dark:border-green-500' : '' }}">
@@ -275,7 +275,7 @@
                     </div>
                     @elseif(mb_strlen($adSearchKeyword) >= 2 && !$adSearching && !$adSelectedUser)
                     <div class="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">
-                        未找到匹配的 AD 账号
+                        {{ __('未找到匹配的 AD 账号') }}
                     </div>
                     @endif
                 </div>
@@ -287,23 +287,23 @@
             <div class="p-4 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl space-y-3">
                 <p class="text-xs font-medium text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    已从 AD 域带出账号信息，确认无误后保存
+                    {{ __('已从 AD 域带出账号信息，确认无误后保存') }}
                 </p>
                 <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div>
-                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">姓名</span>
+                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">{{ __('姓名') }}</span>
                         <p class="text-zinc-900 dark:text-white font-medium">{{ $formName ?: '—' }}</p>
                     </div>
                     <div>
-                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">用户名</span>
+                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">{{ __('用户名') }}</span>
                         <p class="text-zinc-900 dark:text-white font-medium">{{ $formUsername ?: '—' }}</p>
                     </div>
                     <div>
-                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">邮箱</span>
+                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">{{ __('邮箱') }}</span>
                         <p class="text-zinc-700 dark:text-zinc-300 text-xs truncate">{{ $formEmail ?: '—' }}</p>
                     </div>
                     <div>
-                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">部门</span>
+                        <span class="text-zinc-500 dark:text-zinc-400 text-xs">{{ __('部门') }}</span>
                         <p class="text-zinc-700 dark:text-zinc-300 text-xs">{{ $formDepartment ?: '—' }}</p>
                     </div>
                 </div>
@@ -312,10 +312,10 @@
 
             {{-- AD 账号的角色分配 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">角色</label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('角色') }}</label>
                 <select wire:model="formRole"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-                    <option value="">-- 不分配角色 --</option>
+                    <option value="">-- {{ __('不分配角色') }} --</option>
                     @foreach($roles as $role)
                     <option value="{{ $role->name }}">{{ $role->name }}</option>
                     @endforeach
@@ -324,19 +324,19 @@
 
             {{-- 账号状态 --}}
             <div class="flex items-center gap-3">
-                <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">账号状态</label>
+                <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('账号状态') }}</label>
                 <button wire:click="$toggle('formIsActive')" type="button"
                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {{ $formIsActive ? 'bg-sky-600' : 'bg-zinc-300 dark:bg-zinc-600' }}">
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $formIsActive ? 'translate-x-6' : 'translate-x-1' }}"></span>
                 </button>
-                <span class="text-sm {{ $formIsActive ? 'text-green-600 dark:text-green-400' : 'text-zinc-500' }}">{{ $formIsActive ? '启用' : '禁用' }}</span>
+                <span class="text-sm {{ $formIsActive ? 'text-green-600 dark:text-green-400' : 'text-zinc-500' }}">{{ $formIsActive ? __('启用') : __('禁用') }}</span>
             </div>
 
             @else {{-- 本地用户 或 编辑现有用户 --}}
 
             {{-- 姓名 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">姓名 <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('姓名') }} <span class="text-red-500">*</span></label>
                 <input wire:model="formName" type="text" {{ $isAdUser ? 'disabled' : '' }}
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed">
                 @error('formName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -344,7 +344,7 @@
 
             {{-- 用户名 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">用户名 <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('用户名') }} <span class="text-red-500">*</span></label>
                 <input wire:model="formUsername" type="text" {{ $isAdUser ? 'disabled' : '' }}
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed">
                 @error('formUsername') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -352,7 +352,7 @@
 
             {{-- 邮箱 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">邮箱</label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('邮箱') }}</label>
                 <input wire:model="formEmail" type="email" {{ $isAdUser ? 'disabled' : '' }}
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed">
                 @error('formEmail') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -362,7 +362,7 @@
             @if(!$isAdUser)
             <div>
                 <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                    密码 @if($isEditing)<span class="text-xs text-zinc-400 font-normal">（留空不修改）</span>@else<span class="text-red-500">*</span>@endif
+                    {{ __('密码') }} @if($isEditing)<span class="text-xs text-zinc-400 font-normal">{{ __('（留空不修改）') }}</span>@else<span class="text-red-500">*</span>@endif
                 </label>
                 <input wire:model="formPassword" type="password" autocomplete="new-password"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
@@ -373,7 +373,7 @@
             {{-- 手机号（仅本地用户） --}}
             @if(!$isAdUser)
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">手机号</label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('手机号') }}</label>
                 <input wire:model="formPhone" type="text"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
                 @error('formPhone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -382,7 +382,7 @@
 
             {{-- 部门 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">部门</label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('部门') }}</label>
                 <input wire:model="formDepartment" type="text"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
                 @error('formDepartment') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -390,10 +390,10 @@
 
             {{-- 角色 --}}
             <div>
-                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">角色</label>
+                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ __('角色') }}</label>
                 <select wire:model="formRole"
                     class="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-                    <option value="">-- 不分配角色 --</option>
+                    <option value="">-- {{ __('不分配角色') }} --</option>
                     @foreach($roles as $role)
                     <option value="{{ $role->name }}">{{ $role->name }}</option>
                     @endforeach
@@ -403,12 +403,12 @@
 
             {{-- 状态 --}}
             <div class="flex items-center gap-3">
-                <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">账号状态</label>
+                <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('账号状态') }}</label>
                 <button wire:click="$toggle('formIsActive')" type="button"
                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {{ $formIsActive ? 'bg-sky-600' : 'bg-zinc-300 dark:bg-zinc-600' }}">
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $formIsActive ? 'translate-x-6' : 'translate-x-1' }}"></span>
                 </button>
-                <span class="text-sm {{ $formIsActive ? 'text-green-600 dark:text-green-400' : 'text-zinc-500' }}">{{ $formIsActive ? '启用' : '禁用' }}</span>
+                <span class="text-sm {{ $formIsActive ? 'text-green-600 dark:text-green-400' : 'text-zinc-500' }}">{{ $formIsActive ? __('启用') : __('禁用') }}</span>
             </div>
 
             @endif {{-- end if createType === 'ad' --}}
@@ -418,16 +418,16 @@
         <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex justify-end gap-3">
             <button wire:click="$set('showUserModal', false)"
                 class="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors">
-                取消
+                {{ __('取消') }}
             </button>
             <button wire:click="saveUser"
                 class="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-xl transition-colors">
                 @if(!$isEditing && $createType === 'ad')
-                    添加域账号
+                    {{ __('添加域账号') }}
                 @elseif($isEditing)
-                    保存修改
+                    {{ __('保存修改') }}
                 @else
-                    创建用户
+                    {{ __('创建用户') }}
                 @endif
             </button>
         </div>
@@ -445,18 +445,18 @@
                 <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
             <div>
-                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">确认删除用户</h3>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">此操作不可恢复，请谨慎操作。</p>
+                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">{{ __('确认删除用户') }}</h3>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('此操作不可恢复，请谨慎操作。') }}</p>
             </div>
         </div>
         <div class="flex gap-3 justify-end">
             <button wire:click="$set('showDeleteModal', false)"
                 class="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors">
-                取消
+                {{ __('取消') }}
             </button>
             <button wire:click="deleteUser"
                 class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors">
-                确认删除
+                {{ __('确认删除') }}
             </button>
         </div>
     </div>

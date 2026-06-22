@@ -39,7 +39,28 @@ Schedule::command('zabbix:poll')
     ->appendOutputTo(storage_path('logs/zabbix-poll.log'));
 
 // [REVIEW-FIX] C4: 每日自动备份 SQLite 数据库
-Schedule::command('db:backup')
+// [REVIEW-FIX-R1 #4 P2] 调度补上 --prune 选项：原调度未带该参数，旧备份永不清理，
+// 导致 storage/app/backups/ 目录持续增长直至磁盘写满。现在每日自动清理 30 天前旧备份。
+Schedule::command('db:backup --prune')
     ->dailyAt('03:00')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/db-backup.log'));
+
+// [REVIEW-FIX-R3 #1 P1] 补充缺失的队列 worker 调度。
+// 问题：QUEUE_CONNECTION=database（.env/.env.example 均如此），SendWebhookNotification Job
+// 通过 dispatch() 投递到 database 队列，但 console.php 中无 queue:work 调度，
+// 也无 systemd/supervisor 常驻 worker 配置 → 队列任务永远不会被消费 → webhook 通知形同虚设。
+// 修复：每分钟运行 queue:work --stop-when-empty，处理完积压任务后自动退出，
+// 避免长驻进程的内存泄漏风险（SQLite + 小型部署的推荐方案）。
+Schedule::command('queue:work --stop-when-empty --max-time=60')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/queue-worker.log'));
+
+// [REVIEW-FIX-R4 #5 P3] 补充 failed_jobs 表定时清理：
+// 队列 Job 重试 3 次失败后会写入 failed_jobs 表，无清理机制则该表无限增长。
+// 每日凌晨 4:00 清理 7 天前的失败 Job 记录（保留近期记录供排障）。
+Schedule::command('queue:prune-failed --hours=168')
+    ->dailyAt('04:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/queue-prune.log'));

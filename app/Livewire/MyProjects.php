@@ -43,6 +43,6 @@ class MyProjects extends Component
         ];
 
         return view('livewire.my-projects', compact('projects', 'counts'))
-            ->layout('layouts.app', ['title' => '我的项目']);
+            ->layout('layouts.app', ['title' => __('我的项目')]);
     }
 }

@@ -65,7 +65,7 @@ class AdSettingsManager extends Component
         // [REVIEW-FIX] R4.3: 不在 mount 中加载 AD 管理员密码，防止 Livewire 序列化泄露
         $this->adAutoCreateUser  = ($env['AD_AUTO_CREATE_USER'] ?? 'true') === 'true';
         $this->adAutoSyncGroups  = ($env['AD_AUTO_SYNC_GROUPS'] ?? 'false') === 'true';
-        $this->adDefaultRole     = $env['AD_DEFAULT_ROLE'] ?? '普通员工';
+        $this->adDefaultRole     = $env['AD_DEFAULT_ROLE'] ?? __('普通员工');
         $this->adSyncInterval    = $env['AD_SYNC_INTERVAL'] ?? '60';
         $this->adFallbackToLocal = ($env['AD_FALLBACK_TO_LOCAL'] ?? 'true') === 'true';
         $this->adLockAfterFailed = $env['AD_LOCK_AFTER_FAILED'] ?? '5';
@@ -91,15 +91,15 @@ class AdSettingsManager extends Component
             'adSyncInterval'    => 'required|numeric|min:5',
             'adDefaultRole'     => 'required|string|exists:roles,name', // [REVIEW-FIX] N5: 验证角色存在
         ], [
-            'adServer.required'  => 'AD服务器地址不能为空',
-            'adDomain.required'  => '域名不能为空',
-            'adBaseDn.required'  => 'Base DN不能为空',
+            'adServer.required'  => __('AD服务器地址不能为空'),
+            'adDomain.required'  => __('域名不能为空'),
+            'adBaseDn.required'  => __('Base DN不能为空'),
         ]);
 
         $envPath = base_path('.env');
 
         if (!file_exists($envPath)) {
-            session()->flash('error', '.env 文件不存在，无法保存配置。');
+            session()->flash('error', __('.env 文件不存在，无法保存配置。'));
             return;
         }
 
@@ -138,7 +138,7 @@ class AdSettingsManager extends Component
         // 重新加载当前显示（从文件读取，避免受 PHP env cache 影响）
         $this->loadFromEnv();
 
-        session()->flash('success', 'AD 域配置已保存并生效。');
+        session()->flash('success', __('AD 域配置已保存并生效。'));
         $this->testStatus = '';
         $this->testMessage = '';
     }
@@ -150,17 +150,17 @@ class AdSettingsManager extends Component
         $this->guard(); // [REVIEW-FIX] R3.1
         if (empty($this->adServer) || empty($this->adDomain)) {
             $this->testStatus  = 'fail';
-            $this->testMessage = '请先填写服务器地址和域名。';
+            $this->testMessage = __('请先填写服务器地址和域名。');
             return;
         }
 
         $this->testStatus  = 'testing';
-        $this->testMessage = '正在连接...';
+        $this->testMessage = __('正在连接...');
 
         try {
             if (!function_exists('ldap_connect')) {
                 $this->testStatus  = 'fail';
-                $this->testMessage = 'PHP LDAP 扩展未安装，请运行: sudo apt install php-ldap 并重启服务。';
+                $this->testMessage = __('PHP LDAP 扩展未安装，请运行: sudo apt install php-ldap 并重启服务。');
                 return;
             }
 
@@ -172,7 +172,7 @@ class AdSettingsManager extends Component
 
             if (!$conn) {
                 $this->testStatus  = 'fail';
-                $this->testMessage = "无法连接到 {$host}:{$this->adPort}，请检查服务器地址和端口。";
+                $this->testMessage = __('无法连接到 :host::port，请检查服务器地址和端口。', ['host' => $host, 'port' => $this->adPort]);
                 return;
             }
 
@@ -195,41 +195,55 @@ class AdSettingsManager extends Component
                 $ldapErr = ldap_errno($conn);
                 if ($ldapErr === 49) {
                     $this->testStatus  = 'fail';
-                    $this->testMessage = "连接到达 {$host}:{$this->adPort}，但账号或密码错误（错误49）。请检查管理员账号密码。";
+                    $this->testMessage = __('连接到达 :host::port，但账号或密码错误（错误49）。请检查管理员账号密码。', ['host' => $host, 'port' => $this->adPort]);
                 } elseif ($ldapErr === 0) {
                     $this->testStatus  = 'success';
-                    $this->testMessage = "✓ AD 服务器可达（{$host}:{$this->adPort}）。";
+                    $this->testMessage = __('✓ AD 服务器可达（:host::port）。', ['host' => $host, 'port' => $this->adPort]);
                 } else {
                     $this->testStatus  = 'fail';
-                    $this->testMessage = "连接失败，LDAP 错误 {$ldapErr}: " . ldap_error($conn);
+                    $this->testMessage = __('连接失败，LDAP 错误 :err: :msg', ['err' => $ldapErr, 'msg' => ldap_error($conn)]);
                 }
             } else {
                 $this->testStatus  = 'success';
-                $this->testMessage = "✓ 成功连接并绑定到 AD 服务器（{$host}:{$this->adPort}），认证正常。";
+                $this->testMessage = __('✓ 成功连接并绑定到 AD 服务器（:host::port），认证正常。', ['host' => $host, 'port' => $this->adPort]);
             }
 
             @ldap_close($conn);
 
         } catch (\Exception $e) {
             $this->testStatus  = 'fail';
-            $this->testMessage = '连接异常：' . $e->getMessage();
+            $this->testMessage = __('连接异常：:message', ['message' => $e->getMessage()]);
         }
     }
 
     public function syncNow(): void
     {
         $this->guard(); // [REVIEW-FIX] R3.1
+
+        // [REVIEW-FIX-R7 #3 P2] AD 同步限流：防止频繁调用 ad:sync-users 导致 LDAP 连接风暴。
+        // AD 同步会建立 LDAP 连接并遍历所有用户，频繁执行可能导致 AD 服务器负载过高。
+        // 限制：每管理员每小时最多 5 次手动同步（自动调度不受此限）。
+        $rateKey = 'ad_sync_rate:' . auth()->id();
+        $syncCount = (int) \Illuminate\Support\Facades\Cache::get($rateKey, 0);
+        if ($syncCount >= 5) {
+            $this->syncStatus  = 'fail';
+            $this->syncMessage = __('手动同步操作过于频繁，每小时最多 5 次，请稍后再试。');
+            return;
+        }
+
         $this->syncStatus  = 'running';
-        $this->syncMessage = '正在同步 AD 账号...';
+        $this->syncMessage = __('正在同步 AD 账号...');
 
         try {
             Artisan::call('ad:sync-users');
             $output = Artisan::output();
             $this->syncStatus  = 'success';
-            $this->syncMessage = '✓ 同步完成。' . trim($output);
+            $this->syncMessage = __('✓ 同步完成。:output', ['output' => trim($output)]);
+            // [REVIEW-FIX-R7 #3 P2] 记录同步限流计数（仅成功时计数）
+            \Illuminate\Support\Facades\Cache::put($rateKey, $syncCount + 1, 3600);
         } catch (\Exception $e) {
             $this->syncStatus  = 'fail';
-            $this->syncMessage = '同步失败：' . $e->getMessage();
+            $this->syncMessage = __('同步失败：:message', ['message' => $e->getMessage()]);
         }
     }
 
@@ -252,6 +266,6 @@ class AdSettingsManager extends Component
         $roles = \Spatie\Permission\Models\Role::orderBy('name')->pluck('name');
 
         return view('livewire.admin.ad-settings-manager', compact('roles'))
-            ->layout('layouts.app', ['title' => 'AD 域配置']);
+            ->layout('layouts.app', ['title' => __('AD 域配置')]);
     }
 }

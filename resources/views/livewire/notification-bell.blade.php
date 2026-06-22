@@ -14,15 +14,15 @@
     @if($showDropdown)
     <div class="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 z-50 overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-            <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">通知</h3>
+            <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('通知') }}</h3>
             @if($unreadCount > 0)
-            <button wire:click="markAllRead" class="text-xs text-sky-600 dark:text-sky-400 hover:underline">全部已读</button>
+            <button wire:click="markAllRead" class="text-xs text-sky-600 dark:text-sky-400 hover:underline">{{ __('全部已读') }}</button>
             @endif
         </div>
 
         <div class="max-h-80 overflow-y-auto">
             @if($notifications->isEmpty())
-            <div class="px-4 py-8 text-center text-sm text-zinc-400">暂无通知</div>
+            <div class="px-4 py-8 text-center text-sm text-zinc-400">{{ __('暂无通知') }}</div>
             @else
             @foreach($notifications as $n)
             <div class="px-4 py-3 border-b border-zinc-50 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors {{ $n->is_read ? 'opacity-60' : '' }}">
@@ -36,7 +36,7 @@
                         <p class="text-xs text-zinc-400 mt-1">{{ $n->created_at->diffForHumans() }}</p>
                     </div>
                     @if(!$n->is_read)
-                    <button wire:click="markRead({{ $n->id }})" class="text-xs text-zinc-400 hover:text-sky-500 shrink-0" title="标记已读">
+                    <button wire:click="markRead({{ $n->id }})" class="text-xs text-zinc-400 hover:text-sky-500 shrink-0" title="{{ __('标记已读') }}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     </button>
                     @endif

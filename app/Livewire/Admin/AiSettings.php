@@ -50,40 +50,50 @@ class AiSettings extends Component
             'LLM_API_KEY' => $keyLlm,
             'LLM_MODEL' => $this->llmModel,
         ]);
-        session()->flash('success', 'AI 配置已保存');
+        session()->flash('success', __('AI 配置已保存'));
     }
 
     public function testEmbedding(): void
     {
         $this->guard(); // [REVIEW-FIX] R17.5
         $key = $this->embeddingKey ?: config('services.embedding.key', '');
-        if (empty($this->embeddingUrl) || empty($key)) { $this->testResult = '请先填写 API 地址和密钥'; return; }
+        if (empty($this->embeddingUrl) || empty($key)) { $this->testResult = __('请先填写 API 地址和密钥'); return; }
+        // [REVIEW-FIX-R5 #2 P2] SSRF 防护：LLM/Embedding API 地址不应指向内网
+        if (!\App\Services\SsrfGuard::isSafe($this->embeddingUrl)) {
+            $this->testResult = __('不允许的 API 地址：不能指向内网或保留地址段。');
+            return;
+        }
         try {
             $resp = \Illuminate\Support\Facades\Http::withToken($key)->timeout(10)->post($this->embeddingUrl, ['model' => $this->embeddingModel ?: 'text-embedding-3-small', 'input' => 'test']);
             $data = $resp->json();
             $dim = count($data['data'][0]['embedding'] ?? []);
-            $this->testResult = "连接成功 ✓ (维度: {$dim})";
-        } catch (\Exception $e) { $this->testResult = '连接失败: ' . $e->getMessage(); }
+            $this->testResult = __('连接成功 ✓ (维度: :dim)', ['dim' => $dim]);
+        } catch (\Exception $e) { $this->testResult = __('连接失败: :message', ['message' => $e->getMessage()]); }
     }
 
     public function testLlm(): void
     {
         $this->guard(); // [REVIEW-FIX] R17.5
         $key = $this->llmKey ?: config('services.llm.key', '');
-        if (empty($this->llmUrl) || empty($key)) { $this->llmTestResult = '请先填写 API 地址和密钥'; return; }
+        if (empty($this->llmUrl) || empty($key)) { $this->llmTestResult = __('请先填写 API 地址和密钥'); return; }
+        // [REVIEW-FIX-R5 #2 P2] SSRF 防护：LLM API 地址不应指向内网
+        if (!\App\Services\SsrfGuard::isSafe($this->llmUrl)) {
+            $this->llmTestResult = __('不允许的 API 地址：不能指向内网或保留地址段。');
+            return;
+        }
         try {
             $resp = \Illuminate\Support\Facades\Http::withToken($key)->timeout(15)->post($this->llmUrl, [
                 'model' => $this->llmModel ?: 'gpt-4o-mini',
-                'messages' => [['role' => 'user', 'content' => '你好，请用一句话介绍你自己']],
+                'messages' => [['role' => 'user', 'content' => __('你好，请用一句话介绍你自己')]],
                 'max_tokens' => 50,
             ]);
             if ($resp->successful()) {
                 $reply = $resp->json()['choices'][0]['message']['content'] ?? '';
                 $this->llmTestResult = '✓ ' . mb_substr($reply, 0, 100);
             } else {
-                $this->llmTestResult = 'API 返回错误: ' . $resp->status();
+                $this->llmTestResult = __('API 返回错误: :status', ['status' => $resp->status()]);
             }
-        } catch (\Exception $e) { $this->llmTestResult = '连接失败: ' . $e->getMessage(); }
+        } catch (\Exception $e) { $this->llmTestResult = __('连接失败: :message', ['message' => $e->getMessage()]); }
     }
 
     // [REVIEW-FIX] C3: updateEnv() 已提取至 app/Services/EnvService.php
@@ -101,6 +111,6 @@ class AiSettings extends Component
     public function render()
     {
         return view('livewire.admin.ai-settings')
-            ->layout('layouts.app', ['title' => 'AI 配置']);
+            ->layout('layouts.app', ['title' => __('AI 配置')]);
     }
 }

@@ -48,10 +48,10 @@ class WebhookConfig extends Model
     public function getTypeLabelAttribute(): string
     {
         return match($this->type) {
-            'wechat'   => '企业微信',
-            'dingtalk' => '钉钉',
-            'custom'   => '自定义',
-            default    => '未知',
+            'wechat'   => __('企业微信'),
+            'dingtalk' => __('钉钉'),
+            'custom'   => __('自定义'),
+            default    => __('未知'),
         };
     }
 }

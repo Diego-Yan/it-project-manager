@@ -57,7 +57,7 @@ class ProjectList extends Component
 
         // 已是成员
         if ($project->members()->where('user_id', $user->id)->exists()) {
-            session()->flash('error', '你已经是该项目成员。');
+            session()->flash('error', __('你已经是该项目成员。'));
             return;
         }
 
@@ -68,7 +68,7 @@ class ProjectList extends Component
             ->exists();
 
         if ($existing) {
-            session()->flash('error', '已提交过申请，等待审批中。');
+            session()->flash('error', __('已提交过申请，等待审批中。'));
             return;
         }
 
@@ -78,7 +78,7 @@ class ProjectList extends Component
             ['status' => 'pending', 'message' => null],
         );
 
-        session()->flash('success', '申请已提交，等待项目负责人审批。');
+        session()->flash('success', __('申请已提交，等待项目负责人审批。'));
     }
 
     public function deleteProject(int $id): void
@@ -86,7 +86,7 @@ class ProjectList extends Component
         $project = Project::findOrFail($id);
         $this->authorize('delete projects');
         $project->delete();
-        session()->flash('success', '项目已删除。');
+        session()->flash('success', __('项目已删除。'));
     }
 
     public function render()
@@ -128,6 +128,6 @@ class ProjectList extends Component
         $regions = \App\Models\Region::orderBy('sort_order')->get();
 
         return view('livewire.projects.project-list', compact('projects', 'categories', 'regions', 'memberOfIds', 'appliedIds'))
-            ->layout('layouts.app', ['title' => '项目管理']);
+            ->layout('layouts.app', ['title' => __('项目管理')]);
     }
 }

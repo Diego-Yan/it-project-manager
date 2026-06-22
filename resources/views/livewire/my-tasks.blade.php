@@ -1,8 +1,8 @@
 <div class="space-y-5">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-zinc-900 dark:text-white">我的任务</h1>
-            <p class="text-sm text-zinc-500 mt-1">跨项目的个人任务汇总</p>
+            <h1 class="text-xl font-bold text-zinc-900 dark:text-white">{{ __('我的任务') }}</h1>
+            <p class="text-sm text-zinc-500 mt-1">{{ __('跨项目的个人任务汇总') }}</p>
         </div>
     </div>
 
@@ -11,10 +11,10 @@
         @php
         $allCount = $counts['pending'] + $counts['in_progress'] + $counts['completed'];
         $filters = [
-            ''                     => ['label' => '全部',   'count' => $allCount,              'color' => 'zinc'],
-            'pending_confirmation' => ['label' => '待确认', 'count' => $counts['pending'],     'color' => 'amber'],
-            'in_progress'          => ['label' => '进行中', 'count' => $counts['in_progress'], 'color' => 'sky'],
-            'completed'            => ['label' => '已完成', 'count' => $counts['completed'],   'color' => 'green'],
+            ''                     => ['label' => __('全部'),   'count' => $allCount,              'color' => 'zinc'],
+            'pending_confirmation' => ['label' => __('待确认'), 'count' => $counts['pending'],     'color' => 'amber'],
+            'in_progress'          => ['label' => __('进行中'), 'count' => $counts['in_progress'], 'color' => 'sky'],
+            'completed'            => ['label' => __('已完成'), 'count' => $counts['completed'],   'color' => 'green'],
         ];
         @endphp
         @foreach($filters as $key => $f)
@@ -35,7 +35,7 @@
             <svg class="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <p class="text-zinc-500 text-sm">暂无任务</p>
+            <p class="text-zinc-500 text-sm">{{ __('暂无任务') }}</p>
         </div>
         @else
         <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -72,7 +72,7 @@
                     <div class="flex items-center gap-2 mt-1 text-xs text-zinc-500">
                         <a href="{{ route('projects.show', $task->project) }}" class="text-sky-600 dark:text-sky-400 hover:underline">{{ $task->project->title }}</a>
                         @if($task->due_date)
-                        <span>· {{ $task->due_date->format('m/d') }} 截止</span>
+                        <span>· {{ $task->due_date->format('m/d') }} {{ __('截止') }}</span>
                         @endif
                         <span>· {{ $task->statusLabel }}</span>
                     </div>
@@ -85,11 +85,11 @@
                 <div class="flex items-center gap-1 shrink-0">
                     @if($task->status === 'pending_confirmation')
                     <button wire:click="confirmTask({{ $task->id }})"
-                        class="px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-950/40 hover:bg-green-200 rounded-lg min-w-[44px]">确认</button>
+                        class="px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-950/40 hover:bg-green-200 rounded-lg min-w-[44px]">{{ __('确认') }}</button>
                     @endif
                     @if($task->status === 'in_progress')
                     <button wire:click="completeTask({{ $task->id }})"
-                        class="px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-950/40 hover:bg-green-200 rounded-lg min-w-[44px]">完成</button>
+                        class="px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-950/40 hover:bg-green-200 rounded-lg min-w-[44px]">{{ __('完成') }}</button>
                     @endif
                 </div>
             </div>

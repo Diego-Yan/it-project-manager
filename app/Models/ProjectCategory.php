@@ -21,9 +21,9 @@ class ProjectCategory extends Model
     public static function typeLabel(string $type): string
     {
         return match($type) {
-            self::TYPE_OPS => '运维项目',
-            self::TYPE_DEV => '开发项目',
-            default        => '未知',
+            self::TYPE_OPS => __('运维项目'),
+            self::TYPE_DEV => __('开发项目'),
+            default        => __('未知'),
         };
     }
 

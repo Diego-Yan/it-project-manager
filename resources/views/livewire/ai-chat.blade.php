@@ -17,8 +17,8 @@
         <div class="shrink-0 px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-3 bg-sky-50/50 dark:bg-sky-950/20">
             <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-bold">AI</div>
             <div>
-                <p class="text-sm font-semibold text-zinc-900 dark:text-white">IT 助手</p>
-                <p class="text-xs text-zinc-500">可以查询你的工单、任务、项目、资产</p>
+                <p class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('IT 助手') }}</p>
+                <p class="text-xs text-zinc-500">{{ __('可以查询你的工单、任务、项目、资产') }}</p>
             </div>
         </div>
 
@@ -50,7 +50,7 @@
         {{-- Input --}}
         <div class="shrink-0 p-3 border-t border-zinc-100 dark:border-zinc-800">
             <div class="flex gap-2">
-                <input wire:model="input" wire:keydown.enter="send" type="text" placeholder="问 IT 助手..."
+                <input wire:model="input" wire:keydown.enter="send" type="text" placeholder="{{ __('问 IT 助手...') }}"
                     class="flex-1 px-4 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-sky-500 dark:text-white">
                 <button wire:click="send" wire:loading.attr="disabled"
                     class="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-500 text-white rounded-xl transition-colors disabled:opacity-50">

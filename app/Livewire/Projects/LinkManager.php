@@ -25,9 +25,14 @@ class LinkManager extends Component
         'targetProjectId' => 'required|exists:projects,id',
     ];
 
-    protected $messages = [
-        'targetProjectId.required' => '请选择一个项目',
-    ];
+    // [REVIEW-FIX-R1 #8 P1] 修复 fatal error：$messages 属性不能使用 __() 函数调用
+    // 作为默认值（PHP 常量表达式限制）。改为 Livewire 支持的 messages() 方法。
+    protected function messages(): array
+    {
+        return [
+            'targetProjectId.required' => __('请选择一个项目'),
+        ];
+    }
 
     public function mount(Project $project): void
     {
@@ -77,7 +82,7 @@ class LinkManager extends Component
 
         // 不能链接自身
         if ($fromId === $toId) {
-            session()->flash('link_error', '不能链接到自身。');
+            session()->flash('link_error', __('不能链接到自身。'));
             return;
         }
 
@@ -88,13 +93,13 @@ class LinkManager extends Component
             ->exists();
 
         if ($exists) {
-            session()->flash('link_error', '该关联已存在。');
+            session()->flash('link_error', __('该关联已存在。'));
             return;
         }
 
         // blocks 循环检测
         if ($this->linkType === 'blocks' && ProjectLink::wouldCreateBlocksCycle($fromId, $toId)) {
-            session()->flash('link_error', '该阻断关系会造成循环依赖，不允许创建。');
+            session()->flash('link_error', __('该阻断关系会造成循环依赖，不允许创建。'));
             return;
         }
 
@@ -104,7 +109,7 @@ class LinkManager extends Component
                 ->where('link_type', 'parent')
                 ->exists();
             if ($hasParent) {
-                session()->flash('link_error', '该项目已有父项目，不能重复设置。');
+                session()->flash('link_error', __('该项目已有父项目，不能重复设置。'));
                 return;
             }
         }
@@ -116,7 +121,7 @@ class LinkManager extends Component
             'created_by' => auth()->id(),
         ]);
 
-        session()->flash('link_success', '项目关联已创建。');
+        session()->flash('link_success', __('项目关联已创建。'));
         $this->resetLinkForm();
     }
 
@@ -128,7 +133,7 @@ class LinkManager extends Component
             ->findOrFail($linkId);
 
         $link->delete();
-        session()->flash('link_success', '关联已解除。');
+        session()->flash('link_success', __('关联已解除。'));
     }
 
     public function resetLinkForm(): void

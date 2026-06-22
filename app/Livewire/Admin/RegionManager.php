@@ -18,7 +18,7 @@ class RegionManager extends Component
         // [REVIEW-FIX] C4: save() 需要写权限，非只读 view categories
         $requiredPerm = $this->editingId ? 'edit categories' : 'create categories';
         if (!auth()->user()->can($requiredPerm)) {
-            session()->flash('error', '没有地区管理权限');
+            session()->flash('error', __('没有地区管理权限'));
             return;
         }
         $rules = $this->editingId
@@ -38,7 +38,7 @@ class RegionManager extends Component
     {
         // [REVIEW-FIX] R17.3: 编辑操作使用对应权限，非删除权限
         if (!auth()->user()->can('view categories')) {
-            session()->flash('error', '没有地区管理权限');
+            session()->flash('error', __('没有地区管理权限'));
             return;
         }
         $r = Region::findOrFail($id);
@@ -49,13 +49,13 @@ class RegionManager extends Component
 
     public function delete(int $id): void
     {
-        if (!auth()->user()->can('delete categories')) { session()->flash('error', '没有删除地区的权限'); return; } // [REVIEW-FIX] R3.4: 修正为 delete categories
+        if (!auth()->user()->can('delete categories')) { session()->flash('error', __('没有删除地区的权限')); return; } // [REVIEW-FIX] R3.4: 修正为 delete categories
         $region = Region::findOrFail($id);
         // Don't allow deleting if region has projects or tickets
         $projCount = \App\Models\Project::where('region_id', $id)->count();
         $ticketCount = \App\Models\Ticket::where('region_id', $id)->count();
         if ($projCount > 0 || $ticketCount > 0) {
-            session()->flash('error', "地区「{$region->name}」下有 {$projCount} 个项目、{$ticketCount} 个工单，不能删除。");
+            session()->flash('error', __('地区「:name」下有 :projCount 个项目、:ticketCount 个工单，不能删除。', ['name' => $region->name, 'projCount' => $projCount, 'ticketCount' => $ticketCount]));
             return;
         }
         $region->delete();
@@ -72,6 +72,6 @@ class RegionManager extends Component
     {
         $regions = Region::orderBy('sort_order')->get();
         return view('livewire.admin.region-manager', compact('regions'))
-            ->layout('layouts.app', ['title' => '地区管理']);
+            ->layout('layouts.app', ['title' => __('地区管理')]);
     }
 }

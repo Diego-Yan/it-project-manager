@@ -18,7 +18,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'email', 'password',
         'username', 'source', 'ad_guid', 'department', 'position', 'phone',
-        'is_active', 'last_login_at',
+        'is_active', 'last_login_at', 'locale',
         // AD 相关字段
         'ad_domain', 'ad_username', 'ad_display_name', 'ad_email',
         'ad_authenticated', 'ad_last_sync_at',
@@ -64,7 +64,7 @@ class User extends Authenticatable
 
     public function getRoleNamesStringAttribute(): string
     {
-        return $this->getRoleNames()->implode(', ') ?: '无角色';
+        return $this->getRoleNames()->implode(', ') ?: __('无角色');
     }
 
     /**

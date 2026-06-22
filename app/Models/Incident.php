@@ -30,7 +30,7 @@ class Incident extends Model
 
     public function getSeverityLabelAttribute(): string
     {
-        return match($this->severity) { 'P0'=>'P0 紧急','P1'=>'P1 严重','P2'=>'P2 一般','P3'=>'P3 轻微','P4'=>'P4 建议', default=>'未知' };
+        return match($this->severity) { 'P0'=>__('P0 紧急'),'P1'=>__('P1 严重'),'P2'=>__('P2 一般'),'P3'=>__('P3 轻微'),'P4'=>__('P4 建议'), default=>__('未知') };
     }
 
     public function getSeverityColorAttribute(): string
@@ -41,7 +41,7 @@ class Incident extends Model
     public function getStatusLabelAttribute(): string
     {
         return match($this->status) {
-            'open'=>'未处理','investigating'=>'调查中','mitigated'=>'已缓解','resolved'=>'已解决','closed'=>'已关闭', default=>'未知'
+            'open'=>__('未处理'),'investigating'=>__('调查中'),'mitigated'=>__('已缓解'),'resolved'=>__('已解决'),'closed'=>__('已关闭'), default=>__('未知')
         };
     }
 
@@ -49,7 +49,7 @@ class Incident extends Model
     {
         if (!$this->started_at || !$this->resolved_at) return null;
         $minutes = (int) $this->started_at->diffInMinutes($this->resolved_at);
-        if ($minutes < 60) return "{$minutes} 分钟";
-        return round($minutes/60,1) . ' 小时';
+        if ($minutes < 60) return __(':minutes 分钟', ['minutes' => $minutes]);
+        return round($minutes/60,1) . __(' 小时');
     }
 }

@@ -156,9 +156,17 @@ class UserManager extends Component
     // ── 保存用户 ───────────────────────────────────────
     public function saveUser(): void
     {
-        // [REVIEW-FIX] R9.1: 重新验证编辑权限 — 防止 editingUserId 客户端篡改
-        if ($this->isEditing && !auth()->user()->can('edit users')) {
-            abort(403);
+        // [REVIEW-FIX-R1 #1 P1] 权限提升修复：创建用户必须具备 create users 权限。
+        // 原代码仅在校验编辑分支检查 edit users，AD/本地创建分支均未校验 create users，
+        // 导致仅有 view users（只读）权限的用户（如 IT 主管角色）可越权创建任意用户。
+        if ($this->isEditing) {
+            if (!auth()->user()->can('edit users')) {
+                abort(403);
+            }
+        } else {
+            if (!auth()->user()->can('create users')) {
+                abort(403);
+            }
         }
         // 域账号只允许修改角色和部门
         if ($this->isEditing && $this->isAdUser) {
@@ -170,7 +178,7 @@ class UserManager extends Component
         } elseif ($this->createType === 'ad' && !$this->isEditing) {
             // 新建 AD 账号：必须已选中用户
             if (empty($this->adSelectedUser)) {
-                $this->addError('adSearchKeyword', '请先从搜索结果中选择一个 AD 用户');
+                $this->addError('adSearchKeyword', __('请先从搜索结果中选择一个 AD 用户'));
                 return;
             }
             $rules = [
@@ -228,7 +236,7 @@ class UserManager extends Component
             }
             $user->expertiseCategories()->sync($this->formExpertiseCategories);
 
-            session()->flash('success', '用户信息已更新。');
+            session()->flash('success', __('用户信息已更新。'));
 
         } elseif ($this->createType === 'ad') {
             // 检查是否已存在
@@ -239,7 +247,7 @@ class UserManager extends Component
             })->first();
 
             if ($existing) {
-                $this->addError('adSearchKeyword', '该 AD 账号已存在于系统中（' . $existing->name . '）');
+                $this->addError('adSearchKeyword', __('该 AD 账号已存在于系统中（:name）', ['name' => $existing->name]));
                 return;
             }
 
@@ -266,7 +274,7 @@ class UserManager extends Component
             }
             $user->expertiseCategories()->sync($this->formExpertiseCategories);
 
-            session()->flash('success', 'AD 域账号已添加：' . $this->formName);
+            session()->flash('success', __('AD 域账号已添加：:name', ['name' => $this->formName]));
 
         } else {
             // 本地用户
@@ -286,7 +294,7 @@ class UserManager extends Component
             }
             $user->expertiseCategories()->sync($this->formExpertiseCategories);
 
-            session()->flash('success', '本地用户创建成功。');
+            session()->flash('success', __('本地用户创建成功。'));
         }
 
         $this->showUserModal = false;
@@ -299,12 +307,12 @@ class UserManager extends Component
         if (!auth()->user()->can('edit users')) abort(403);
         $user = User::findOrFail($userId);
         if ($user->id === auth()->id()) {
-            session()->flash('error', '不能禁用自己。');
+            session()->flash('error', __('不能禁用自己。'));
             return;
         }
         $user->is_active = !$user->is_active;
         $user->save();
-        session()->flash('success', $user->is_active ? '用户已启用。' : '用户已禁用。');
+        session()->flash('success', $user->is_active ? __('用户已启用。') : __('用户已禁用。'));
     }
 
     // ── 删除确认弹窗 ───────────────────────────────────
@@ -322,7 +330,7 @@ class UserManager extends Component
 
         if ($user) {
             if ($user->id === auth()->id()) {
-                session()->flash('error', '不能删除当前登录账号。');
+                session()->flash('error', __('不能删除当前登录账号。'));
                 $this->showDeleteModal = false;
                 return;
             }
@@ -336,7 +344,11 @@ class UserManager extends Component
 
             if ($activeTaskCount > 0 || $activeTicketCount > 0 || $ownedProjectCount > 0) {
                 session()->flash('error',
-                    "无法删除：该用户有 {$activeTaskCount} 个进行中任务、{$activeTicketCount} 个进行中工单、{$ownedProjectCount} 个未结项目。请先转移或完成后重试。"
+                    __('无法删除：该用户有 :activeTaskCount 个进行中任务、:activeTicketCount 个进行中工单、:ownedProjectCount 个未结项目。请先转移或完成后重试。', [
+                        'activeTaskCount' => $activeTaskCount,
+                        'activeTicketCount' => $activeTicketCount,
+                        'ownedProjectCount' => $ownedProjectCount,
+                    ])
                 );
                 $this->showDeleteModal = false;
                 $this->deletingUserId = null;
@@ -344,7 +356,7 @@ class UserManager extends Component
             }
 
             $user->delete();
-            session()->flash('success', '用户已删除。');
+            session()->flash('success', __('用户已删除。'));
         }
 
         $this->showDeleteModal = false;
@@ -353,7 +365,14 @@ class UserManager extends Component
 
     public function render()
     {
+        // [REVIEW-FIX-R4 #4 P3] 用户列表查询显式排除 password 字段：
+        // User 模型 $hidden=['password','remember_token'] 会阻止 toArray()/JSON 序列化，
+        // 但 Livewire 组件的 render() 将 paginator 传入 Blade，Blade 的 {{ }} 转义虽防 XSS，
+        // 若前端有 {!! !!} 或 JSON 输出仍可能泄露。显式 select 最小字段集是纵深防御。
         $query = User::with('roles')
+            ->select(['id', 'name', 'username', 'email', 'department', 'phone', 'source',
+                      'ad_authenticated', 'ad_username', 'ad_display_name', 'ad_last_sync_at',
+                      'is_active', 'last_login_at', 'created_at', 'updated_at'])
             ->when($this->search, fn($q) =>
                 $q->where(fn($sub) =>
                     $sub->where('name', 'like', "%{$this->search}%")
@@ -372,6 +391,6 @@ class UserManager extends Component
         return view('livewire.admin.user-manager', [
             'users' => $query->paginate(15),
             'roles' => Role::orderBy('name')->get(), 'categories' => ProjectCategory::where('is_active',true)->orderBy('name')->get(),
-        ])->layout('layouts.app', ['title' => '用户管理']);
+        ])->layout('layouts.app', ['title' => __('用户管理')]);
     }
 }

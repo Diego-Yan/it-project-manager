@@ -16,7 +16,7 @@ class AiChat extends Component
     {
         $this->isOpen = !$this->isOpen;
         if ($this->isOpen && empty($this->messages)) {
-            $this->messages[] = ['role' => 'assistant', 'content' => '你好！我是 IT 助手。你可以问我关于你的工单、任务、项目、资产的问题。'];
+            $this->messages[] = ['role' => 'assistant', 'content' => __('你好！我是 IT 助手。你可以问我关于你的工单、任务、项目、资产的问题。')];
         }
     }
 
@@ -24,6 +24,26 @@ class AiChat extends Component
     {
         $input = trim($this->input);
         if (empty($input)) return;
+
+        // [REVIEW-FIX-R4 #6 P2] LLM 调用限流：防止用户频繁调用外部 API 导致成本失控。
+        // 限制：每用户每分钟最多 10 次、每小时最多 60 次。
+        // 超限时返回友好提示而非调用 LLM。
+        $userKey = 'ai_chat_rate:' . auth()->id();
+        $minuteCount = (int) \Illuminate\Support\Facades\Cache::get($userKey . ':min', 0);
+        $hourCount = (int) \Illuminate\Support\Facades\Cache::get($userKey . ':hr', 0);
+
+        if ($minuteCount >= 10) {
+            $this->messages[] = ['role' => 'assistant', 'content' => __('请求过于频繁，请稍后再试。')];
+            return;
+        }
+        if ($hourCount >= 60) {
+            $this->messages[] = ['role' => 'assistant', 'content' => __('本小时请求次数已达上限，请稍后再试。')];
+            return;
+        }
+
+        // 递增计数器
+        \Illuminate\Support\Facades\Cache::put($userKey . ':min', $minuteCount + 1, 60);
+        \Illuminate\Support\Facades\Cache::put($userKey . ':hr', $hourCount + 1, 3600);
 
         $this->messages[] = ['role' => 'user', 'content' => $input];
         $this->input = '';
@@ -34,14 +54,14 @@ class AiChat extends Component
             $this->messages[] = ['role' => 'assistant', 'content' => $reply];
         } catch (\Exception $e) {
             // [REVIEW-FIX] R10.2: 生产环境不暴露内部错误详情
-            $this->messages[] = ['role' => 'assistant', 'content' => '抱歉，AI 服务暂时不可用，请稍后重试。' . (app()->isProduction() ? '' : ' (' . $e->getMessage() . ')')];
+            $this->messages[] = ['role' => 'assistant', 'content' => __('抱歉，AI 服务暂时不可用，请稍后重试。') . (app()->isProduction() ? '' : ' (' . $e->getMessage() . ')')];
         }
 
         $this->loading = false;
         // 只保留最近 20 条消息
         if (count($this->messages) > 22) {
             $this->messages = array_slice($this->messages, -20);
-            array_unshift($this->messages, ['role' => 'assistant', 'content' => '你好！我是 IT 助手。']);
+            array_unshift($this->messages, ['role' => 'assistant', 'content' => __('你好！我是 IT 助手。')]);
         }
     }
 
@@ -52,14 +72,14 @@ class AiChat extends Component
         $model = config('services.llm.model', 'gpt-4o-mini');
 
         if (empty($url) || empty($key)) {
-            return 'AI 助手未配置。请联系管理员在 AI 配置中设置 LLM API。';
+            return __('AI 助手未配置。请联系管理员在 AI 配置中设置 LLM API。');
         }
 
         // 构建用户上下文
         $context = $this->buildContext();
 
-        $systemPrompt = "你是 IT 服务管理系统的 AI 助手。你可以用中文回答用户关于他们工单、任务、项目、资产的问题。\n"
-            . "以下是当前用户的信息，请基于这些数据回答问题。如果用户问的问题跟这些数据无关，简要说明你只能回答 IT 相关的问题。\n\n"
+        $systemPrompt = __("你是 IT 服务管理系统的 AI 助手。你可以用中文回答用户关于他们工单、任务、项目、资产的问题。\n")
+            . __("以下是当前用户的信息，请基于这些数据回答问题。如果用户问的问题跟这些数据无关，简要说明你只能回答 IT 相关的问题。\n\n")
             . $context;
 
         $messages = [
@@ -86,17 +106,17 @@ class AiChat extends Component
                 'status' => $resp->status(),
                 'body'   => $resp->body(),
             ]);
-            return 'AI 服务暂时不可用，请稍后重试。' . (app()->isProduction() ? '' : ' (' . $resp->status() . ': ' . ($resp->json()['error']['message'] ?? '未知错误') . ')');
+            return __('AI 服务暂时不可用，请稍后重试。') . (app()->isProduction() ? '' : ' (' . $resp->status() . ': ' . ($resp->json()['error']['message'] ?? __('未知错误')) . ')');
         }
 
-        return $resp->json()['choices'][0]['message']['content'] ?? '未收到回复';
+        return $resp->json()['choices'][0]['message']['content'] ?? __('未收到回复');
     }
 
     private function buildContext(): string
     {
         // [REVIEW-FIX] R10.1: 管理员可关闭上下文注入，防止敏感数据不经意外泄至外部 LLM
         if (!config('services.llm.send_context', true)) {
-            return "用户未授权发送工单/任务/项目数据。";
+            return __("用户未授权发送工单/任务/项目数据。");
         }
         $user = auth()->user();
         $lines = [];
@@ -110,9 +130,14 @@ class AiChat extends Component
             ->latest()->limit(10)->get();
 
         if ($tickets->isNotEmpty()) {
-            $lines[] = "## 工单（最近10条）";
+            $lines[] = __("## 工单（最近10条）");
             foreach ($tickets as $t) {
-                $lines[] = "- #{$t->id} [{$t->priorityLabel}优先] {$t->title} → {$t->statusLabel}" . ($t->assignee ? " ({$t->assignee->name})" : "");
+                $lines[] = __('- #:id [:priority] :title → :status', [
+                    'id' => $t->id,
+                    'priority' => $t->priorityLabel . __('优先'),
+                    'title' => $t->title,
+                    'status' => $t->statusLabel,
+                ]) . ($t->assignee ? ' (' . $t->assignee->name . ')' : '');
             }
             $lines[] = "";
         }
@@ -123,9 +148,13 @@ class AiChat extends Component
             ->with('project')->latest()->limit(5)->get();
 
         if ($tasks->isNotEmpty()) {
-            $lines[] = "## 进行中的任务";
+            $lines[] = __("## 进行中的任务");
             foreach ($tasks as $t) {
-                $lines[] = "- {$t->title} [{$t->statusLabel}] → 项目: " . ($t->project?->title ?? '未知项目') . "  // [REVIEW-FIX] SP12.5: null-safe project access";
+                $lines[] = __('- :title [:status] → 项目: :project', [
+                    'title' => $t->title,
+                    'status' => $t->statusLabel,
+                    'project' => $t->project?->title ?? __('未知项目'),
+                ]);
             }
             $lines[] = "";
         }
@@ -138,7 +167,7 @@ class AiChat extends Component
             ->latest()->limit(5)->get();
 
         if ($projects->isNotEmpty()) {
-            $lines[] = "## 参与的项目（最近5个）";
+            $lines[] = __("## 参与的项目（最近5个）");
             foreach ($projects as $p) {
                 $lines[] = "- {$p->title} [{$p->progressLabel}] {$p->completion_percent}%";
             }
@@ -148,9 +177,9 @@ class AiChat extends Component
         // 资产
         $assets = \App\Models\Asset::where('assigned_to', $user->id)->latest()->limit(5)->get();
         if ($assets->isNotEmpty()) {
-            $lines[] = "## 资产";
+            $lines[] = __("## 资产");
             foreach ($assets as $a) {
-                $warranty = $a->warranty_expiry ? "保修至{$a->warranty_expiry->format('Y-m-d')}" : "";
+                $warranty = $a->warranty_expiry ? __('保修至:date', ['date' => $a->warranty_expiry->format('Y-m-d')]) : "";
                 $lines[] = "- {$a->name} ({$a->asset_tag}) {$a->statusLabel} {$warranty}";
             }
         }

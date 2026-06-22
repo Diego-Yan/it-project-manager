@@ -27,19 +27,19 @@ class ProjectLink extends Model
     public function getLinkTypeLabelAttribute(): string
     {
         return match($this->link_type) {
-            'blocks'     => '阻断',
-            'relates_to' => '关联',
-            'parent'     => '父项目',
-            default      => '未知',
+            'blocks'     => __('阻断'),
+            'relates_to' => __('关联'),
+            'parent'     => __('父项目'),
+            default      => __('未知'),
         };
     }
 
     public function getLinkTypeDirectionLabelAttribute(): string
     {
         return match($this->link_type) {
-            'blocks'     => '→ 阻断',
-            'relates_to' => '↔ 关联',
-            'parent'     => '← 父项目',
+            'blocks'     => __('→ 阻断'),
+            'relates_to' => __('↔ 关联'),
+            'parent'     => __('← 父项目'),
             default      => '',
         };
     }

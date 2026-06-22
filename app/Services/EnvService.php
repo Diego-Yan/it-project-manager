@@ -30,58 +30,73 @@ class EnvService
             return;
         }
 
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
-        $written = [];
-        $newLines = [];
+        // [REVIEW-FIX-R1 #3 P2] 修复 TOCTOU 竞态条件：原代码先用 file() 无锁读取，
+        // 再 fopen('w')+flock 写入。读取发生在加锁之前，并发写入会导致丢失更新。
+        // 修复：以 r+ 模式打开 → 先获取排他锁 → 锁内读取最新内容 → 解析构建 → 截断重写。
+        $fp = fopen($envPath, 'r+');
+        if (! $fp) {
+            return;
+        }
 
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
+        try {
+            flock($fp, LOCK_EX);
 
-            // 注释和空行原样保留
-            if ($trimmed === '' || str_starts_with($trimmed, '#')) {
-                $newLines[] = $line;
-                continue;
+            // 锁内重新读取最新内容（避免读到加锁前的陈旧数据）
+            $content = stream_get_contents($fp);
+            $lines = $content === '' ? [] : explode("\n", $content);
+            // 移除末尾因尾部换行产生的空元素
+            if ($lines !== [] && end($lines) === '') {
+                array_pop($lines);
             }
 
-            $eqPos = strpos($trimmed, '=');
-            if ($eqPos === false) {
-                $newLines[] = $line;
-                continue;
-            }
+            $written = [];
+            $newLines = [];
 
-            $key = trim(substr($trimmed, 0, $eqPos));
+            foreach ($lines as $line) {
+                $trimmed = trim($line);
 
-            if (array_key_exists($key, $updates)) {
-                if (isset($written[$key])) {
-                    // 跳过重复的 key（去重）
+                // 注释和空行原样保留
+                if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+                    $newLines[] = $line;
                     continue;
                 }
-                $value = $updates[$key];
-                $newLines[] = $key . '=' . self::quote($value);
-                $written[$key] = true;
-            } else {
-                $newLines[] = $line;
-            }
-        }
 
-        // 追加还没有出现过的新 key
-        foreach ($updates as $key => $value) {
-            if (! isset($written[$key])) {
-                $newLines[] = $key . '=' . self::quote($value);
-            }
-        }
+                $eqPos = strpos($trimmed, '=');
+                if ($eqPos === false) {
+                    $newLines[] = $line;
+                    continue;
+                }
 
-        // 使用文件锁避免并发写入截断
-        $fp = fopen($envPath, 'w');
-        if ($fp) {
-            try {
-                flock($fp, LOCK_EX);
-                fwrite($fp, implode("\n", $newLines) . "\n");
-                fflush($fp);
-            } finally {
-                flock($fp, LOCK_UN);
-                fclose($fp);
+                $key = trim(substr($trimmed, 0, $eqPos));
+
+                if (array_key_exists($key, $updates)) {
+                    if (isset($written[$key])) {
+                        // 跳过重复的 key（去重）
+                        continue;
+                    }
+                    $value = $updates[$key];
+                    $newLines[] = $key . '=' . self::quote($value);
+                    $written[$key] = true;
+                } else {
+                    $newLines[] = $line;
+                }
             }
+
+            // 追加还没有出现过的新 key
+            foreach ($updates as $key => $value) {
+                if (! isset($written[$key])) {
+                    $newLines[] = $key . '=' . self::quote($value);
+                }
+            }
+
+            // 截断文件并重写（在锁保护下）
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, implode("\n", $newLines) . "\n");
+            fflush($fp);
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
         }
 
         // 清除配置缓存使变更生效

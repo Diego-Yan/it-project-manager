@@ -71,7 +71,11 @@ class ZabbixPoll extends Command
                         'title' => mb_substr($title, 0, 200),
                         'description' => $ticketDescription,
                         'type' => 'incident',
-                        'priority' => $severity >= 4 ? 'high' : ($severity >= 3 ? 'medium' : 'low'),
+                        // [REVIEW-FIX-R4 #1 P2] 修复 Zabbix 严重级别 → 工单优先级映射缺失 critical：
+                        // 原映射 severity>=4→high, severity>=3→medium, 其余→low，
+                        // 导致 Zabbix 灾难级告警（severity=5）只创建 high 工单，永远无法触发 critical 级别 SLA。
+                        // 修复：severity>=5→critical, >=4→high, >=3→medium, 其余→low
+                        'priority' => $severity >= 5 ? 'critical' : ($severity >= 4 ? 'high' : ($severity >= 3 ? 'medium' : 'low')),
                         'status' => 'open',
                         'source' => 'portal',
                         'created_by' => $systemUserId,

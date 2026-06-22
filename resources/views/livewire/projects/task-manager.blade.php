@@ -7,14 +7,14 @@
     @endif
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">
-            项目任务
+            {{ __('项目任务') }}
             <span class="ml-2 text-xs font-normal text-zinc-400">
-                {{ $tasks->where('status','completed')->count() }}/{{ $tasks->count() }} 已完成
+                {{ $tasks->where('status','completed')->count() }}/{{ $tasks->count() }} {{ __('已完成') }}
             </span>
         </h3>
         <button type="button" wire:click="$set('showTaskForm', true)"
             class="px-3 py-1.5 text-xs font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/60 rounded-lg transition-colors">
-            + 新建任务
+            {{ __('+ 新建任务') }}
         </button>
     </div>
 
@@ -22,26 +22,26 @@
     @if($showTaskForm)
     <div class="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700">
         <div class="space-y-3">
-            <input type="text" wire:model="taskTitle" placeholder="任务标题"
+            <input type="text" wire:model="taskTitle" placeholder="{{ __('任务标题') }}"
                 class="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500">
             @error('taskTitle') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
 
-            <textarea wire:model="taskDescription" rows="2" placeholder="任务描述（可选）"
+            <textarea wire:model="taskDescription" rows="2" placeholder="{{ __('任务描述（可选）') }}"
                 class="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500 resize-none"></textarea>
 
             <div class="grid sm:grid-cols-3 gap-3">
                 <select wire:model="taskAssignedTo"
                     class="text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-sky-500">
-                    <option value="">不分配（可认领）</option>
+                    <option value="">{{ __('不分配（可认领）') }}</option>
                     @foreach($members as $m)
                     <option value="{{ $m->id }}">{{ $m->name }}</option>
                     @endforeach
                 </select>
                 <select wire:model="taskPriority"
                     class="text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-sky-500">
-                    <option value="not_urgent">不紧急</option>
-                    <option value="normal">一般</option>
-                    <option value="urgent">紧急</option>
+                    <option value="not_urgent">{{ __('不紧急') }}</option>
+                    <option value="normal">{{ __('一般') }}</option>
+                    <option value="urgent">{{ __('紧急') }}</option>
                 </select>
                 <input type="date" wire:model="taskDueDate"
                     class="text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-sky-500">
@@ -49,10 +49,10 @@
 
             <div class="flex gap-2 justify-end">
                 <button wire:click="resetTaskForm"
-                    class="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">取消</button>
+                    class="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">{{ __('取消') }}</button>
                 <button wire:click="saveTask"
                     class="px-4 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-500 rounded-lg transition-colors">
-                    {{ $editingTask ? '保存修改' : '创建任务' }}
+                    {{ $editingTask ? __('保存修改') : __('创建任务') }}
                 </button>
             </div>
         </div>
@@ -61,7 +61,7 @@
 
     {{-- 任务列表 --}}
     @if($tasks->isEmpty())
-    <p class="text-center text-xs text-zinc-400 py-6">暂无任务</p>
+    <p class="text-center text-xs text-zinc-400 py-6">{{ __('暂无任务') }}</p>
     @else
     <div class="space-y-2">
         @foreach($tasks as $task)
@@ -106,10 +106,10 @@
                     @if($task->assignee)
                     <span>{{ $task->assignee->name }}</span>
                     @else
-                    <span class="text-zinc-400">待认领</span>
+                    <span class="text-zinc-400">{{ __('待认领') }}</span>
                     @endif
                     @if($task->due_date)
-                    <span>· {{ $task->due_date->format('m/d') }} 截止</span>
+                    <span>· {{ $task->due_date->format('m/d') }} {{ __('截止') }}</span>
                     @endif
                 </div>
 
@@ -124,11 +124,11 @@
                 @if($isMine && $task->status === 'pending_confirmation')
                 <button wire:click="confirmTask({{ $task->id }})"
                     class="px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-950/40 hover:bg-green-200 dark:hover:bg-green-950/60 rounded-lg transition-colors min-w-[44px]">
-                    确认
+                    {{ __('确认') }}
                 </button>
                 <button wire:click="rejectTask({{ $task->id }})"
                     class="px-3 py-1.5 text-xs text-zinc-500 hover:text-red-500 rounded-lg transition-colors min-w-[44px]">
-                    拒绝
+                    {{ __('拒绝') }}
                 </button>
                 @endif
 
@@ -137,7 +137,7 @@
                 @if($members->contains('id', auth()->id()))
                 <button wire:click="claimTask({{ $task->id }})"
                     class="px-3 py-1.5 text-xs font-medium text-sky-700 dark:text-sky-400 bg-sky-100 dark:bg-sky-950/40 hover:bg-sky-200 dark:hover:bg-sky-950/60 rounded-lg transition-colors min-w-[44px]">
-                    认领
+                    {{ __('认领') }}
                 </button>
                 @endif
                 @endif
@@ -146,7 +146,7 @@
                 @if($isMine && $task->status === 'in_progress')
                 <button wire:click="completeTask({{ $task->id }})"
                     class="px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-950/40 hover:bg-green-200 dark:hover:bg-green-950/60 rounded-lg transition-colors min-w-[44px]">
-                    完成
+                    {{ __('完成') }}
                 </button>
                 @endif
 
@@ -159,7 +159,7 @@
                     </svg>
                 </button>
                 <button wire:click="deleteTask({{ $task->id }})"
-                    wire:confirm="确定删除此任务？"
+                    wire:confirm="{{ __('确定删除此任务？') }}"
                     class="p-1.5 rounded text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors min-w-[36px]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -202,17 +202,17 @@
                     @endforeach
                 </div>
                 @else
-                <p class="text-xs text-zinc-400 mb-3">暂无评论</p>
+                <p class="text-xs text-zinc-400 mb-3">{{ __('暂无评论') }}</p>
                 @endif
 
                 {{-- 评论输入 --}}
                 <div class="flex gap-2">
-                    <input type="text" wire:model="newComment" placeholder="添加评论..."
+                    <input type="text" wire:model="newComment" placeholder="{{ __('添加评论...') }}"
                         wire:keydown.enter="addComment({{ $task->id }})"
                         class="flex-1 px-3 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-sky-500">
                     <button wire:click="addComment({{ $task->id }})"
                         class="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-500 rounded-lg transition-colors shrink-0">
-                        发送
+                        {{ __('发送') }}
                     </button>
                 </div>
             </div>

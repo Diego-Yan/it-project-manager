@@ -62,16 +62,21 @@ class KnowledgeBase extends Component
         }
 
         $this->resetForm();
-        session()->flash('kb_success', '文章已发布');
+        session()->flash('kb_success', __('文章已发布'));
     }
 
     public function deleteAttachment(int $attId): void
     {
         $att = KbAttachment::findOrFail($attId);
         // 只有文章作者或管理员可删除附件
-        if ($att->article->created_by != auth()->id() && !auth()->user()->can('edit knowledge')) return;
+        // [REVIEW-FIX-R7 #4 P3] 权限拒绝时给出明确反馈，与 AssetManager delete() 修复一致
+        if ($att->article->created_by != auth()->id() && !auth()->user()->can('edit knowledge')) {
+            session()->flash('kb_error', __('没有删除此附件的权限'));
+            return;
+        }
         \Storage::disk('public')->delete($att->file_path);
         $att->delete();
+        session()->flash('kb_success', __('附件已删除'));
     }
 
     public function view(int $id): void
@@ -85,7 +90,7 @@ class KnowledgeBase extends Component
         // [REVIEW-FIX] R12.8: 编辑文章前验证权限
         $article = KnowledgeArticle::findOrFail($id);
         if ($article->created_by != auth()->id() && !auth()->user()->can('edit knowledge')) {
-            session()->flash('error', '只能编辑自己创建的知识库文章');
+            session()->flash('error', __('只能编辑自己创建的知识库文章'));
             return;
         }
         $a = KnowledgeArticle::with('kbTags')->findOrFail($id);
@@ -94,7 +99,17 @@ class KnowledgeBase extends Component
         $this->showForm=true;
     }
 
-    public function delete(int $id): void { $a = KnowledgeArticle::findOrFail($id); if ($a->created_by != auth()->id() && !auth()->user()->can("edit knowledge")) return; $a->delete(); }
+    public function delete(int $id): void
+    {
+        $a = KnowledgeArticle::findOrFail($id);
+        // [REVIEW-FIX-R7 #4 P3] 权限拒绝时给出明确反馈，与其他组件 delete() 修复一致
+        if ($a->created_by != auth()->id() && !auth()->user()->can("edit knowledge")) {
+            session()->flash('kb_error', __('只能删除自己创建的知识库文章'));
+            return;
+        }
+        $a->delete();
+        session()->flash('kb_success', __('文章已删除'));
+    }
     public function resetForm(): void { $this->showForm=false; $this->editingId=null; $this->reset(['formTitle','formContent','formCategory','selectedTagIds','uploadFile']); $this->formCategory='general'; $this->selectedTagIds=[]; }
 
     public function render()
@@ -115,6 +130,6 @@ class KnowledgeBase extends Component
         $allTags = KbTag::orderBy('count','desc')->get();
 
         return view('livewire.itsm.knowledge', compact('articles','viewArticle','allTags'))
-            ->layout('layouts.app', ['title' => '知识库']);
+            ->layout('layouts.app', ['title' => __('知识库')]);
     }
 }

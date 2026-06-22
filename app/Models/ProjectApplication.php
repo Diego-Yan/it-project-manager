@@ -22,10 +22,10 @@ class ProjectApplication extends Model
     public function getStatusLabelAttribute(): string
     {
         return match($this->status) {
-            'pending'  => '待审批',
-            'approved' => '已通过',
-            'rejected' => '已拒绝',
-            default    => '未知',
+            'pending'  => __('待审批'),
+            'approved' => __('已通过'),
+            'rejected' => __('已拒绝'),
+            default    => __('未知'),
         };
     }
 }

@@ -101,12 +101,15 @@ class Dashboard extends Component
         ];
 
         // [REVIEW-FIX] C1: 最近日志按用户权限过滤 — 非管理员只看自己项目的日志
+        // [REVIEW-FIX-R6 #5 P3] 查询优化：原 whereHas('project', fn($sub) => $sub->whereHas('members'...)
+        //   产生三层嵌套子查询 SQL，性能差。
+        // 优化：先查出用户参与的 project_ids（1次查询），再用 whereIn 过滤日志（1次简单 IN 查询）。
         $recentLogs = ProjectLog::with(['user', 'project'])
             ->when(!$isAdmin, function ($q) use ($user) {
-                $q->whereHas('project', function ($sub) use ($user) {
-                    $sub->whereHas('members', fn($m) => $m->where('user_id', $user->id))
-                        ->orWhere('created_by', $user->id);
-                });
+                $myProjectIds = $user->assignedProjects()->pluck('project_id')
+                    ->merge(\App\Models\Project::where('created_by', $user->id)->pluck('id'))
+                    ->unique()->values()->toArray();
+                $q->whereIn('project_id', $myProjectIds);
             })
             ->latest('created_at')->limit(10)->get();
 
@@ -126,6 +129,6 @@ class Dashboard extends Component
         return view('livewire.dashboard', compact(
             'stats', 'byCategory', 'byProgress', 'recentLogs', 'upcomingDeadlines',
             'pendingTasks', 'myTasks', 'pendingApplications', 'taskStats'
-        ))->layout('layouts.app', ['title' => '仪表盘']);
+        ))->layout('layouts.app', ['title' => __('仪表盘')]);
     }
 }
